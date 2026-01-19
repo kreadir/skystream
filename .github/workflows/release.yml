@@ -1,0 +1,188 @@
+name: Build & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_android:
+        description: 'Build Android'
+        required: true
+        default: true
+        type: boolean
+      build_ios:
+        description: 'Build iOS'
+        required: true
+        default: true
+        type: boolean
+      build_macos:
+        description: 'Build macOS'
+        required: true
+        default: true
+        type: boolean
+      build_windows:
+        description: 'Build Windows'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    name: Get Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract Version from pubspec.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep 'version:' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Create Dummy Assets Dir
+        run: mkdir -p assets/plugins/
+
+  android:
+    name: Android Build
+    needs: version
+    if: ${{ github.event.inputs.build_android == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      
+      - name: Install Dependencies
+        run: flutter pub get
+        
+      - name: Build Split APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build Universal APK
+        run: flutter build apk --release
+
+      - name: Rename APKs
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          cd build/app/outputs/flutter-apk/
+          for f in app-*-release.apk; do
+            if [ -f "$f" ]; then
+              if [ "$f" == "app-release.apk" ]; then
+                mv "$f" "../../../../skystream-android-universal-${VERSION}.apk"
+              else
+                # Extract ABI: app-<abi>-release.apk -> <abi>
+                abi="${f#app-}"
+                abi="${abi%-release.apk}"
+                mv "$f" "../../../../skystream-android-${abi}-${VERSION}.apk"
+              fi
+            fi
+          done
+
+      - name: Upload Release Assets
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.version.outputs.version }}
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: "*.apk"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  ios:
+    name: iOS Build (Unsigned)
+    needs: version
+    if: ${{ github.event.inputs.build_ios == 'true' }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: Install Dependencies
+        run: flutter pub get
+        
+      - name: Build iOS (No Codesign)
+        run: |
+          flutter build ios --release --no-codesign
+          mkdir -p Payload
+          mv build/ios/iphoneos/Runner.app Payload/
+          zip -r skystream-ios-unsigned-${{ needs.version.outputs.version }}.ipa Payload
+          
+      - name: Upload Release Assets
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.version.outputs.version }}
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: "skystream-ios-unsigned-${{ needs.version.outputs.version }}.ipa"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  macos:
+    name: macOS Build
+    needs: version
+    if: ${{ github.event.inputs.build_macos == 'true' }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: Install Dependencies
+        run: |
+          flutter config --enable-macos-desktop
+          flutter pub get
+          
+      - name: Build macOS
+        run: flutter build macos --release
+        
+      - name: Zip Bundle
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          cd build/macos/Build/Products/Release
+          zip -r "../../../../../skystream-macos-${VERSION}.zip" skystream.app
+
+      - name: Upload Release Assets
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.version.outputs.version }}
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: "skystream-macos-${{ needs.version.outputs.version }}.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  windows:
+    name: Windows Build
+    needs: version
+    if: ${{ github.event.inputs.build_windows == 'true' }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: Install Dependencies
+        run: |
+          flutter config --enable-windows-desktop
+          flutter pub get
+          
+      - name: Build Windows
+        run: flutter build windows --release
+        
+      - name: Compress Release
+        run: |
+          $Version = "${{ needs.version.outputs.version }}"
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "skystream-windows-$Version.zip"
+
+      - name: Upload Release Assets
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.version.outputs.version }}
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: "skystream-windows-${{ needs.version.outputs.version }}.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}

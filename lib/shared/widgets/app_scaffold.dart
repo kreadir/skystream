@@ -1,0 +1,102 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:skystream/core/providers/device_info_provider.dart';
+import 'package:skystream/shared/widgets/custom_bottom_nav.dart';
+
+class AppScaffold extends ConsumerStatefulWidget {
+  final Widget child;
+  const AppScaffold({super.key, required this.child});
+
+  @override
+  ConsumerState<AppScaffold> createState() => _AppScaffoldState();
+}
+
+class _AppScaffoldState extends ConsumerState<AppScaffold> {
+  int _calculateSelectedIndex(BuildContext context) {
+    final String location = GoRouterState.of(context).uri.toString();
+    if (location.startsWith('/home')) return 0;
+    if (location.startsWith('/search')) return 1;
+    if (location.startsWith('/library')) return 2;
+    if (location.startsWith('/settings')) return 3;
+    return 0;
+  }
+
+  void _onItemTapped(int index, BuildContext context) {
+    switch (index) {
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/search');
+        break;
+      case 2:
+        context.go('/library');
+        break;
+      case 3:
+        context.go('/settings');
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final deviceProfileAsync = ref.watch(deviceProfileProvider);
+
+    return deviceProfileAsync.when(
+      data: (profile) {
+        // Desktop or TV use Side Navigation
+        if (profile.isLargeScreen) {
+          return Scaffold(
+            body: Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _calculateSelectedIndex(context),
+                  onDestinationSelected: (index) => _onItemTapped(index, context),
+                  labelType: NavigationRailLabelType.all,
+                  groupAlignment: 0.0, // Center
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.search),
+                      label: Text('Search'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.library_books_outlined),
+                      selectedIcon: Icon(Icons.library_books),
+                      label: Text('Library'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.settings_outlined),
+                      selectedIcon: Icon(Icons.settings),
+                      label: Text('Settings'),
+                    ),
+                  ],
+                ),
+                const VerticalDivider(thickness: 1, width: 1),
+                Expanded(
+                  child: widget.child,
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Mobile uses Bottom Navigation
+        return Scaffold(
+          body: widget.child,
+          bottomNavigationBar: CustomBottomNavBar(
+            currentIndex: _calculateSelectedIndex(context),
+            onTap: (index) => _onItemTapped(index, context),
+          ),
+        );
+      },
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+    );
+  }
+}
