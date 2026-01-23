@@ -32,6 +32,11 @@ class CustomBottomNavBar extends StatelessWidget {
         height: 65,
         destinations: [
            NavigationDestination(
+            icon: const Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard, color: Theme.of(context).colorScheme.primary),
+            label: 'Dashboard',
+          ),
+           NavigationDestination(
             icon: const Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home, color: Theme.of(context).colorScheme.primary),
             label: 'Home',

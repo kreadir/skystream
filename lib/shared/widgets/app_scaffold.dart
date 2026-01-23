@@ -15,25 +15,29 @@ class AppScaffold extends ConsumerStatefulWidget {
 class _AppScaffoldState extends ConsumerState<AppScaffold> {
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.toString();
-    if (location.startsWith('/home')) return 0;
-    if (location.startsWith('/search')) return 1;
-    if (location.startsWith('/library')) return 2;
-    if (location.startsWith('/settings')) return 3;
+    if (location.startsWith('/dashboard')) return 0;
+    if (location.startsWith('/home')) return 1;
+    if (location.startsWith('/search')) return 2;
+    if (location.startsWith('/library')) return 3;
+    if (location.startsWith('/settings')) return 4;
     return 0;
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.go('/home');
+        context.go('/dashboard');
         break;
       case 1:
-        context.go('/search');
+        context.go('/home');
         break;
       case 2:
-        context.go('/library');
+        context.go('/search');
         break;
       case 3:
+        context.go('/library');
+        break;
+      case 4:
         context.go('/settings');
         break;
     }
@@ -56,6 +60,11 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                   labelType: NavigationRailLabelType.all,
                   groupAlignment: 0.0, // Center
                   destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.dashboard_outlined),
+                      selectedIcon: Icon(Icons.dashboard),
+                      label: Text('Dashboard'),
+                    ),
                     NavigationRailDestination(
                       icon: Icon(Icons.home_outlined),
                       selectedIcon: Icon(Icons.home),

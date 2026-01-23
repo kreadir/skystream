@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:skystream/features/home/presentation/home_screen.dart';
 import 'package:skystream/features/search/presentation/search_screen.dart';
+import '../../features/dashboard/presentation/dashboard_screen.dart';
 import 'package:skystream/features/library/presentation/library_screen.dart';
 import 'package:skystream/features/settings/presentation/settings_screen.dart';
 import '../../features/extensions/screens/extensions_screen.dart';
@@ -19,7 +20,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final shellNavigatorKey = GlobalKey<NavigatorState>();
 
   return GoRouter(
-    initialLocation: '/home',
+    initialLocation: '/dashboard',
     navigatorKey: rootNavigatorKey,
     routes: [
       ShellRoute(
@@ -28,6 +29,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return AppScaffold(child: child);
         },
         routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => const DashboardScreen(),
+          ),
           GoRoute(
             path: '/home',
             builder: (context, state) => const HomeScreen(),
