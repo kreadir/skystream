@@ -38,12 +38,12 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog> with 
           width: double.infinity,
           constraints: const BoxConstraints(maxHeight: 650, maxWidth: 500),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.8),
+            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9), // Glassmorphism base
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white12, width: 1),
+            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5), width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withOpacity(0.2), // Shadow always black
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               )
@@ -54,8 +54,8 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog> with 
             children: [
               // Header & Tabs
               Container(
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.white12)),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
                 ),
                 child: Column(
                   children: [
@@ -65,14 +65,14 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog> with 
                         children: [
                           const Icon(Icons.tune, color: Colors.blueAccent, size: 28),
                           const SizedBox(width: 12),
-                          const Text(
+                          Text(
                             "Filters",
-                            style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                           const Spacer(),
                           IconButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(Icons.close, color: Colors.white70),
+                            icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface),
                             splashRadius: 24,
                           ),
                         ],
@@ -82,7 +82,7 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog> with 
                       controller: _tabController,
                       indicatorColor: Colors.blueAccent,
                       labelColor: Colors.blueAccent,
-                      unselectedLabelColor: Colors.white54,
+                      unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
                       labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       tabs: [
                         const Tab(
@@ -265,19 +265,19 @@ class _RatingTab extends ConsumerWidget {
             color:
                 isSelected
                     ? Colors.blueAccent
-                    : (rating == null ? Colors.white24 : Colors.amber),
+                    : (rating == null ? Theme.of(context).colorScheme.onSurface.withOpacity(0.3) : Colors.amber),
           ),
           title: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.white70,
+              color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
           subtitle: Text(
             subtitle,
             style: TextStyle(
-              color: isSelected ? Colors.white70 : Colors.white38,
+              color: isSelected ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant,
               fontSize: 12,
             ),
           ),
@@ -320,9 +320,9 @@ class _LanguageTab extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+              color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isSelected ? Colors.blueAccent : Colors.white10),
+              border: Border.all(color: isSelected ? Colors.blueAccent : Theme.of(context).dividerColor.withOpacity(0.1)),
             ),
             child: Row(
               children: [
@@ -332,7 +332,7 @@ class _LanguageTab extends ConsumerWidget {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected ? Colors.blueAccent : Colors.white24,
+                    color: isSelected ? Colors.blueAccent : Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                   ),
                   child: Text(
                     lang.code.split('-')[0].toUpperCase(),
@@ -348,14 +348,14 @@ class _LanguageTab extends ConsumerWidget {
                       Text(
                         lang.name,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white70,
+                          color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
                       ),
                       Text(
                         lang.nativeName,
-                        style: TextStyle(color: isSelected ? Colors.white70 : Colors.white38, fontSize: 12),
+                        style: TextStyle(color: isSelected ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                       ),
                     ],
                   ),
@@ -416,12 +416,12 @@ class _GenreTab extends ConsumerWidget {
             tileColor: isSelected ? Colors.blueAccent.withOpacity(0.2) : null,
             leading: Icon(
               isSelected ? Icons.check_circle : Icons.circle_outlined,
-              color: isSelected ? Colors.blueAccent : Colors.white24,
+              color: isSelected ? Colors.blueAccent : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
             ),
             title: Text(
               genre['name'],
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
+                color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -498,7 +498,7 @@ class _YearTab extends ConsumerWidget {
             child: Text(
               year.toString(),
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
+                color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 fontSize: 16,
               ),

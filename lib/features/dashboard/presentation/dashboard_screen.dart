@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/tmdb_config.dart';
@@ -17,16 +18,28 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   late ScrollController _scrollController;
+  final ValueNotifier<bool> _isScrolledNotifier = ValueNotifier<bool>(false);
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final isScrolled = _scrollController.offset > 200; // Threshold for status bar switch
+    if (isScrolled != _isScrolledNotifier.value) {
+      _isScrolledNotifier.value = isScrolled;
+    }
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _isScrolledNotifier.dispose();
     super.dispose();
   }
 
@@ -42,55 +55,40 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final topRatedTVAsync = ref.watch(topRatedTVProvider);
     final airingTodayTVAsync = ref.watch(airingTodayTVProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.black, // Base background
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        forceMaterialTransparency: true,
-        backgroundColor: Colors.transparent,
+    return ValueListenableBuilder<bool>(
+      valueListenable: _isScrolledNotifier,
+      builder: (context, isScrolled, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final overlayStyle = isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark;
+
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Base background
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            systemOverlayStyle: overlayStyle,
+            forceMaterialTransparency: true,
+            backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: AnimatedBuilder(
           animation: _scrollController,
           builder: (context, child) {
             double offset = 0;
             if (_scrollController.hasClients) {
-              offset = _scrollController.offset * 0.6;
+              offset = _scrollController.offset * 0.8;
             }
             // Transition to black over 300 pixels
             final opacity = (offset / 300).clamp(0.0, 1.0);
 
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                // initial gradient for readability
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.8),
-                        Colors.black.withOpacity(0.4),
-                        Colors.transparent,
-                      ],
-                      stops: const [0.0, 0.5, 1.0],
-                    ),
-                  ),
-                ),
-
-                // Fade in solid black on scroll
-                Opacity(
-                  opacity: opacity,
-                  child: Container(color: Colors.black),
-                ),
-              ],
+            return Opacity(
+              opacity: opacity,
+              child: Container(color: Theme.of(context).scaffoldBackgroundColor),
             );
           },
         ),
-        title: const Text(
+        title: Text(
           "SkyStream",
           style: TextStyle(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 24,
             fontWeight: FontWeight.w900,
             letterSpacing: 1.2,
@@ -120,11 +118,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   return CircleAvatar(
                     backgroundColor: hasActiveFilter
                         ? Colors.blueAccent
-                        : Colors.white24,
+                        : Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                     radius: 18,
-                    child: const Icon(
+                    child: Icon(
                       Icons.tune,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       size: 18,
                     ),
                   );
@@ -137,10 +135,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
-              backgroundColor: Colors.white24,
+              backgroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
               radius: 18,
               child: IconButton(
-                icon: const Icon(Icons.search, color: Colors.white, size: 18),
+                icon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurface, size: 18),
                 padding: EdgeInsets.zero,
                 onPressed: () {},
               ),
@@ -213,6 +211,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ],
       ),
     );
+  },
+);
   }
 
   Widget _buildSection(
@@ -228,7 +228,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         height: 250,
         child: Center(
           child: CircularProgressIndicator(
-            color: Colors.white.withOpacity(0.3),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
           ),
         ),
       ),

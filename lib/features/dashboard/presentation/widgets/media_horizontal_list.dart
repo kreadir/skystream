@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/config/tmdb_config.dart';
+import '../../../details/presentation/tmdb_movie_details_screen.dart';
 
 class MediaHorizontalList extends StatelessWidget {
   final String title;
@@ -32,10 +33,10 @@ class MediaHorizontalList extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -59,24 +60,24 @@ class MediaHorizontalList extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     children: [
-                      const Text(
+                      Text(
                         "View All",
                         style: TextStyle(
-                          color: Colors.white70,
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward_ios,
                         size: 10,
-                        color: Colors.white70,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                       ),
                     ],
                   ),
@@ -100,50 +101,69 @@ class MediaHorizontalList extends StatelessWidget {
               final imageUrl = posterPath != null
                   ? '${TmdbConfig.imageBaseUrl}$posterPath'
                   : 'https://via.placeholder.com/150x225';
-              final title = item['title'] ?? item['name'] ?? 'Unknown';
+              final itemTitle = item['title'] ?? item['name'] ?? 'Unknown';
+              final uniqueTag = 'list_${this.title}_${item['id']}_${itemTitle.hashCode}';
+              final mediaType = item['media_type'] ?? (item['title'] != null ? 'movie' : 'tv');
 
-              return SizedBox(
-                width: 130, // Fixed width for poster
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Poster Image
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey[900],
-                            child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: Colors.grey[800],
-                            child: const Icon(
-                              Icons.error_outline,
-                              color: Colors.white24,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => TmdbMovieDetailsScreen(
+                        movieId: item['id'],
+                        mediaType: mediaType,
+                        heroTag: uniqueTag, 
+                        placeholderPoster: imageUrl,
+                      ),
+                    ),
+                  );
+                },
+                child: SizedBox(
+                  width: 130, // Fixed width for poster
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Poster Image
+                      Expanded(
+                        child: Hero(
+                          tag: uniqueTag,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              placeholder: (context, url) => Container(
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                child: const Center(
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                child: Icon(
+                                  Icons.error_outline,
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Title below poster
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 8),
+                      // Title below poster
+                      Text(
+                        itemTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },

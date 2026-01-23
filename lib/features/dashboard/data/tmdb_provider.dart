@@ -142,23 +142,39 @@ final dashboardHeroMovieProvider = FutureProvider<List<Map<String, dynamic>>>((
     // Take top 5
     final topMovies = trending
         .take(5)
+        .where((m) => m['media_type'] != 'person')
         .map((m) => Map<String, dynamic>.from(m))
         .toList();
-    final service = ref.read(
-      tmdbServiceProvider,
-    ); // Keep read here for internal calls
+    final service = ref.read(tmdbServiceProvider);
+    
+    // Fetch genres to map IDs
+    final allGenres = await ref.watch(genresProvider.future);
+    final genreMap = {for (var g in allGenres) g['id']: g['name']};
 
-    // Fetch logos for all 5 in parallel
+    // Fetch logos and map genres for all 5 in parallel
     await Future.wait(
       topMovies.map((movie) async {
-        // getBestLogo now handles international/textless priority internally
+        final mediaType = movie['media_type'] ?? 'movie';
+        
+        // 1. Fetch Logo
         final logoUrl = await service.getBestLogo(
           movie['id'],
           language: lang,
-        ); // Pass lang here too
+          mediaType: mediaType,
+        );
         if (logoUrl != null) {
           movie['logo_url'] = logoUrl;
         }
+
+        // 2. Map Genres
+        final genreIds = List<int>.from(movie['genre_ids'] ?? []);
+        final genreNames = genreIds
+            .map((id) => genreMap[id])
+            .where((name) => name != null)
+            .take(3)
+            .join(' • ');
+        
+        movie['genres_str'] = genreNames;
       }),
     );
 

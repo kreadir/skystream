@@ -143,71 +143,127 @@ class TmdbService {
     }
   }
 
-  /// Fetches images (logos, backdrops, posters) for a movie.
-  /// Returns the URL of the best available logo.
-  /// Prioritizes: Requested Language -> 'null' (International/Textless) -> English -> Any Wide Image.
-  Future<String?> getBestLogo(int movieId, {String language = 'en'}) async {
+  Future<String?> getBestLogo(int id, {String language = 'en', String mediaType = 'movie'}) async {
     try {
-      // 1. Fetch images with specific focus on the requested language + 'null' (often used for textless logos)
       final response = await _dio.get(
-        '/movie/$movieId/images',
+        '/$mediaType/$id/images',
         queryParameters: {
           'api_key': TmdbConfig.apiKey,
-          'include_image_language': '$language,null,en', // Prioritize these
+          'include_image_language': '$language,null,en', 
         },
       );
 
       if (response.statusCode == 200) {
         final data = response.data;
         final logos = List<Map<String, dynamic>>.from(data['logos'] ?? []);
+        return pickBestLogo(logos, language);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 
-        if (logos.isEmpty) return null;
+  /// Reusable logic to pick the best logo from a list of TMDB logo objects.
+  static String? pickBestLogo(List<Map<String, dynamic>> logos, String language) {
+    if (logos.isEmpty) return null;
+    
+    // Normalize language (e.g., 'en-US' -> 'en')
+    final langCode = language.split('-')[0];
 
-        // Helper to find logo matching criteria
-        Map<String, dynamic> findLogo(bool Function(Map<String, dynamic>) test) {
-          return logos.firstWhere(test, orElse: () => {});
-        }
+    // Helper to find logo matching criteria
+    Map<String, dynamic> findLogo(bool Function(Map<String, dynamic>) test) {
+      return logos.firstWhere(test, orElse: () => {});
+    }
 
-        var bestLogo = <String, dynamic>{};
+    var bestLogo = <String, dynamic>{};
 
-        // --- Priority 1: Exact Language Match (SVG > PNG) ---
-        // often locally branded titles
-        bestLogo = findLogo((l) => l['iso_639_1'] == language && l['file_path'].toString().endsWith('.svg'));
-        if (bestLogo.isEmpty) {
-           bestLogo = findLogo((l) => l['iso_639_1'] == language && l['file_path'].toString().endsWith('.png'));
-        }
+    // --- Priority 1: Exact Language Match (PNG > SVG) ---
+    bestLogo = findLogo((l) => l['iso_639_1'] == langCode && l['file_path'].toString().endsWith('.png'));
+    if (bestLogo.isEmpty) {
+       bestLogo = findLogo((l) => l['iso_639_1'] == langCode && l['file_path'].toString().endsWith('.svg'));
+    }
 
-        // --- Priority 2: International / Textless (iso_639_1 == null) (SVG > PNG) ---
-        // extremely common for big blockbusters, cleaner look
-        if (bestLogo.isEmpty) {
-           bestLogo = findLogo((l) => l['iso_639_1'] == null && l['file_path'].toString().endsWith('.svg'));
-        }
-        if (bestLogo.isEmpty) {
-           bestLogo = findLogo((l) => l['iso_639_1'] == null && l['file_path'].toString().endsWith('.png'));
-        }
+    // --- Priority 2: English (PNG > SVG) ---
+    // Moved above Textless because usually we want a readable title if exact match fails
+    if (bestLogo.isEmpty && langCode != 'en') {
+       bestLogo = findLogo((l) => l['iso_639_1'] == 'en' && l['file_path'].toString().endsWith('.png'));
+    }
+    if (bestLogo.isEmpty && langCode != 'en') {
+       bestLogo = findLogo((l) => l['iso_639_1'] == 'en' && l['file_path'].toString().endsWith('.svg'));
+    }
 
-        // --- Priority 3: English (SVG > PNG) ---
-        // Fallback for most content
-        if (bestLogo.isEmpty && language != 'en') {
-           bestLogo = findLogo((l) => l['iso_639_1'] == 'en' && l['file_path'].toString().endsWith('.svg'));
-        }
-        if (bestLogo.isEmpty && language != 'en') {
-           bestLogo = findLogo((l) => l['iso_639_1'] == 'en' && l['file_path'].toString().endsWith('.png'));
-        }
+    // --- Priority 3: International / Textless (iso_639_1 == null) (PNG > SVG) ---
+    if (bestLogo.isEmpty) {
+       bestLogo = findLogo((l) => l['iso_639_1'] == null && l['file_path'].toString().endsWith('.png'));
+    }
+    if (bestLogo.isEmpty) {
+       bestLogo = findLogo((l) => l['iso_639_1'] == null && l['file_path'].toString().endsWith('.svg'));
+    }
 
-        // --- Priority 4: Any Wide PNG ---
-        if (bestLogo.isEmpty) {
-          bestLogo = findLogo((l) => (l['aspect_ratio'] ?? 0) > 1);
-        }
+    // --- Priority 4: Any Wide PNG ---
+    if (bestLogo.isEmpty) {
+      bestLogo = findLogo((l) => (l['aspect_ratio'] ?? 0) > 1);
+    }
 
-        // --- Fallback ---
-        if (bestLogo.isEmpty) {
-          bestLogo = logos.first;
-        }
+    // --- Fallback ---
+    if (bestLogo.isEmpty) {
+      bestLogo = logos.first;
+    }
 
-        if (bestLogo.isNotEmpty && bestLogo['file_path'] != null) {
-          return '${TmdbConfig.imageBaseUrl}${bestLogo['file_path']}';
-        }
+    if (bestLogo.isNotEmpty && bestLogo['file_path'] != null) {
+      return '${TmdbConfig.imageBaseUrl}${bestLogo['file_path']}';
+    }
+    return null;
+  }
+  Future<Map<String, dynamic>?> getMovieDetails(int movieId, {String language = 'en-US'}) async {
+    try {
+      final response = await _dio.get(
+        '/movie/$movieId',
+        queryParameters: {
+          'api_key': TmdbConfig.apiKey,
+          'language': language,
+          'append_to_response': 'credits,videos,images,release_dates,translations',
+          'include_image_language': '$language,null,en',
+        },
+      );
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Helper to fetch specific credits if not using append_to_response
+  Future<Map<String, dynamic>?> getCredits(int movieId, {String language = 'en-US'}) async {
+    try {
+      final response = await _dio.get(
+        '/movie/$movieId/credits',
+        queryParameters: {'api_key': TmdbConfig.apiKey, 'language': language},
+      );
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+  Future<Map<String, dynamic>?> getTvDetails(int tvId, {String language = 'en-US'}) async {
+    try {
+      final response = await _dio.get(
+        '/tv/$tvId',
+        queryParameters: {
+          'api_key': TmdbConfig.apiKey,
+          'language': language,
+          'append_to_response': 'credits,videos,images,content_ratings,translations',
+          'include_image_language': '$language,null,en',
+        },
+      );
+      if (response.statusCode == 200) {
+        return response.data;
       }
       return null;
     } catch (e) {

@@ -1,7 +1,9 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/config/tmdb_config.dart';
+import '../../../details/presentation/tmdb_movie_details_screen.dart';
 
 class DashboardCarousel extends StatefulWidget {
   final List<Map<String, dynamic>> movies;
@@ -25,7 +27,7 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
     if (widget.movies.isEmpty) return const SizedBox.shrink();
 
     final size = MediaQuery.of(context).size;
-    final heroHeight = size.height * 0.70;
+    final heroHeight = size.height * 0.60;
 
     return SizedBox(
       height: heroHeight,
@@ -68,8 +70,8 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
                   margin: const EdgeInsets.symmetric(horizontal: 4.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
-                    color: Colors.white.withOpacity(
-                      _currentIndex == entry.key ? 0.9 : 0.4,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(
+                      _currentIndex == entry.key ? 0.9 : 0.3, // Slightly lower opacity for inactive
                     ),
                   ),
                 );
@@ -77,6 +79,23 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _navigateToDetails(BuildContext context, Map<String, dynamic> movie) {
+    // Determine type: 'title' usually implies movie, 'name' implies TV
+    // But better to check 'media_type' if available (trending/search provides it), 
+    // fallback to title check.
+    String mediaType = movie['media_type'] ?? (movie['title'] != null ? 'movie' : 'tv');
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => TmdbMovieDetailsScreen(
+          movieId: movie['id'],
+          mediaType: mediaType,
+          heroTag: 'hero_${movie['id']}',
+        ),
       ),
     );
   }
@@ -100,254 +119,226 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
     final year = releaseDate.isNotEmpty ? releaseDate.split('-')[0] : '';
     final isMovie = movie['title'] != null;
     final type = isMovie ? "Movie" : "TV Show";
-    const genre = "Action"; // Placeholder
-
-    final metadata = "$type • $genre${year.isNotEmpty ? ' • $year' : ''}";
+    final genres = movie['genres_str'] as String? ?? '';
+    
+    final metadata = [
+      type,
+      if (genres.isNotEmpty) genres,
+      if (year.isNotEmpty) year,
+    ].join(' • ');
 
     // Use a locally scoped AnimatedBuilder if controller exists
     if (widget.scrollController == null) {
       return _buildStaticItem(
+        context,
         imageUrl,
         logoUrl,
         title,
         isMovie,
         metadata,
         height,
+        movie,
       );
     }
 
-    return AnimatedBuilder(
-      animation: widget.scrollController!,
-      builder: (context, child) {
-        double scrollOffset = 0.0;
-        if (widget.scrollController!.hasClients) {
-          scrollOffset = widget.scrollController!.offset;
-        }
+    return GestureDetector(
+      onTap: () => _navigateToDetails(context, movie),
+      child: AnimatedBuilder(
+        animation: widget.scrollController!,
+        builder: (context, child) {
+          double scrollOffset = 0.0;
+          if (widget.scrollController!.hasClients) {
+            scrollOffset = widget.scrollController!.offset;
+          }
 
-        // Parallax effect: Background moves slower than foreground
-        final parallaxOffset = scrollOffset * 0.1;
+          // Parallax effect: Background moves slower than foreground
+          final parallaxOffset = scrollOffset * 0.1;
 
-        // Content effect: Slide up faster and fade out
-        final contentOffset = -scrollOffset * 0.2;
-        final opacity = (1.0 - (scrollOffset / (height * 0.5))).clamp(0.0, 1.0);
+          // Content effect: Slide up faster and fade out
+          final contentOffset = -scrollOffset * 0.2;
+          final opacity = (1.0 - (scrollOffset / (height * 0.5))).clamp(
+            0.0,
+            1.0,
+          );
 
-        return ClipRect(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // 1. Parallax Background
-              Transform.translate(
-                offset: Offset(0, parallaxOffset),
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
-                  height: height,
-                  width: double.infinity,
-                  placeholder: (context, url) =>
-                      Container(color: Colors.black12),
-                  errorWidget: (context, url, error) =>
-                      Container(color: Colors.black),
+          return ClipRect(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // 1. Parallax Background
+                Transform.translate(
+                  offset: Offset(0, parallaxOffset),
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    height: height,
+                    width: double.infinity,
+                    placeholder: (context, url) =>
+                        Container(color: Colors.black12),
+                    errorWidget: (context, url, error) =>
+                        Container(color: Colors.black),
+                  ),
                 ),
-              ),
 
-              // 2. Static Gradient
-              Transform.translate(
-                offset: Offset(0, parallaxOffset),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black12,
-                        Colors.transparent,
-                        Colors.black54,
-                        Colors.black87,
-                        Colors.black,
-                      ],
-                      stops: [0.0, 0.4, 0.6, 0.85, 1.0],
+                // 2. Static Gradient
+                Transform.translate(
+                  offset: Offset(0, parallaxOffset),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Theme.of(context).scaffoldBackgroundColor.withOpacity(0.0),
+                          Theme.of(context).scaffoldBackgroundColor.withOpacity(0.0),
+                          Theme.of(context).scaffoldBackgroundColor.withOpacity(0.6),
+                          Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+                          Theme.of(context).scaffoldBackgroundColor,
+                        ],
+                        stops: const [0.0, 0.4, 0.6, 0.85, 1.0],
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              // 3. Animated Content
-              Positioned(
-                left: 24,
-                right: 24,
-                bottom: 50,
-                child: Transform.translate(
-                  offset: Offset(0, contentOffset),
-                  child: Opacity(
-                    opacity: opacity,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Logo or Title Fallback
-                        if (logoUrl != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 24.0),
-                            child: Image.network(
-                              logoUrl,
-                              height: 140,
-                              width: 300,
-                              fit: BoxFit.contain,
-                              alignment: Alignment.bottomCenter,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _buildTitleFallback(title),
-                            ),
-                          )
-                        else
-                          _buildTitleFallback(title),
+                // 3. Animated Content
+                Positioned(
+                  left: 24,
+                  right: 24,
+                  bottom: 50,
+                  child: Transform.translate(
+                    offset: Offset(0, contentOffset),
+                    child: Opacity(
+                      opacity: opacity,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Logo or Title Fallback
+                          if (logoUrl != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 24.0),
+                              child: _buildLogo(logoUrl, title),
+                            )
+                          else
+                            _buildTitleFallback(title),
 
-                        // Metadata Row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              isMovie ? Icons.movie_outlined : Icons.tv,
-                              color: Colors.white70,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              metadata,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                shadows: [
-                                  Shadow(color: Colors.black, blurRadius: 4),
-                                ],
+                          // Metadata Row
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isMovie ? Icons.movie_outlined : Icons.tv,
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                size: 16,
                               ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 32),
-
-                        // Action Buttons
-                        _buildButtons(),
-                        const SizedBox(height: 20),
-                      ],
+                              const SizedBox(width: 6),
+                              Text(
+                                metadata,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  shadows: [
+                                    if (Theme.of(context).brightness == Brightness.dark)
+                                      const Shadow(color: Colors.black, blurRadius: 4),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
   Widget _buildStaticItem(
+    BuildContext context,
     String imageUrl,
     String? logoUrl,
     String title,
     bool isMovie,
     String metadata,
     double height,
+    Map<String, dynamic> movie,
   ) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        CachedNetworkImage(
-          imageUrl: imageUrl,
-          fit: BoxFit.cover,
-          height: height,
-          width: double.infinity,
-        ),
-        Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black12,
-                Colors.transparent,
-                Colors.black87,
-                Colors.black,
-              ],
-              stops: [0.0, 0.4, 0.85, 1.0],
+    return GestureDetector(
+      onTap: () => _navigateToDetails(context, movie),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CachedNetworkImage(
+            imageUrl: imageUrl,
+            fit: BoxFit.cover,
+            height: height,
+            width: double.infinity,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Theme.of(context).scaffoldBackgroundColor.withOpacity(0.0),
+                  Theme.of(context).scaffoldBackgroundColor.withOpacity(0.0),
+                  Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+                  Theme.of(context).scaffoldBackgroundColor,
+                ],
+                stops: const [0.0, 0.4, 0.85, 1.0],
+              ),
             ),
           ),
-        ),
-        Positioned(
-          left: 24,
-          right: 24,
-          bottom: 50,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (logoUrl != null)
-                Image.network(
-                  logoUrl,
-                  height: 140,
-                  width: 300,
-                  fit: BoxFit.contain,
-                )
-              else
-                _buildTitleFallback(title),
-              Text(metadata, style: const TextStyle(color: Colors.white)),
-              const SizedBox(height: 32),
-              _buildButtons(),
-              const SizedBox(height: 20),
-            ],
+          Positioned(
+            left: 24,
+            right: 24,
+            bottom: 30, // Adjusted from 50
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (logoUrl != null)
+                  _buildLogo(logoUrl, title)
+                else
+                  _buildTitleFallback(title),
+                Text(metadata, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ElevatedButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.play_arrow, color: Colors.black, size: 28),
-          label: const Text(
-            "Play",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-            elevation: 0,
-          ),
+  Widget _buildLogo(String logoUrl, String title) {
+    if (logoUrl.toLowerCase().endsWith('.svg')) {
+      return SvgPicture.network(
+        logoUrl,
+        height: 140,
+        width: 300,
+        fit: BoxFit.contain,
+        placeholderBuilder: (context) => const SizedBox(
+          height: 140,
+          width: 300,
         ),
-        const SizedBox(width: 16),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {},
-            customBorder: const CircleBorder(),
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.2),
-                border: Border.all(color: Colors.white30, width: 1),
-              ),
-              child: const Icon(
-                Icons.bookmark_outline,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-          ),
-        ),
-      ],
+      );
+    }
+    return CachedNetworkImage(
+      imageUrl: logoUrl,
+      height: 140,
+      width: 300,
+      fit: BoxFit.contain,
+      alignment: Alignment.bottomCenter,
+      placeholder: (context, url) => const SizedBox(
+        height: 140,
+        width: 300,
+      ),
+      errorWidget: (context, url, error) => _buildTitleFallback(title),
     );
   }
 
@@ -355,13 +346,18 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Text(
-        title,
+        title.toUpperCase(),
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 42,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 40,
+          fontFamily: 'RobotoCondensed',
           fontWeight: FontWeight.w900,
-          shadows: [Shadow(color: Colors.black, blurRadius: 10)],
+          letterSpacing: 1.0,
+          shadows: [
+             if (Theme.of(context).brightness == Brightness.dark)
+               const Shadow(color: Colors.black, blurRadius: 10)
+          ],
         ),
       ),
     );
