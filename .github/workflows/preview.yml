@@ -1,8 +1,13 @@
-name: Build & Release
+name: Build Preview
 
 on:
   workflow_dispatch:
     inputs:
+      branch:
+        description: 'Branch to build'
+        required: true
+        default: 'main'
+        type: string
       build_android:
         description: 'Build Android'
         required: true
@@ -29,29 +34,9 @@ on:
         default: true
         type: boolean
 
-permissions:
-  contents: write
-
 jobs:
-  version:
-    name: Get Version
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.get_version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Extract Version from pubspec.yaml
-        id: get_version
-        run: |
-          VERSION=$(grep 'version:' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
-          echo "version=v$VERSION" >> $GITHUB_OUTPUT
-      
-      - name: Create Dummy Assets Dir
-        run: mkdir -p assets/plugins/
-
   android:
     name: Android Build
-    needs: version
     if: ${{ github.event.inputs.build_android == 'true' }}
     runs-on: ubuntu-latest
     env:
@@ -61,6 +46,8 @@ jobs:
       ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -68,8 +55,7 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      # Remove desktop TorrServer binaries to reduce APK size by ~170MB
-      # These are only needed for macOS, Windows, and Linux
+      # Remove desktop TorrServer binaries to reduce APK size
       - name: Strip Desktop Binaries
         run: rm -f packages/flutter_torrent_server/assets/torrserver/TorrServer-*
         
@@ -85,42 +71,21 @@ jobs:
       - name: Build Split APKs
         run: flutter build apk --release --split-per-abi
 
-      - name: Build Universal APK
-        run: flutter build apk --release
-
-      - name: Rename APKs
-        run: |
-          VERSION="${{ needs.version.outputs.version }}"
-          cd build/app/outputs/flutter-apk/
-          for f in app-*-release.apk; do
-            if [ -f "$f" ]; then
-              if [ "$f" == "app-release.apk" ]; then
-                mv "$f" "../../../../skystream-android-universal-${VERSION}.apk"
-              else
-                # Extract ABI: app-<abi>-release.apk -> <abi>
-                abi="${f#app-}"
-                abi="${abi%-release.apk}"
-                mv "$f" "../../../../skystream-android-${abi}-${VERSION}.apk"
-              fi
-            fi
-          done
-
-      - name: Upload Release Assets
-        uses: ncipollo/release-action@v1
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
         with:
-          tag: ${{ needs.version.outputs.version }}
-          allowUpdates: true
-          replacesArtifacts: true
-          artifacts: "*.apk"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: android-apks
+          path: build/app/outputs/flutter-apk/*.apk
+          retention-days: 7
 
   ios:
     name: iOS Build (Unsigned)
-    needs: version
     if: ${{ github.event.inputs.build_ios == 'true' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -133,20 +98,17 @@ jobs:
           flutter build ios --release --no-codesign
           mkdir -p Payload
           mv build/ios/iphoneos/Runner.app Payload/
-          zip -r skystream-ios-unsigned-${{ needs.version.outputs.version }}.ipa Payload
+          zip -r skystream-ios-unsigned.ipa Payload
           
-      - name: Upload Release Assets
-        uses: ncipollo/release-action@v1
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
         with:
-          tag: ${{ needs.version.outputs.version }}
-          allowUpdates: true
-          replacesArtifacts: true
-          artifacts: "skystream-ios-unsigned-${{ needs.version.outputs.version }}.ipa"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ios-ipa
+          path: skystream-ios-unsigned.ipa
+          retention-days: 7
 
   macos:
-    name: macOS Build
-    needs: version
+    name: macOS Build (${{ matrix.arch }})
     if: ${{ github.event.inputs.build_macos == 'true' }}
     runs-on: macos-latest
     strategy:
@@ -159,6 +121,8 @@ jobs:
             torrserver_binary: TorrServer-darwin-amd64
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -168,40 +132,34 @@ jobs:
           flutter config --enable-macos-desktop
           flutter pub get
 
-      # Keep only the required TorrServer binary for this architecture
       - name: Strip Unused Binaries
         run: |
           cd packages/flutter_torrent_server/assets/torrserver
-          ls -la
-          # Keep only the binary for this architecture
           find . -type f ! -name "${{ matrix.torrserver_binary }}" -delete
-          ls -la
           
-      - name: Build macOS (${{ matrix.arch }})
+      - name: Build macOS
         run: flutter build macos --release
         
       - name: Zip Bundle
         run: |
-          VERSION="${{ needs.version.outputs.version }}"
           cd build/macos/Build/Products/Release
-          zip -r "../../../../../skystream-macos-${{ matrix.arch }}-${VERSION}.zip" skystream.app
+          zip -r "../../../../../skystream-macos-${{ matrix.arch }}.zip" skystream.app
 
-      - name: Upload Release Assets
-        uses: ncipollo/release-action@v1
+      - name: Upload macOS Build
+        uses: actions/upload-artifact@v4
         with:
-          tag: ${{ needs.version.outputs.version }}
-          allowUpdates: true
-          replacesArtifacts: true
-          artifacts: "skystream-macos-${{ matrix.arch }}-${{ needs.version.outputs.version }}.zip"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: macos-${{ matrix.arch }}
+          path: skystream-macos-${{ matrix.arch }}.zip
+          retention-days: 7
 
   windows:
     name: Windows Build
-    needs: version
     if: ${{ github.event.inputs.build_windows == 'true' }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -211,37 +169,33 @@ jobs:
           flutter config --enable-windows-desktop
           flutter pub get
 
-      # Keep only the Windows TorrServer binary
       - name: Strip Unused Binaries
         run: |
           cd packages/flutter_torrent_server/assets/torrserver
           Get-ChildItem -File | Where-Object { $_.Name -ne "TorrServer-windows-amd64.exe" } | Remove-Item
-          Get-ChildItem
           
       - name: Build Windows
         run: flutter build windows --release
         
       - name: Compress Release
         run: |
-          $Version = "${{ needs.version.outputs.version }}"
-          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "skystream-windows-$Version.zip"
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "skystream-windows.zip"
 
-      - name: Upload Release Assets
-        uses: ncipollo/release-action@v1
+      - name: Upload Windows Build
+        uses: actions/upload-artifact@v4
         with:
-          tag: ${{ needs.version.outputs.version }}
-          allowUpdates: true
-          replacesArtifacts: true
-          artifacts: "skystream-windows-${{ needs.version.outputs.version }}.zip"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: windows
+          path: skystream-windows.zip
+          retention-days: 7
 
   linux:
     name: Linux Build
-    needs: version
     if: ${{ github.event.inputs.build_linux == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -256,28 +210,22 @@ jobs:
           flutter config --enable-linux-desktop
           flutter pub get
 
-      # Keep only the Linux TorrServer binary
       - name: Strip Unused Binaries
         run: |
           cd packages/flutter_torrent_server/assets/torrserver
-          ls -la
           find . -type f ! -name "TorrServer-linux-amd64" -delete
-          ls -la
           
       - name: Build Linux
         run: flutter build linux --release
         
       - name: Compress Release
         run: |
-          VERSION="${{ needs.version.outputs.version }}"
           cd build/linux/x64/release/bundle
-          tar -czvf "../../../../../skystream-linux-${VERSION}.tar.gz" .
+          tar -czvf "../../../../../skystream-linux.tar.gz" .
 
-      - name: Upload Release Assets
-        uses: ncipollo/release-action@v1
+      - name: Upload Linux Build
+        uses: actions/upload-artifact@v4
         with:
-          tag: ${{ needs.version.outputs.version }}
-          allowUpdates: true
-          replacesArtifacts: true
-          artifacts: "skystream-linux-${{ needs.version.outputs.version }}.tar.gz"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: linux
+          path: skystream-linux.tar.gz
+          retention-days: 7
