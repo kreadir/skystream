@@ -9,6 +9,7 @@ import '../../../core/services/tmdb_service.dart';
 import '../../dashboard/data/tmdb_provider.dart';
 import '../../dashboard/data/language_provider.dart';
 import 'widgets/provider_search_section.dart';
+import '../../../shared/widgets/desktop_scroll_wrapper.dart';
 
 // ignore: camel_case_types
 class MovieDetailsParams {
@@ -67,12 +68,21 @@ class _TmdbMovieDetailsScreenState
 
   // Season Selection State
   int _selectedSeason = 1;
+
   Future<Map<String, dynamic>?>? _episodesFuture;
+  late final ScrollController _castScrollController;
+  late final ScrollController _trailerScrollController;
+  late final ScrollController _recoScrollController;
+  late final ScrollController _episodeScrollController;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _castScrollController = ScrollController();
+    _trailerScrollController = ScrollController();
+    _recoScrollController = ScrollController();
+    _episodeScrollController = ScrollController();
     _scrollController.addListener(_onScroll);
     if (widget.mediaType == 'tv') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -98,6 +108,10 @@ class _TmdbMovieDetailsScreenState
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _castScrollController.dispose();
+    _trailerScrollController.dispose();
+    _recoScrollController.dispose();
+    _episodeScrollController.dispose();
     _showAppBarTitle.dispose();
     super.dispose();
   }
@@ -116,7 +130,7 @@ class _TmdbMovieDetailsScreenState
     final detailsAsync = ref.watch(movieDetailsProvider(params));
 
     return Scaffold(
-      // Background color comes from Theme (Black in Dark, White/Grey in Light)
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: detailsAsync.when(
         data: (data) {
           if (data == null) {
@@ -129,7 +143,10 @@ class _TmdbMovieDetailsScreenState
               ),
             );
           }
-          return _buildBody(data);
+          if (MediaQuery.of(context).size.width > 900) {
+            return _buildDesktopLayout(data);
+          }
+          return _buildMobileLayout(data);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(
@@ -142,7 +159,913 @@ class _TmdbMovieDetailsScreenState
     );
   }
 
-  Widget _buildBody(Map<String, dynamic> data) {
+  Widget _buildDesktopLayout(Map<String, dynamic> data) {
+    final isMovie = widget.mediaType == 'movie';
+    final backdropPath = data['backdrop_path'];
+    var title = data['title'] ?? data['name'] ?? '';
+    var overview = data['overview'] ?? '';
+
+    // Fix Titles/Overview
+    if (data['translations'] != null) {
+      final translations = List<Map<String, dynamic>>.from(
+        data['translations']['translations'] ?? [],
+      );
+      final enTrans = translations.firstWhere(
+        (t) => t['iso_639_1'] == 'en',
+        orElse: () => {},
+      );
+      if (enTrans.isNotEmpty && enTrans['data'] != null) {
+        final enTitle = enTrans['data']['title'] ?? enTrans['data']['name'];
+        if (enTitle != null && enTitle.toString().isNotEmpty) {
+          title = enTitle;
+        }
+        final enOverview = enTrans['data']['overview'];
+        if (enOverview != null && enOverview.toString().isNotEmpty) {
+          overview = enOverview;
+        }
+      }
+    }
+
+    final runtime = isMovie
+        ? (data['runtime'] ?? 0)
+        : ((data['episode_run_time'] as List?)?.isNotEmpty == true
+              ? data['episode_run_time'][0]
+              : 0);
+    final hours = runtime ~/ 60;
+    final minutes = runtime % 60;
+    final durationText = hours > 0 ? '${hours}H ${minutes}M' : '${minutes}M';
+
+    final releaseDate = isMovie
+        ? (data['release_date'] ?? '')
+        : (data['first_air_date'] ?? '');
+    final year = releaseDate.isNotEmpty ? releaseDate.split('-')[0] : '';
+    final rating = (data['vote_average'] as num?)?.toStringAsFixed(1) ?? '0.0';
+    final genres = List<Map<String, dynamic>>.from(data['genres'] ?? []);
+    final genreText = genres.map((g) => g['name']).join(' | ');
+
+    // Certification
+    String certification = isMovie ? "PG-13" : "TV-14";
+    if (isMovie) {
+      final releaseDates = data['release_dates'] != null
+          ? data['release_dates']['results'] as List
+          : [];
+      if (releaseDates.isNotEmpty) {
+        final usRelease = releaseDates.firstWhere(
+          (r) => r['iso_3166_1'] == 'US',
+          orElse: () => null,
+        );
+        if (usRelease != null) {
+          final certs = usRelease['release_dates'] as List;
+          if (certs.isNotEmpty && certs.first['certification'] != '') {
+            certification = certs.first['certification'];
+          }
+        }
+      }
+    } else {
+      final contentRatings = data['content_ratings'] != null
+          ? data['content_ratings']['results'] as List
+          : [];
+      if (contentRatings.isNotEmpty) {
+        final usRating = contentRatings.firstWhere(
+          (r) => r['iso_3166_1'] == 'US',
+          orElse: () => null,
+        );
+        if (usRating != null) certification = usRating['rating'];
+      }
+    }
+
+    final seasons = !isMovie
+        ? List<Map<String, dynamic>>.from(data['seasons'] ?? [])
+        : [];
+    final credits = data['credits'] ?? {};
+    final cast = List<Map<String, dynamic>>.from(credits['cast'] ?? []);
+    final recommendations = List<Map<String, dynamic>>.from(
+      data['recommendations'] != null ? data['recommendations']['results'] : [],
+    );
+
+    // Find Director / Creator
+    String director = "Unknown";
+    final crew = List<Map<String, dynamic>>.from(credits['crew'] ?? []);
+    if (isMovie) {
+      final dir = crew.firstWhere(
+        (m) => m['job'] == 'Director',
+        orElse: () => {'name': 'Unknown'},
+      );
+      director = dir['name'];
+    } else {
+      final creators = data['created_by'] as List?;
+      if (creators != null && creators.isNotEmpty) {
+        director = creators.map((c) => c['name']).join(', ');
+      }
+    }
+    // Logo
+    String? logoUrl;
+    final images = data['images'];
+    if (images != null) {
+      final logos = List<Map<String, dynamic>>.from(images['logos'] ?? []);
+      final language = ref.read(languageProvider);
+      logoUrl = TmdbService.pickBestLogo(logos, language);
+    }
+
+    // Trailers & Production
+    final videos = List<Map<String, dynamic>>.from(
+      data['videos'] != null ? data['videos']['results'] : [],
+    );
+    final trailers = videos
+        .where(
+          (v) =>
+              v['site'] == 'YouTube' &&
+              (v['type'] == 'Trailer' || v['type'] == 'Teaser'),
+        )
+        .toList();
+    final productionCompanies = List<Map<String, dynamic>>.from(
+      data['production_companies'] ?? [],
+    );
+    final status = data['status'] ?? 'Unknown';
+    final budget = data['budget'] ?? 0;
+    final revenue = data['revenue'] ?? 0;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 1. Backdrop
+          if (backdropPath != null)
+            Positioned.fill(
+              child: ShaderMask(
+                shaderCallback: (rect) {
+                  return const LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [Colors.black, Colors.transparent],
+                    stops: [0.2, 1.0],
+                  ).createShader(rect);
+                },
+                blendMode: BlendMode.dstOut,
+                child: CachedNetworkImage(
+                  imageUrl: '${TmdbConfig.imageBaseUrl}$backdropPath',
+                  fit: BoxFit.cover,
+                  alignment: Alignment.centerRight,
+                ),
+              ),
+            ),
+
+          // Gradient Overlay (Force Black on Left)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.black,
+                    Colors.black.withOpacity(0.8),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.4, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // Vertical Gradient (Bottom Up)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [Colors.black, Colors.transparent],
+                  stops: const [0.0, 0.4],
+                ),
+              ),
+            ),
+          ),
+
+          // 2. Content
+          Positioned.fill(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 60),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // HERO Section
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.6, // 60% Width
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Logo or Title
+                        if (logoUrl != null)
+                          CachedNetworkImage(
+                            imageUrl: logoUrl,
+                            height: 200,
+                            alignment: Alignment.centerLeft,
+                            fit: BoxFit.contain,
+                            placeholder: (_, __) => Text(
+                              title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 56,
+                                fontWeight: FontWeight.bold,
+                                height: 1.1,
+                              ),
+                            ),
+                          )
+                        else
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 56,
+                              fontWeight: FontWeight.bold,
+                              height: 1.1,
+                            ),
+                          ),
+                        const SizedBox(height: 24),
+
+                        // Metadata Row
+                        Row(
+                          children: [
+                            Text(
+                              year.isNotEmpty ? "$year  •  " : "",
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              durationText,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.white30),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                certification,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // TMDB/IMDb Badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF01B4E4), // TMDB Blue
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                "TMDB",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              rating,
+                              style: const TextStyle(
+                                color: Color(0xFF01B4E4),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            if (director != "Unknown") ...[
+                              const SizedBox(width: 12),
+                              Container(
+                                width: 4,
+                                height: 4,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white54,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                "Director: $director",
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Overview
+                        Text(
+                          overview,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Genres
+                        Text(
+                          genreText,
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Available Sources
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.extension,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              "Available Sources",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                "BETA",
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          constraints: const BoxConstraints(
+                            maxWidth: 600,
+                            maxHeight: 220,
+                          ),
+                          child: ProviderSearchSection(
+                            query: title,
+                            compact: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 60),
+
+                  // SECTIONS (Vertical)
+
+                  // 1. Episodes (TV Only)
+                  if (!isMovie) ...[
+                    Row(
+                      children: [
+                        const Text(
+                          "Episodes",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        // Season Selector
+                        DropdownButton<int>(
+                          value: _selectedSeason,
+                          dropdownColor: Colors.grey[900],
+                          style: const TextStyle(color: Colors.white),
+                          items: seasons.map<DropdownMenuItem<int>>((s) {
+                            final num = s['season_number'];
+                            final count = s['episode_count'];
+                            return DropdownMenuItem(
+                              value: num,
+                              child: Text("Season $num (${count} Ep)"),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) _fetchEpisodes(val);
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _buildDesktopEpisodesList(),
+                    const SizedBox(height: 50),
+                  ],
+
+                  // 2. Cast
+                  if (cast.isNotEmpty) ...[
+                    const Text(
+                      "Cast",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      height: 140, // Height for Cast Cards
+                      child: DesktopScrollWrapper(
+                        controller: _castScrollController,
+                        child: ListView.separated(
+                          controller: _castScrollController,
+                          scrollDirection: Axis.horizontal,
+                          itemCount: cast.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 16),
+                          itemBuilder: (context, index) {
+                            final actor = cast[index];
+                            final p = actor['profile_path'];
+                            return Column(
+                              children: [
+                                CircleAvatar(
+                                  radius: 40,
+                                  backgroundImage: p != null
+                                      ? NetworkImage(
+                                          '${TmdbConfig.imageBaseUrl}$p',
+                                        )
+                                      : null,
+                                  child: p == null
+                                      ? const Icon(
+                                          Icons.person,
+                                          color: Colors.grey,
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: 80,
+                                  child: Text(
+                                    actor['name'],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 80,
+                                  child: Text(
+                                    actor['character'] ?? '',
+                                    style: const TextStyle(
+                                      color: Colors.white54,
+                                      fontSize: 10,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 50),
+                  ],
+
+                  // 3. Trailers
+                  if (trailers.isNotEmpty) ...[
+                    const Text(
+                      "Trailers & Clips",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      height: 160,
+                      child: DesktopScrollWrapper(
+                        controller: _trailerScrollController,
+                        child: ListView.separated(
+                          controller: _trailerScrollController,
+                          scrollDirection: Axis.horizontal,
+                          itemCount: trailers.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 16),
+                          itemBuilder: (context, index) {
+                            final video = trailers[index];
+                            final key = video['key'];
+                            return GestureDetector(
+                              onTap: () {
+                                launchUrl(
+                                  Uri.parse(
+                                    'https://www.youtube.com/watch?v=$key',
+                                  ),
+                                );
+                              },
+                              child: AspectRatio(
+                                aspectRatio: 16 / 9,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    image: DecorationImage(
+                                      image: NetworkImage(
+                                        'https://img.youtube.com/vi/$key/mqdefault.jpg',
+                                      ),
+                                      fit: BoxFit.cover,
+                                    ),
+                                    color: Colors.black,
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.play_circle_outline,
+                                      color: Colors.white,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 50),
+                  ],
+
+                  // 4. More Like This
+                  if (recommendations.isNotEmpty) ...[
+                    const Text(
+                      "More Like This",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      height: 200,
+                      child: DesktopScrollWrapper(
+                        controller: _recoScrollController,
+                        child: ListView.separated(
+                          controller: _recoScrollController,
+                          scrollDirection: Axis.horizontal,
+                          itemCount: recommendations.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 16),
+                          itemBuilder: (context, index) {
+                            final r = recommendations[index];
+                            final poster = r['poster_path'];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => TmdbMovieDetailsScreen(
+                                      movieId: r['id'],
+                                      mediaType: isMovie ? 'movie' : 'tv',
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: AspectRatio(
+                                aspectRatio: 2 / 3,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    image: poster != null
+                                        ? DecorationImage(
+                                            image: NetworkImage(
+                                              '${TmdbConfig.imageBaseUrl}$poster',
+                                            ),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
+                                    color: Colors.grey[800],
+                                    border: Border.all(color: Colors.white10),
+                                  ),
+                                  child: poster == null
+                                      ? const Center(
+                                          child: Icon(
+                                            Icons.movie,
+                                            color: Colors.white24,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 50),
+                  ],
+
+                  // 5. Details (Production, Status)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Details",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 24,
+                        runSpacing: 12,
+                        children: [
+                          _buildDetailItem("Status", status),
+                          if (budget > 0)
+                            _buildDetailItem(
+                              "Budget",
+                              "\$${(budget / 1000000).toStringAsFixed(1)}M",
+                            ),
+                          if (revenue > 0)
+                            _buildDetailItem(
+                              "Revenue",
+                              "\$${(revenue / 1000000).toStringAsFixed(1)}M",
+                            ),
+                          if (productionCompanies.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            const Text(
+                              "Production",
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 16,
+                              runSpacing: 16,
+                              children: productionCompanies.map((c) {
+                                final logo = c['logo_path'];
+                                if (logo != null) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: CachedNetworkImage(
+                                      imageUrl:
+                                          '${TmdbConfig.imageBaseUrl}$logo',
+                                      height: 24,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  );
+                                }
+                                return Chip(
+                                  label: Text(c['name']),
+                                  backgroundColor: Colors.white10,
+                                  labelStyle: const TextStyle(
+                                    color: Colors.white,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 100),
+                ],
+              ),
+            ),
+          ),
+
+          // 3. Back Button Pinned
+          Positioned(
+            top: 40,
+            left: 20,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_rounded),
+              onPressed: () => Navigator.pop(context),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.black45,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white54,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopEpisodesList() {
+    if (_episodesFuture == null) return const SizedBox.shrink();
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _episodesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData) return const SizedBox.shrink();
+        final episodes = List<Map<String, dynamic>>.from(
+          snapshot.data!['episodes'] ?? [],
+        );
+
+        return SizedBox(
+          height: 240, // Slightly taller for extra metadata
+          child: DesktopScrollWrapper(
+            controller: _episodeScrollController,
+            child: ListView.separated(
+              controller: _episodeScrollController,
+              scrollDirection: Axis.horizontal,
+              itemCount: episodes.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 16),
+              itemBuilder: (context, index) {
+                final ep = episodes[index];
+                final img = ep['still_path'];
+                final voteAverage =
+                    (ep['vote_average'] as num?)?.toDouble() ?? 0.0;
+                final runtime = ep['runtime'] as int? ?? 0;
+                final hours = runtime ~/ 60;
+                final minutes = runtime % 60;
+                final runtimeText = hours > 0
+                    ? '${hours}h ${minutes}m'
+                    : '${minutes}m';
+
+                return GestureDetector(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Please select a source from 'Available Sources' above to play.",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 300,
+                    decoration: BoxDecoration(
+                      color: Colors.white10,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: img != null
+                              ? CachedNetworkImage(
+                                  imageUrl: '${TmdbConfig.imageBaseUrl}$img',
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                )
+                              : const Center(
+                                  child: Icon(
+                                    Icons.movie,
+                                    color: Colors.white54,
+                                  ),
+                                ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "E${ep['episode_number']} • ${ep['name']}",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              // Rating and Runtime Row
+                              Row(
+                                children: [
+                                  _buildTmdbLogo(),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    voteAverage.toStringAsFixed(1),
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  if (runtime > 0)
+                                    Text(
+                                      runtimeText,
+                                      style: const TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                ep['overview'] ?? '',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileLayout(Map<String, dynamic> data) {
     // Data Extraction
     final isMovie = widget.mediaType == 'movie';
     final posterPath = data['poster_path'];

@@ -90,16 +90,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 );
               },
             ),
-            title: Text(
-              "SkyStream",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.2,
-              ),
-            ),
-            centerTitle: false,
+            // title: Text(
+            //   "SkyStream",
+            //   style: TextStyle(
+            //     color: Theme.of(context).colorScheme.onSurface,
+            //     fontSize: 24,
+            //     fontWeight: FontWeight.w900,
+            //     letterSpacing: 1.2,
+            //   ),
+            // ),
+            // centerTitle: false,
             actions: [
               // Unified Filter Button
               Padding(

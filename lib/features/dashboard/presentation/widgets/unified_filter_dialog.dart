@@ -9,10 +9,12 @@ class UnifiedFilterDialog extends ConsumerStatefulWidget {
   const UnifiedFilterDialog({super.key});
 
   @override
-  ConsumerState<UnifiedFilterDialog> createState() => _UnifiedFilterDialogState();
+  ConsumerState<UnifiedFilterDialog> createState() =>
+      _UnifiedFilterDialogState();
 }
 
-class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog> with SingleTickerProviderStateMixin {
+class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -38,15 +40,20 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog> with 
           width: double.infinity,
           constraints: const BoxConstraints(maxHeight: 650, maxWidth: 500),
           decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9), // Glassmorphism base
+            color: Theme.of(
+              context,
+            ).scaffoldBackgroundColor.withOpacity(0.9), // Glassmorphism base
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5), width: 1),
+            border: Border.all(
+              color: Theme.of(context).dividerColor.withOpacity(0.5),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2), // Shadow always black
                 blurRadius: 20,
                 offset: const Offset(0, 10),
-              )
+              ),
             ],
           ),
           child: Column(
@@ -55,7 +62,9 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog> with 
               // Header & Tabs
               Container(
                 decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+                  border: Border(
+                    bottom: BorderSide(color: Theme.of(context).dividerColor),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -63,16 +72,27 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog> with 
                       padding: const EdgeInsets.all(20.0),
                       child: Row(
                         children: [
-                          const Icon(Icons.tune, color: Colors.blueAccent, size: 28),
+                          const Icon(
+                            Icons.tune,
+                            color: Colors.blueAccent,
+                            size: 28,
+                          ),
                           const SizedBox(width: 12),
                           Text(
                             "Filters",
-                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const Spacer(),
                           IconButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface),
+                            icon: Icon(
+                              Icons.close,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                             splashRadius: 24,
                           ),
                         ],
@@ -82,8 +102,13 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog> with 
                       controller: _tabController,
                       indicatorColor: Colors.blueAccent,
                       labelColor: Colors.blueAccent,
-                      unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                      labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      unselectedLabelColor: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant,
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                       tabs: [
                         const Tab(
                           text: "Lang",
@@ -91,91 +116,101 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog> with 
                         ),
 
                         // Genre Tab
-                        Consumer(builder: (c, ref, _) {
-                          final hasFilter =
-                              ref.watch(dashboardFilterProvider).selectedGenre !=
-                                  null;
-                          return Tab(
-                            text: "Genre",
-                            icon: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                const Icon(Icons.category_outlined, size: 20),
-                                if (hasFilter)
-                                  Positioned(
-                                    right: -2,
-                                    top: -2,
-                                    child: Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.redAccent,
-                                        shape: BoxShape.circle,
+                        Consumer(
+                          builder: (c, ref, _) {
+                            final hasFilter =
+                                ref
+                                    .watch(dashboardFilterProvider)
+                                    .selectedGenre !=
+                                null;
+                            return Tab(
+                              text: "Genre",
+                              icon: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  const Icon(Icons.category_outlined, size: 20),
+                                  if (hasFilter)
+                                    Positioned(
+                                      right: -2,
+                                      top: -2,
+                                      child: Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.redAccent,
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
 
                         // Year Tab
-                        Consumer(builder: (c, ref, _) {
-                          final hasFilter =
-                              ref.watch(dashboardFilterProvider).selectedYear !=
-                                  null;
-                          return Tab(
-                            text: "Year",
-                            icon: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                const Icon(Icons.calendar_today, size: 20),
-                                if (hasFilter)
-                                  Positioned(
-                                    right: -2,
-                                    top: -2,
-                                    child: Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.redAccent,
-                                        shape: BoxShape.circle,
+                        Consumer(
+                          builder: (c, ref, _) {
+                            final hasFilter =
+                                ref
+                                    .watch(dashboardFilterProvider)
+                                    .selectedYear !=
+                                null;
+                            return Tab(
+                              text: "Year",
+                              icon: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  const Icon(Icons.calendar_today, size: 20),
+                                  if (hasFilter)
+                                    Positioned(
+                                      right: -2,
+                                      top: -2,
+                                      child: Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.redAccent,
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
 
                         // Rating Tab
-                        Consumer(builder: (c, ref, _) {
-                          final hasFilter =
-                              ref.watch(dashboardFilterProvider).minRating !=
-                                  null;
-                          return Tab(
-                            text: "Rating",
-                            icon: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                const Icon(Icons.star_outline, size: 20),
-                                if (hasFilter)
-                                  Positioned(
-                                    right: -2,
-                                    top: -2,
-                                    child: Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.redAccent,
-                                        shape: BoxShape.circle,
+                        Consumer(
+                          builder: (c, ref, _) {
+                            final hasFilter =
+                                ref.watch(dashboardFilterProvider).minRating !=
+                                null;
+                            return Tab(
+                              text: "Rating",
+                              icon: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  const Icon(Icons.star_outline, size: 20),
+                                  if (hasFilter)
+                                    Positioned(
+                                      right: -2,
+                                      top: -2,
+                                      child: Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.redAccent,
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ],
@@ -247,10 +282,9 @@ class _RatingTab extends ConsumerWidget {
         final isSelected = rating == selectedRating;
 
         final label = rating == null ? "Any Rating" : "$rating+ Stars";
-        final subtitle =
-            rating == null
-                ? "Show all movies"
-                : "Movies with $rating or higher (TMDB/User)";
+        final subtitle = rating == null
+            ? "Show all movies"
+            : "Movies with $rating or higher (TMDB/User)";
 
         return ListTile(
           onTap: () {
@@ -262,29 +296,33 @@ class _RatingTab extends ConsumerWidget {
           tileColor: isSelected ? Colors.blueAccent.withOpacity(0.2) : null,
           leading: Icon(
             Icons.star,
-            color:
-                isSelected
-                    ? Colors.blueAccent
-                    : (rating == null ? Theme.of(context).colorScheme.onSurface.withOpacity(0.3) : Colors.amber),
+            color: isSelected
+                ? Colors.blueAccent
+                : (rating == null
+                      ? Theme.of(context).colorScheme.onSurface.withOpacity(0.3)
+                      : Colors.amber),
           ),
           title: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+              color: isSelected
+                  ? Colors.blueAccent
+                  : Theme.of(context).colorScheme.onSurface,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
           subtitle: Text(
             subtitle,
             style: TextStyle(
-              color: isSelected ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: isSelected
+                  ? Colors.blueAccent
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
               fontSize: 12,
             ),
           ),
-          trailing:
-              isSelected
-                  ? const Icon(Icons.check_circle, color: Colors.blueAccent)
-                  : null,
+          trailing: isSelected
+              ? const Icon(Icons.check_circle, color: Colors.blueAccent)
+              : null,
         );
       },
     );
@@ -320,9 +358,15 @@ class _LanguageTab extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+              color: isSelected
+                  ? Colors.blueAccent.withOpacity(0.2)
+                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isSelected ? Colors.blueAccent : Theme.of(context).dividerColor.withOpacity(0.1)),
+              border: Border.all(
+                color: isSelected
+                    ? Colors.blueAccent
+                    : Theme.of(context).dividerColor.withOpacity(0.1),
+              ),
             ),
             child: Row(
               children: [
@@ -332,11 +376,19 @@ class _LanguageTab extends ConsumerWidget {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected ? Colors.blueAccent : Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                    color: isSelected
+                        ? Colors.blueAccent
+                        : Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.1),
                   ),
                   child: Text(
                     lang.code.split('-')[0].toUpperCase(),
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -348,19 +400,31 @@ class _LanguageTab extends ConsumerWidget {
                       Text(
                         lang.name,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                          color: isSelected
+                              ? Colors.blueAccent
+                              : Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
                       ),
                       Text(
                         lang.nativeName,
-                        style: TextStyle(color: isSelected ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.blueAccent.withOpacity(0.7)
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                if (isSelected) const Icon(Icons.check_circle, color: Colors.blueAccent, size: 20),
+                if (isSelected)
+                  const Icon(
+                    Icons.check_circle,
+                    color: Colors.blueAccent,
+                    size: 20,
+                  ),
               ],
             ),
           ),
@@ -390,7 +454,9 @@ class _GenreTab extends ConsumerWidget {
               onTap: () {
                 ref.read(dashboardFilterProvider.notifier).setGenre(null);
               },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               tileColor: isSelected ? Colors.blueAccent.withOpacity(0.2) : null,
               leading: Icon(
                 Icons.category, // Distinct icon for All
@@ -399,7 +465,11 @@ class _GenreTab extends ConsumerWidget {
               title: Text(
                 "All Genres",
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white70,
+                  color: isSelected
+                      ? Colors.blueAccent
+                      : Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.7),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
@@ -407,21 +477,28 @@ class _GenreTab extends ConsumerWidget {
           }
 
           final genre = genres[index - 1]; // Offset index
-          final isSelected = selectedGenre != null && selectedGenre['id'] == genre['id'];
+          final isSelected =
+              selectedGenre != null && selectedGenre['id'] == genre['id'];
           return ListTile(
             onTap: () {
               ref.read(dashboardFilterProvider.notifier).setGenre(genre);
             },
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             tileColor: isSelected ? Colors.blueAccent.withOpacity(0.2) : null,
             leading: Icon(
               isSelected ? Icons.check_circle : Icons.circle_outlined,
-              color: isSelected ? Colors.blueAccent : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              color: isSelected
+                  ? Colors.blueAccent
+                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
             ),
             title: Text(
               genre['name'],
               style: TextStyle(
-                color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                color: isSelected
+                    ? Colors.blueAccent
+                    : Theme.of(context).colorScheme.onSurface,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -429,7 +506,12 @@ class _GenreTab extends ConsumerWidget {
         },
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text("Failed to load genres", style: TextStyle(color: Colors.white))),
+      error: (_, __) => const Center(
+        child: Text(
+          "Failed to load genres",
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
     );
   }
 }
@@ -464,14 +546,22 @@ class _YearTab extends ConsumerWidget {
             child: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                color: isSelected
+                    ? Colors.blueAccent.withOpacity(0.2)
+                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: isSelected ? Colors.blueAccent : Colors.transparent),
+                border: Border.all(
+                  color: isSelected ? Colors.blueAccent : Colors.transparent,
+                ),
               ),
               child: Text(
                 "All",
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white70,
+                  color: isSelected
+                      ? Colors.blueAccent
+                      : Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.7),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 16,
                 ),
@@ -491,14 +581,20 @@ class _YearTab extends ConsumerWidget {
           child: Container(
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+              color: isSelected
+                  ? Colors.blueAccent.withOpacity(0.2)
+                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: isSelected ? Colors.blueAccent : Colors.transparent),
+              border: Border.all(
+                color: isSelected ? Colors.blueAccent : Colors.transparent,
+              ),
             ),
             child: Text(
               year.toString(),
               style: TextStyle(
-                color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                color: isSelected
+                    ? Colors.blueAccent
+                    : Theme.of(context).colorScheme.onSurface,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 fontSize: 16,
               ),

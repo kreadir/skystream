@@ -76,8 +76,13 @@ final providerSearchProvider = FutureProvider.family
 
 class ProviderSearchSection extends ConsumerStatefulWidget {
   final String query;
+  final bool compact;
 
-  const ProviderSearchSection({super.key, required this.query});
+  const ProviderSearchSection({
+    super.key,
+    required this.query,
+    this.compact = false,
+  });
 
   @override
   ConsumerState<ProviderSearchSection> createState() =>
@@ -105,6 +110,183 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
 
     final plugins = ref.watch(extensionManagerProvider);
     final searchAsync = ref.watch(providerSearchProvider(widget.query));
+
+    Widget content;
+    if (plugins.isEmpty) {
+      content = Container(
+        height: 140,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          "No plugins installed",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 14,
+          ),
+        ),
+      );
+    } else {
+      content = searchAsync.when(
+        data: (results) {
+          final allItems = <Map<String, dynamic>>[];
+          for (var pResult in results) {
+            for (var item in pResult.results) {
+              allItems.add({
+                'item': item,
+                'providerName': pResult.providerName,
+              });
+            }
+          }
+
+          if (allItems.isEmpty) {
+            return Container(
+              height: 140,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                "No streams found.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                ),
+              ),
+            );
+          }
+
+          return SizedBox(
+            height: 140,
+            child: DesktopScrollWrapper(
+              controller: _scrollController,
+              child: ListView.separated(
+                controller: _scrollController,
+                scrollDirection: Axis.horizontal,
+                padding: widget.compact
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: allItems.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final data = allItems[index];
+                  final item = data['item'] as MultimediaItem;
+                  final providerName = data['providerName'] as String;
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => DetailsScreen(item: item),
+                        ),
+                      );
+                    },
+                    child: SizedBox(
+                      width: 220,
+                      child: Card(
+                        elevation: 0,
+                        margin: EdgeInsets.zero,
+                        color: Theme.of(context).colorScheme.surface,
+                        clipBehavior: Clip.antiAlias,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 90,
+                              height: double.infinity,
+                              child: item.posterUrl.isNotEmpty
+                                  ? CachedNetworkImage(
+                                      imageUrl: item.posterUrl,
+                                      fit: BoxFit.cover,
+                                      errorWidget: (_, __, ___) =>
+                                          Container(color: Colors.grey[800]),
+                                    )
+                                  : Container(
+                                      color: Colors.grey[800],
+                                      child: const Center(
+                                        child: Icon(Icons.movie, size: 24),
+                                      ),
+                                    ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      item.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primaryContainer,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        providerName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+        loading: () => const Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        error: (err, _) => Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text("Error: $err"),
+        ),
+      );
+    }
+
+    if (widget.compact) return content;
 
     return Container(
       width: double.infinity,
@@ -144,183 +326,7 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
             ),
           ),
           const SizedBox(height: 12),
-          if (plugins.isEmpty)
-            Container(
-              height: 140,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                "No plugins installed",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 14,
-                ),
-              ),
-            )
-          else
-            searchAsync.when(
-              data: (results) {
-                // Flatten results into a single list of "Cards"
-                // Each card needs: Image, Title, Provider Name
-                final allItems = <Map<String, dynamic>>[];
-                for (var pResult in results) {
-                  for (var item in pResult.results) {
-                    allItems.add({
-                      'item': item,
-                      'providerName': pResult.providerName,
-                    });
-                  }
-                }
-
-                if (allItems.isEmpty) {
-                  return Container(
-                    height: 140,
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      "No streams found on installed plugins.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 12,
-                      ),
-                    ),
-                  );
-                }
-
-                return SizedBox(
-                  height: 140, // Height for the horizontal list
-                  child: DesktopScrollWrapper(
-                    controller: _scrollController,
-                    child: ListView.separated(
-                      controller: _scrollController,
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: allItems.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
-                      itemBuilder: (context, index) {
-                        final data = allItems[index];
-                        final item = data['item'] as MultimediaItem;
-                        final providerName = data['providerName'] as String;
-
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => DetailsScreen(item: item),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            width: 220, // Wide card for thumbnail + text
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.grey.withOpacity(0.3),
-                              ),
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: Row(
-                              children: [
-                                // Image
-                                SizedBox(
-                                  width: 90,
-                                  height: double.infinity,
-                                  child: item.posterUrl.isNotEmpty
-                                      ? CachedNetworkImage(
-                                          imageUrl: item.posterUrl,
-                                          fit: BoxFit.cover,
-                                          errorWidget: (_, __, ___) =>
-                                              Container(
-                                                color: Colors.grey[800],
-                                              ),
-                                        )
-                                      : Container(
-                                          color: Colors.grey[800],
-                                          child: const Center(
-                                            child: Icon(Icons.movie, size: 24),
-                                          ),
-                                        ),
-                                ),
-                                // Details
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          item.title,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurface,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primaryContainer,
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            providerName,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.onPrimaryContainer,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              ),
-              error: (err, _) => Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text("Error searching providers: $err"),
-              ),
-            ),
+          content,
         ],
       ),
     );

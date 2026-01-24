@@ -71,7 +71,9 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(
-                      _currentIndex == entry.key ? 0.9 : 0.3, // Slightly lower opacity for inactive
+                      _currentIndex == entry.key
+                          ? 0.9
+                          : 0.3, // Slightly lower opacity for inactive
                     ),
                   ),
                 );
@@ -85,9 +87,10 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
 
   void _navigateToDetails(BuildContext context, Map<String, dynamic> movie) {
     // Determine type: 'title' usually implies movie, 'name' implies TV
-    // But better to check 'media_type' if available (trending/search provides it), 
+    // But better to check 'media_type' if available (trending/search provides it),
     // fallback to title check.
-    String mediaType = movie['media_type'] ?? (movie['title'] != null ? 'movie' : 'tv');
+    String mediaType =
+        movie['media_type'] ?? (movie['title'] != null ? 'movie' : 'tv');
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -120,7 +123,7 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
     final isMovie = movie['title'] != null;
     final type = isMovie ? "Movie" : "TV Show";
     final genres = movie['genres_str'] as String? ?? '';
-    
+
     final metadata = [
       type,
       if (genres.isNotEmpty) genres,
@@ -181,21 +184,78 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
                 ),
 
                 // 2. Static Gradient
+                // Transform.translate(
+                //   offset: Offset(0, -1),
+                //   child: Container(
+                //     decoration: BoxDecoration(
+                //       gradient: LinearGradient(
+                //         begin: Alignment.topCenter,
+                //         end: Alignment.bottomCenter,
+                //         colors: [
+                //           Theme.of(
+                //             context,
+                //           ).scaffoldBackgroundColor.withOpacity(0.9),
+                //           Theme.of(
+                //             context,
+                //           ).scaffoldBackgroundColor.withOpacity(0.7),
+                //           Theme.of(
+                //             context,
+                //           ).scaffoldBackgroundColor.withOpacity(0.5),
+                //           Theme.of(
+                //             context,
+                //           ).scaffoldBackgroundColor.withOpacity(0.0),
+                //           Theme.of(context).scaffoldBackgroundColor,
+                //         ],
+                //         stops: const [0.0, 0.1, 0.2, 0.3, 1],
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 Transform.translate(
-                  offset: Offset(0, parallaxOffset),
+                  offset: Offset(0, 1),
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Theme.of(context).scaffoldBackgroundColor.withOpacity(0.0),
-                          Theme.of(context).scaffoldBackgroundColor.withOpacity(0.0),
-                          Theme.of(context).scaffoldBackgroundColor.withOpacity(0.6),
-                          Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+                          // Theme.of(
+                          //   context,
+                          // ).scaffoldBackgroundColor.withOpacity(0.1),
+                          // Theme.of(
+                          //   context,
+                          // ).scaffoldBackgroundColor.withOpacity(0.05),
+                          // Theme.of(
+                          //   context,
+                          // ).scaffoldBackgroundColor.withOpacity(0.01),
+                          // Theme.of(
+                          //   context,
+                          // ).scaffoldBackgroundColor.withOpacity(0.0),
+                          Theme.of(
+                            context,
+                          ).scaffoldBackgroundColor.withOpacity(0.0),
+                          Theme.of(
+                            context,
+                          ).scaffoldBackgroundColor.withOpacity(0.4),
+                          Theme.of(
+                            context,
+                          ).scaffoldBackgroundColor.withOpacity(0.8),
+                          Theme.of(
+                            context,
+                          ).scaffoldBackgroundColor.withOpacity(0.9),
                           Theme.of(context).scaffoldBackgroundColor,
                         ],
-                        stops: const [0.0, 0.4, 0.6, 0.85, 1.0],
+                        stops: const [
+                          // 0.0,
+                          // 0.05,
+                          // 0.07,
+                          // 0.3,
+                          0.6,
+                          0.7,
+                          0.8,
+                          0.9,
+                          1.0,
+                        ],
                       ),
                     ),
                   ),
@@ -228,19 +288,27 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
                             children: [
                               Icon(
                                 isMovie ? Icons.movie_outlined : Icons.tv,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.7),
                                 size: 16,
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 metadata,
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                   shadows: [
-                                    if (Theme.of(context).brightness == Brightness.dark)
-                                      const Shadow(color: Colors.black, blurRadius: 4),
+                                    if (Theme.of(context).brightness ==
+                                        Brightness.dark)
+                                      const Shadow(
+                                        color: Colors.black,
+                                        blurRadius: 4,
+                                      ),
                                   ],
                                 ),
                               ),
@@ -306,7 +374,12 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
                   _buildLogo(logoUrl, title)
                 else
                   _buildTitleFallback(title),
-                Text(metadata, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                Text(
+                  metadata,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
               ],
             ),
           ),
@@ -322,10 +395,8 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
         height: 140,
         width: 300,
         fit: BoxFit.contain,
-        placeholderBuilder: (context) => const SizedBox(
-          height: 140,
-          width: 300,
-        ),
+        placeholderBuilder: (context) =>
+            const SizedBox(height: 140, width: 300),
       );
     }
     return CachedNetworkImage(
@@ -334,10 +405,7 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
       width: 300,
       fit: BoxFit.contain,
       alignment: Alignment.bottomCenter,
-      placeholder: (context, url) => const SizedBox(
-        height: 140,
-        width: 300,
-      ),
+      placeholder: (context, url) => const SizedBox(height: 140, width: 300),
       errorWidget: (context, url, error) => _buildTitleFallback(title),
     );
   }
@@ -355,8 +423,8 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
           fontWeight: FontWeight.w900,
           letterSpacing: 1.0,
           shadows: [
-             if (Theme.of(context).brightness == Brightness.dark)
-               const Shadow(color: Colors.black, blurRadius: 10)
+            if (Theme.of(context).brightness == Brightness.dark)
+              const Shadow(color: Colors.black, blurRadius: 10),
           ],
         ),
       ),
