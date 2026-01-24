@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/config/tmdb_config.dart';
 import '../../details/presentation/tmdb_movie_details_screen.dart';
 import '../../../../shared/widgets/tv_cards_wrapper.dart';
+import '../../../../shared/widgets/shimmer_placeholder.dart';
 import '../../dashboard/data/tmdb_provider.dart';
 
 enum ViewAllCategory {
@@ -189,13 +190,13 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
           itemCount: _mediaList.length + (_isLoading ? crossAxisCount : 0),
           itemBuilder: (context, index) {
             if (index >= _mediaList.length) {
-              return ShimmerCard();
+              return const ShimmerPlaceholder();
             }
 
             final item = _mediaList[index];
             final posterPath = item['poster_path'];
             final imageUrl = posterPath != null
-                ? '${TmdbConfig.imageBaseUrl}$posterPath'
+                ? '${TmdbConfig.posterSizeUrl}$posterPath'
                 : 'https://via.placeholder.com/150x225';
             final itemTitle = item['title'] ?? item['name'] ?? 'Unknown';
             final uniqueTag =
@@ -227,16 +228,11 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
                         borderRadius: BorderRadius.circular(12),
                         child: CachedNetworkImage(
                           imageUrl: imageUrl,
+                          memCacheWidth: 350,
                           fit: BoxFit.cover,
                           width: double.infinity,
-                          placeholder: (context, url) => Container(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                            child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
+                          placeholder: (context, url) =>
+                              const ShimmerPlaceholder(),
                           errorWidget: (context, url, error) => Container(
                             color: Theme.of(
                               context,
@@ -271,23 +267,6 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
           },
         ),
       ),
-    );
-  }
-}
-
-class ShimmerCard extends StatelessWidget {
-  const ShimmerCard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Center(child: CircularProgressIndicator()),
     );
   }
 }

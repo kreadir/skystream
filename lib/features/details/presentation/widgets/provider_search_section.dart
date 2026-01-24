@@ -6,6 +6,7 @@ import 'package:skystream/core/extensions/extension_manager.dart';
 import '../details_screen.dart';
 import '../../../../shared/widgets/desktop_scroll_wrapper.dart';
 import '../../../../shared/widgets/tv_cards_wrapper.dart'; // Import TvCardsWrapper
+import '../../../../shared/widgets/shimmer_placeholder.dart';
 
 // Provider Result wrapper
 class ProviderSearchResult {
@@ -207,14 +208,9 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
                                       imageUrl: item.posterUrl,
                                       fit: BoxFit.cover,
                                       errorWidget: (_, __, ___) =>
-                                          Container(color: Colors.grey[800]),
+                                          const ShimmerPlaceholder(),
                                     )
-                                  : Container(
-                                      color: Colors.grey[800],
-                                      child: const Center(
-                                        child: Icon(Icons.movie, size: 24),
-                                      ),
-                                    ),
+                                  : const ShimmerPlaceholder(),
                             ),
                             Expanded(
                               child: Padding(

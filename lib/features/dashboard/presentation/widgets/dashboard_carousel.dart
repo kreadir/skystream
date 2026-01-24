@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/config/tmdb_config.dart';
 import '../../../details/presentation/tmdb_movie_details_screen.dart';
 import '../../../../shared/widgets/tv_cards_wrapper.dart'; // Import TvCardsWrapper
+import '../../../../shared/widgets/shimmer_placeholder.dart';
 
 class DashboardCarousel extends StatefulWidget {
   final List<Map<String, dynamic>> movies;
@@ -180,7 +181,7 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
     final posterPath = movie['poster_path'];
     final backdropPath = movie['backdrop_path'] ?? posterPath;
     final imageUrl = backdropPath != null
-        ? '${TmdbConfig.imageBaseUrl}$backdropPath'
+        ? '${TmdbConfig.backdropSizeUrl}$backdropPath'
         : 'https://via.placeholder.com/500x750';
 
     final title = movie['title'] ?? movie['name'] ?? 'Unknown';
@@ -246,8 +247,9 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
                     fit: BoxFit.cover,
                     height: height,
                     width: double.infinity,
-                    placeholder: (context, url) =>
-                        Container(color: Colors.black12),
+                    memCacheWidth:
+                        1080, // High enough for quality, constrained for memory
+                    placeholder: (context, url) => const ShimmerPlaceholder(),
                     errorWidget: (context, url, error) =>
                         Container(color: Colors.black),
                   ),
@@ -422,6 +424,7 @@ class _DashboardCarouselState extends State<DashboardCarousel> {
             fit: BoxFit.cover,
             height: height,
             width: double.infinity,
+            memCacheWidth: 1080,
           ),
           Container(
             decoration: BoxDecoration(

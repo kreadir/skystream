@@ -5,6 +5,7 @@ import 'dart:async';
 
 // Internal Imports
 import '../../../../core/config/tmdb_config.dart';
+import '../../../../shared/widgets/shimmer_placeholder.dart';
 import '../../../details/presentation/tmdb_movie_details_screen.dart';
 import '../../../dashboard/data/tmdb_provider.dart';
 
@@ -190,7 +191,7 @@ class _SearchSuggestionsListState extends State<_SearchSuggestionsList> {
                     width: 40,
                     height: 60,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(color: Colors.grey[800]),
+                    placeholder: (_, __) => const ShimmerPlaceholder(),
                   )
                 : Container(
                     width: 40,

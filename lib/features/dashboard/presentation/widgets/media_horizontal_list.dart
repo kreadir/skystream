@@ -4,6 +4,7 @@ import '../../../../core/config/tmdb_config.dart';
 import '../../../details/presentation/tmdb_movie_details_screen.dart';
 import '../../../../shared/widgets/desktop_scroll_wrapper.dart'; // Import DesktopScrollWrapper
 import '../../../../shared/widgets/tv_cards_wrapper.dart'; // Import TvCardsWrapper
+import '../../../../shared/widgets/shimmer_placeholder.dart';
 import '../view_all_screen.dart'; // Import ViewAllScreen
 
 class MediaHorizontalList extends StatefulWidget {
@@ -151,7 +152,7 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                 final item = widget.mediaList[index];
                 final posterPath = item['poster_path'];
                 final imageUrl = posterPath != null
-                    ? '${TmdbConfig.imageBaseUrl}$posterPath'
+                    ? '${TmdbConfig.posterSizeUrl}$posterPath'
                     : 'https://via.placeholder.com/150x225';
                 final itemTitle = item['title'] ?? item['name'] ?? 'Unknown';
                 final uniqueTag =
@@ -186,18 +187,11 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                               borderRadius: BorderRadius.circular(12),
                               child: CachedNetworkImage(
                                 imageUrl: imageUrl,
+                                memCacheWidth: 350, // Optimize memory usage
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                placeholder: (context, url) => Container(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                                  child: const Center(
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                ),
+                                placeholder: (context, url) =>
+                                    const ShimmerPlaceholder(),
                                 errorWidget: (context, url, error) => Container(
                                   color: Theme.of(
                                     context,
