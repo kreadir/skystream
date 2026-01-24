@@ -139,6 +139,26 @@ jobs:
           
       - name: Build macOS
         run: flutter build macos --release
+      
+      # Re-sign all frameworks to fix media_kit MPV crash (Issue #830)
+      - name: Re-sign Frameworks
+        run: |
+          APP_PATH="build/macos/Build/Products/Release/skystream.app"
+          FRAMEWORKS_PATH="$APP_PATH/Contents/Frameworks"
+          
+          echo "Re-signing frameworks..."
+          find "$FRAMEWORKS_PATH" -name "*.framework" -type d | while read framework; do
+            echo "Signing: $framework"
+            codesign --force --deep --sign - "$framework"
+          done
+          
+          find "$FRAMEWORKS_PATH" -name "*.dylib" -type f | while read dylib; do
+            echo "Signing: $dylib"
+            codesign --force --sign - "$dylib"
+          done
+          
+          echo "Signing app..."
+          codesign --force --deep --sign - "$APP_PATH"
         
       - name: Zip Bundle
         run: |

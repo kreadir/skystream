@@ -1183,12 +1183,25 @@ class SkyStreamPlayerControlsState
 
     return MouseRegion(
       cursor: _isVisible ? SystemMouseCursors.basic : SystemMouseCursors.none,
+      onEnter: (_) {
+        // Always show cursor when mouse enters the player area
+        if (!_isVisible) {
+          setState(() => _isVisible = true);
+          widget.onVisibilityChanged?.call(true);
+        }
+        _startHideTimer();
+      },
       onHover: (_) {
         if (!_isVisible) {
           setState(() => _isVisible = true);
           widget.onVisibilityChanged?.call(true);
         }
         _startHideTimer();
+      },
+      onExit: (_) {
+        // When mouse leaves, ensure cursor will be visible when it returns
+        // Cancel hide timer to prevent cursor hiding while mouse is outside
+        _hideTimer?.cancel();
       },
       child: GestureDetector(
         onVerticalDragStart: _handleDragStart,
