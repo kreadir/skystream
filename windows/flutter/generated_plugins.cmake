@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  app_links
   dynamic_color
   flutter_js
   flutter_volume_controller

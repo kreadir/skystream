@@ -6,7 +6,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_color
   flutter_js
   flutter_volume_controller
-  gtk
   media_kit_libs_linux
   media_kit_video
   open_file_linux
