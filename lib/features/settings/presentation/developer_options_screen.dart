@@ -5,10 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:virtual_mouse/virtual_mouse.dart';
 
 import '../../extensions/providers/extensions_controller.dart';
 import '../../../core/storage/storage_service.dart';
 import '../../../core/domain/entity/multimedia_item.dart';
+import '../../../core/providers/device_info_provider.dart';
+import '../../../shared/widgets/tv_input_widgets.dart';
 import 'widgets/settings_widgets.dart';
 
 import 'package:flutter/foundation.dart';
@@ -25,7 +28,9 @@ class _DeveloperOptionsScreenState
     extends ConsumerState<DeveloperOptionsScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final deviceAsync = ref.watch(deviceProfileProvider);
+
+    final scaffold = Scaffold(
       appBar: AppBar(title: const Text('Developer Options')),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -64,9 +69,11 @@ class _DeveloperOptionsScreenState
                     isLast: true,
                     trailing: Switch(
                       value: enabled,
-                      onChanged: (val) => _toggleAssetLoading(context, val, enabled),
+                      onChanged: (val) =>
+                          _toggleAssetLoading(context, val, enabled),
                     ),
-                    onTap: () => _toggleAssetLoading(context, !enabled, enabled),
+                    onTap: () =>
+                        _toggleAssetLoading(context, !enabled, enabled),
                   );
                 },
               ),
@@ -75,9 +82,30 @@ class _DeveloperOptionsScreenState
         ],
       ),
     );
+
+    // Wrap with VirtualMouse on TV (this screen bypasses AppScaffold)
+    return deviceAsync.when(
+      data: (profile) {
+        if (profile.isTv) {
+          return VirtualMouse(
+            visible: true,
+            velocity: 5,
+            pointerColor: Theme.of(context).colorScheme.primary,
+            child: scaffold,
+          );
+        }
+        return scaffold;
+      },
+      loading: () => scaffold,
+      error: (_, __) => scaffold,
+    );
   }
 
-  Future<void> _toggleAssetLoading(BuildContext context, bool newValue, bool currentEnabled) async {
+  Future<void> _toggleAssetLoading(
+    BuildContext context,
+    bool newValue,
+    bool currentEnabled,
+  ) async {
     if (!kDebugMode) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -91,7 +119,7 @@ class _DeveloperOptionsScreenState
 
     await ref.read(storageServiceProvider).setDevLoadAssets(newValue);
     if (context.mounted) setState(() {});
-    
+
     // Refresh extensions
     ref.read(extensionsControllerProvider.notifier).loadInstalledPlugins();
   }
@@ -143,17 +171,14 @@ class _DeveloperOptionsScreenState
       builder: (context) => AlertDialog(
         surfaceTintColor: Colors.transparent,
         title: const Text('Stream URL'),
-        content: TextField(
+        content: TvTextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Enter video URL (http, magnet, etc.)',
-            filled: true,
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
+          hintText: 'Enter video URL (http, magnet, etc.)',
+          autofocus: false, // Start focus on Play button
+          textInputAction: TextInputAction.done,
         ),
         actions: [
-          TextButton(
+          TvButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
@@ -162,7 +187,10 @@ class _DeveloperOptionsScreenState
               ),
             ),
           ),
-          FilledButton(
+          const SizedBox(width: 8),
+          TvButton(
+            autofocus: true,
+            isPrimary: true,
             onPressed: () {
               final url = controller.text.trim();
               if (url.isNotEmpty) {
@@ -190,10 +218,6 @@ class _DeveloperOptionsScreenState
                 );
               }
             },
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            ),
             child: const Text("Play"),
           ),
         ],

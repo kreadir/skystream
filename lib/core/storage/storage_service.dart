@@ -24,7 +24,7 @@ class StorageService {
 
   Future<void> init() async {
     await Hive.initFlutter();
-    
+
     _libraryBox = await _safeOpenBox(kLibraryBox);
     _settingsBox = await _safeOpenBox(kSettingsBox);
     _extensionsBox = await _safeOpenBox(kExtensionsBox);
@@ -32,18 +32,20 @@ class StorageService {
   }
 
   Future<Box> _safeOpenBox(String boxName) async {
+    try {
+      return await Hive.openBox(boxName);
+    } catch (e) {
+      debugPrint(
+        "Error opening Hive box '$boxName': $e. Deleting and recreating...",
+      );
+      // If the box is corrupted or has unknown type IDs, delete it.
       try {
-        return await Hive.openBox(boxName);
-      } catch (e) {
-        debugPrint("Error opening Hive box '$boxName': $e. Deleting and recreating...");
-        // If the box is corrupted or has unknown type IDs, delete it.
-        try {
-           await Hive.deleteBoxFromDisk(boxName);
-        } catch (_) {
-           // Ignore delete errors, maybe file doesn't exist or lock issue
-        }
-        return await Hive.openBox(boxName);
+        await Hive.deleteBoxFromDisk(boxName);
+      } catch (_) {
+        // Ignore delete errors, maybe file doesn't exist or lock issue
       }
+      return await Hive.openBox(boxName);
+    }
   }
 
   /// Helper to ensure keys do not exceed Hive's 255 char limit.
@@ -165,6 +167,10 @@ class StorageService {
     await _historyBox.delete(_getKey(url));
   }
 
+  Future<void> clearAllHistory() async {
+    await _historyBox.clear();
+  }
+
   List<Map<String, dynamic>> getWatchHistory() {
     final items = <Map<String, dynamic>>[];
     for (var i = 0; i < _historyBox.length; i++) {
@@ -241,22 +247,22 @@ class StorageService {
 
       // Clear Preferences (Hive + Prefs)
       await clearPreferences();
-      
+
       // Clear Cache Manager (Images)
       try {
-         await DefaultCacheManager().emptyCache();
+        await DefaultCacheManager().emptyCache();
       } catch (e) {
-         debugPrint("Error clearing cache manager: $e");
+        debugPrint("Error clearing cache manager: $e");
       }
-      
+
       // Clear Temporary Directory
       try {
         final tempDir = await getTemporaryDirectory();
         if (await tempDir.exists()) {
-           await tempDir.delete(recursive: true);
+          await tempDir.delete(recursive: true);
         }
       } catch (e) {
-         debugPrint("Error clearing temp dir: $e");
+        debugPrint("Error clearing temp dir: $e");
       }
     } catch (e) {
       debugPrint('Error deleting data: $e');

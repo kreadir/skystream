@@ -1,0 +1,259 @@
+import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/config/tmdb_config.dart';
+import '../../../details/presentation/tmdb_movie_details_screen.dart';
+import '../../../../shared/widgets/desktop_scroll_wrapper.dart'; // Import DesktopScrollWrapper
+import '../../../../shared/widgets/tv_cards_wrapper.dart'; // Import TvCardsWrapper
+import '../../../../shared/widgets/shimmer_placeholder.dart';
+import '../view_all_screen.dart'; // Import ViewAllScreen
+
+class MediaHorizontalList extends StatefulWidget {
+  final String title;
+  final List<Map<String, dynamic>> mediaList;
+  final ViewAllCategory category;
+  final void Function(Map<String, dynamic>)? onTap;
+  final bool showViewAll;
+  final String? heroTagPrefix;
+
+  const MediaHorizontalList({
+    super.key,
+    required this.title,
+    required this.mediaList,
+    required this.category,
+    this.onTap,
+    this.showViewAll = true,
+    this.heroTagPrefix,
+  });
+
+  @override
+  State<MediaHorizontalList> createState() => _MediaHorizontalListState();
+}
+
+class _MediaHorizontalListState extends State<MediaHorizontalList> {
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.mediaList.isEmpty) return const SizedBox.shrink();
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth > 800;
+    final cardWidth = isDesktop ? 200.0 : 130.0;
+    final listHeight = isDesktop ? 350.0 : 230.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header Row
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Title with Blue Underline Accent
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: isDesktop ? 24 : 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      width: isDesktop ? 30 : 20, // Accent width
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent, // Nuvio blue
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (widget.showViewAll) const SizedBox(width: 8),
+
+              if (widget.showViewAll)
+                TvCardsWrapper(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ViewAllScreen(
+                          title: widget.title,
+                          initialMediaList: widget.mediaList,
+                          category: widget.category,
+                        ),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          "View All",
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.7),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 10,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+
+        // List
+        SizedBox(
+          height: listHeight, // Adjusted for 2:3 ratio within list
+          child: DesktopScrollWrapper(
+            // Wraps ListView
+            controller: _scrollController,
+            showButtons: isDesktop, // Show nav buttons on desktop/TV
+            child: ListView.separated(
+              controller: _scrollController, // Passes controller
+              clipBehavior: Clip.none,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              itemCount: widget.mediaList.length,
+              separatorBuilder: (context, index) =>
+                  SizedBox(width: isDesktop ? 24 : 12),
+              itemBuilder: (context, index) {
+                final item = widget.mediaList[index];
+                final posterPath = item['poster_path'];
+                String imageUrl;
+                if (posterPath != null) {
+                  if (posterPath.startsWith('http')) {
+                    imageUrl = posterPath;
+                  } else {
+                    imageUrl = '${TmdbConfig.posterSizeUrl}$posterPath';
+                  }
+                } else {
+                  imageUrl = 'https://via.placeholder.com/150x225';
+                }
+                final itemTitle = item['title'] ?? item['name'] ?? 'Unknown';
+                final prefix = widget.heroTagPrefix ?? 'list';
+                final uniqueTag =
+                    '${prefix}_${widget.title}_${item['id']}_${itemTitle.hashCode}_$index';
+                final mediaType =
+                    item['media_type'] ??
+                    (item['title'] != null ? 'movie' : 'tv');
+
+                return TvCardsWrapper(
+                  onTap: () {
+                    if (widget.onTap != null) {
+                      widget.onTap!(item);
+                    } else {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => TmdbMovieDetailsScreen(
+                            movieId: item['id'],
+                            mediaType: mediaType,
+                            heroTag: uniqueTag,
+                            placeholderPoster: imageUrl,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: SizedBox(
+                    width: cardWidth, // Fixed width for poster
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Poster Image
+                        Expanded(
+                          child: Hero(
+                            tag: uniqueTag,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: CachedNetworkImage(
+                                imageUrl: imageUrl,
+                                memCacheWidth: 350, // Optimize memory usage
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                placeholder: (context, url) =>
+                                    const ShimmerPlaceholder(),
+                                errorWidget: (context, url, error) => Container(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
+                                  child: Icon(
+                                    Icons.error_outline,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface.withOpacity(0.2),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Title below poster
+                        Text(
+                          itemTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.8),
+                            fontSize: isDesktop ? 22 : 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

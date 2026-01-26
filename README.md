@@ -1,6 +1,10 @@
 # SkyStream
 
-![Downloads](https://img.shields.io/github/downloads/akashdh11/skystream/total?style=for-the-badge&color=blue) ![Latest Release](https://img.shields.io/github/v/release/akashdh11/skystream?style=for-the-badge&color=orange)
+![Downloads](https://img.shields.io/github/downloads/akashdh11/skystream/total?style=for-the-badge&color=blue) 
+![Stars](https://img.shields.io/github/stars/akashdh11/skystream?style=for-the-badge&color=red)
+![Latest Release](https://img.shields.io/github/v/release/akashdh11/skystream?style=for-the-badge&color=orange)
+![Open Issues](https://img.shields.io/github/issues/akashdh11/skystream?style=for-the-badge&color=brown)
+
 
 **⚠️ Warning: By default, this app doesn't provide any video sources; you have to install extensions to add functionality to the app.**
 
@@ -34,16 +38,32 @@ SkyStream is a modern, media streaming client. It draws inspiration from the ver
 
 ![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white) ![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white) ![Riverpod](https://img.shields.io/badge/Riverpod-%232D3748.svg?style=for-the-badge&logo=riverpod&logoColor=white) ![Hive](https://img.shields.io/badge/Hive-%23DE3027.svg?style=for-the-badge&logo=hive&logoColor=white)
 
+## 📱 Mobile
+
+<p align="center">
+  <img src="screenshots/mobile/home.png" width="360" />
+    <img src="screenshots/mobile/discover.png" width="360" />
+  <img src="screenshots/mobile/details.png" width="360" />
+  <img src="screenshots/mobile/settings.png" width="360" />
+</p>
+
+## 📺 TV
+
+<p align="center">
+  <img src="screenshots/tv/details_1.png" width="720" />
+  <img src="screenshots/tv/details_2.png" width="720" />
+</p>
 
 ## Supported Platforms
 
-| Platform | Support |
-| :--- | :---: |
-| **Android** | ✅ |
-| **iOS** | ✅ (Sideloading required)|
-| **Windows** | ✅ |
-| **macOS** | ✅ |
-| **Linux** | ✅ |
+| Platform       |         Support          |
+|:---------------|:------------------------:|
+| **Android**    |            ✅             |
+| **Android TV** |         ✅ (Beta)         |
+| **iOS**        | ✅ (Sideloading required) |
+| **Windows**    |            ✅             |
+| **macOS**      |            ✅             |
+| **Linux**      |         ✅ (Beta)         |
 
 ## ✨ Key Features
 

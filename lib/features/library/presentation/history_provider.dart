@@ -62,13 +62,21 @@ class WatchHistoryNotifier extends Notifier<List<HistoryItem>> {
       lastStreamUrl: lastStreamUrl,
       lastEpisodeUrl: lastEpisodeUrl,
     );
-    state = _fetchHistory(); 
+    state = _fetchHistory();
   }
 
   Future<void> removeFromHistory(String url) async {
     await _storage.removeFromHistory(url);
     state = _fetchHistory();
   }
+
+  Future<void> clearAllHistory() async {
+    await _storage.clearAllHistory();
+    state = [];
+  }
 }
 
-final watchHistoryProvider = NotifierProvider<WatchHistoryNotifier, List<HistoryItem>>(WatchHistoryNotifier.new);
+final watchHistoryProvider =
+    NotifierProvider<WatchHistoryNotifier, List<HistoryItem>>(
+      WatchHistoryNotifier.new,
+    );

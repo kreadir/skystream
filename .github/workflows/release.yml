@@ -23,6 +23,11 @@ on:
         required: true
         default: true
         type: boolean
+      build_linux:
+        description: 'Build Linux'
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -62,6 +67,11 @@ jobs:
       
       - name: Install Dependencies
         run: flutter pub get
+
+      # Remove desktop TorrServer binaries to reduce APK size by ~170MB
+      # These are only needed for macOS, Windows, and Linux
+      - name: Strip Desktop Binaries
+        run: rm -f packages/flutter_torrent_server/assets/torrserver/TorrServer-*
         
       - name: Decode Keystore
         if: env.ANDROID_KEYSTORE_BASE64 != ''
@@ -139,6 +149,16 @@ jobs:
     needs: version
     if: ${{ github.event.inputs.build_macos == 'true' }}
     runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [arm64, x64]
+        include:
+          - arch: arm64
+            torrserver_binary: TorrServer-darwin-arm64
+            xcode_arch: arm64
+          - arch: x64
+            torrserver_binary: TorrServer-darwin-amd64
+            xcode_arch: x86_64
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -149,15 +169,68 @@ jobs:
         run: |
           flutter config --enable-macos-desktop
           flutter pub get
+
+      # Keep only the required TorrServer binary for this architecture
+      - name: Strip Unused Binaries
+        run: |
+          cd packages/flutter_torrent_server/assets/torrserver
+          ls -la
+          # Keep only the binary for this architecture
+          find . -type f ! -name "${{ matrix.torrserver_binary }}" -delete
+          ls -la
           
-      - name: Build macOS
-        run: flutter build macos --release
+      # Build for a single architecture to reduce app size from ~430MB (universal) to ~270MB
+      - name: Build macOS (${{ matrix.arch }})
+        run: |
+          # First, generate the Xcode project with flutter
+          flutter build macos --release --config-only
+          
+          # Build using xcodebuild with single architecture
+          cd macos
+          xcodebuild -workspace Runner.xcworkspace \
+            -configuration Release \
+            -scheme Runner \
+            -derivedDataPath ../build/macos \
+            ARCHS="${{ matrix.xcode_arch }}" \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+      
+      # Re-sign all frameworks to fix media_kit MPV crash (Issue #830)
+      # The frameworks built in CI have code signing issues that cause
+      # assertion failures in mpv_render_context_create
+      - name: Re-sign Frameworks
+        run: |
+          APP_PATH="build/macos/Build/Products/Release/skystream.app"
+          FRAMEWORKS_PATH="$APP_PATH/Contents/Frameworks"
+          
+          echo "Re-signing frameworks..."
+          find "$FRAMEWORKS_PATH" -name "*.framework" -type d | while read framework; do
+            echo "Signing: $framework"
+            codesign --force --deep --sign - "$framework"
+          done
+          
+          # Also sign any dylibs
+          find "$FRAMEWORKS_PATH" -name "*.dylib" -type f | while read dylib; do
+            echo "Signing: $dylib"
+            codesign --force --sign - "$dylib"
+          done
+          
+          # Sign the main app
+          echo "Signing app..."
+          codesign --force --deep --sign - "$APP_PATH"
+          
+          echo "Done re-signing."
         
+      # CRITICAL: Use -y flag to preserve symlinks!
+      # macOS frameworks contain symlinks (e.g., Mpv.framework/Mpv -> Versions/A/Mpv)
+      # Without -y, zip stores the file content instead of the symlink,
+      # causing MPV's internal config to fail with assertion errors.
       - name: Zip Bundle
         run: |
           VERSION="${{ needs.version.outputs.version }}"
           cd build/macos/Build/Products/Release
-          zip -r "../../../../../skystream-macos-${VERSION}.zip" skystream.app
+          zip -ry "../../../../../skystream-macos-${{ matrix.arch }}-${VERSION}.zip" skystream.app
 
       - name: Upload Release Assets
         uses: ncipollo/release-action@v1
@@ -165,7 +238,7 @@ jobs:
           tag: ${{ needs.version.outputs.version }}
           allowUpdates: true
           replacesArtifacts: true
-          artifacts: "skystream-macos-${{ needs.version.outputs.version }}.zip"
+          artifacts: "skystream-macos-${{ matrix.arch }}-${{ needs.version.outputs.version }}.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
 
   windows:
@@ -183,6 +256,13 @@ jobs:
         run: |
           flutter config --enable-windows-desktop
           flutter pub get
+
+      # Keep only the Windows TorrServer binary
+      - name: Strip Unused Binaries
+        run: |
+          cd packages/flutter_torrent_server/assets/torrserver
+          Get-ChildItem -File | Where-Object { $_.Name -ne "TorrServer-windows-amd64.exe" } | Remove-Item
+          Get-ChildItem
           
       - name: Build Windows
         run: flutter build windows --release
@@ -199,4 +279,51 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           artifacts: "skystream-windows-${{ needs.version.outputs.version }}.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  linux:
+    name: Linux Build
+    needs: version
+    if: ${{ github.event.inputs.build_linux == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Linux Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libmpv-dev
+          
+      - name: Install Flutter Dependencies
+        run: |
+          flutter config --enable-linux-desktop
+          flutter pub get
+
+      # Keep only the Linux TorrServer binary
+      - name: Strip Unused Binaries
+        run: |
+          cd packages/flutter_torrent_server/assets/torrserver
+          ls -la
+          find . -type f ! -name "TorrServer-linux-amd64" -delete
+          ls -la
+          
+      - name: Build Linux
+        run: flutter build linux --release
+        
+      - name: Compress Release
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          cd build/linux/x64/release/bundle
+          tar -czvf "../../../../../skystream-linux-${VERSION}.tar.gz" .
+
+      - name: Upload Release Assets
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.version.outputs.version }}
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: "skystream-linux-${{ needs.version.outputs.version }}.tar.gz"
           token: ${{ secrets.GITHUB_TOKEN }}

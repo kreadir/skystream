@@ -6,8 +6,8 @@ class AppTheme {
   static const Color background = Color(0xFF0F0F13); // Deep dark blue-grey
   static const Color surface = Color(0xFF18181F);
   static const Color surfaceHighlight = Color(0xFF22222E);
-  static const Color primary = Color(0xFF8B5CF6); // Violet 500
-  static const Color primaryVariant = Color(0xFF7C3AED); // Violet 600
+  static const Color primary = Color(0xFF448AFF); // Blue Accent
+  static const Color primaryVariant = Color(0xFF2962FF); // Blue Accent Darker
   static const Color secondary = Color(0xFF10B981); // Emerald
   static const Color error = Color(0xFFEF4444);
   static const Color onBackground = Color(0xFFF9FAFB);
@@ -22,20 +22,23 @@ class AppTheme {
   static const Color lightTextSecondary = Color(0xFF6B7280);
 
   static ThemeData createDarkTheme(ColorScheme? dynamicScheme) {
-    var colorScheme = dynamicScheme ?? ColorScheme.fromSeed(
-        seedColor: const Color(0xFF8B5CF6), // Violet seed
-        brightness: Brightness.dark,
-        surface: const Color(0xFF000000), // Default surface
-    );
-    
+    var colorScheme =
+        dynamicScheme ??
+        ColorScheme.fromSeed(
+          seedColor: const Color(0xFF448AFF), // Blue Accent seed
+          brightness: Brightness.dark,
+          surface: const Color(0xFF000000), // Default surface
+        );
+
     // Ensure surface is always Pitch Black for list items/cards
     colorScheme = colorScheme.copyWith(surface: const Color(0xFF000000));
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF000000), // Pure Black Background for Screens
-      
+      scaffoldBackgroundColor: const Color(
+        0xFF000000,
+      ), // Pure Black Background for Screens
       // Dialog Theme (Premium Grey)
       dialogTheme: const DialogThemeData(
         backgroundColor: Color(0xFF18181F),
@@ -47,7 +50,7 @@ class AppTheme {
           color: Color(0xFFF9FAFB),
         ),
       ),
-      
+
       // Bottom Sheet Theme (Premium Grey)
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Color(0xFF18181F),
@@ -65,33 +68,34 @@ class AppTheme {
 
       // Material 3 Color Scheme
       colorScheme: colorScheme,
-      
+
       // Typography
-      textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: GoogleFonts.outfit(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: const Color(0xFFF9FAFB),
-        ),
-        headlineMedium: GoogleFonts.outfit(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFFF9FAFB),
-        ),
-        titleLarge: GoogleFonts.outfit(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFFF9FAFB),
-        ),
-        bodyLarge: GoogleFonts.outfit(
-          fontSize: 16,
-          color: const Color(0xFFE5E7EB),
-        ),
-        bodyMedium: GoogleFonts.outfit(
-          fontSize: 14,
-          color: const Color(0xFF9CA3AF),
-        ),
-      ),
+      textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme)
+          .copyWith(
+            displayLarge: GoogleFonts.outfit(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFFF9FAFB),
+            ),
+            headlineMedium: GoogleFonts.outfit(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFFF9FAFB),
+            ),
+            titleLarge: GoogleFonts.outfit(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFFF9FAFB),
+            ),
+            bodyLarge: GoogleFonts.outfit(
+              fontSize: 16,
+              color: const Color(0xFFE5E7EB),
+            ),
+            bodyMedium: GoogleFonts.outfit(
+              fontSize: 14,
+              color: const Color(0xFF9CA3AF),
+            ),
+          ),
 
       // AppBar
       appBarTheme: const AppBarTheme(
@@ -124,20 +128,25 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
-      
+
       dividerColor: const Color(0xFF22222E),
     );
   }
 
   static ThemeData createLightTheme(ColorScheme? dynamicScheme) {
-    final colorScheme = dynamicScheme ?? ColorScheme.fromSeed(
-      seedColor: primary, // Violet seed
-      brightness: Brightness.light,
-      surface: lightSurface,
-      background: lightBackground,
-    );
+    final colorScheme =
+        dynamicScheme ??
+        ColorScheme.fromSeed(
+          seedColor: primary, // Violet seed
+          brightness: Brightness.light,
+          surface: lightSurface,
+          background: lightBackground,
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -147,31 +156,32 @@ class AppTheme {
       colorScheme: colorScheme,
 
       // Typography
-      textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme).copyWith(
-        displayLarge: GoogleFonts.outfit(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: lightTextPrimary,
-        ),
-        headlineMedium: GoogleFonts.outfit(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          color: lightTextPrimary,
-        ),
-        titleLarge: GoogleFonts.outfit(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: lightTextPrimary,
-        ),
-        bodyLarge: GoogleFonts.outfit(
-          fontSize: 16,
-          color: lightTextPrimary,
-        ),
-        bodyMedium: GoogleFonts.outfit(
-          fontSize: 14,
-          color: lightTextSecondary,
-        ),
-      ),
+      textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme)
+          .copyWith(
+            displayLarge: GoogleFonts.outfit(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: lightTextPrimary,
+            ),
+            headlineMedium: GoogleFonts.outfit(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: lightTextPrimary,
+            ),
+            titleLarge: GoogleFonts.outfit(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: lightTextPrimary,
+            ),
+            bodyLarge: GoogleFonts.outfit(
+              fontSize: 16,
+              color: lightTextPrimary,
+            ),
+            bodyMedium: GoogleFonts.outfit(
+              fontSize: 14,
+              color: lightTextSecondary,
+            ),
+          ),
 
       // AppBar
       appBarTheme: const AppBarTheme(
@@ -184,7 +194,8 @@ class AppTheme {
           color: lightTextPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          fontFamily: 'Outfit', // Fallback or explicit if needed, but GoogleFonts covers it generally
+          fontFamily:
+              'Outfit', // Fallback or explicit if needed, but GoogleFonts covers it generally
         ),
       ),
 
@@ -211,7 +222,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: primary, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
 
       dividerColor: Colors.grey.shade200,

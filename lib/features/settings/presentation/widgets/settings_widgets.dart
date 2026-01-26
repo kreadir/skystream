@@ -4,11 +4,7 @@ class SettingsGroup extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const SettingsGroup({
-    super.key,
-    required this.title,
-    required this.children,
-  });
+  const SettingsGroup({super.key, required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +28,7 @@ class SettingsGroup extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Theme.of(context).dividerColor),
           ),
-          child: Column(
-            children: children,
-          ),
+          child: Column(children: children),
         ),
       ],
     );
@@ -64,24 +58,49 @@ class SettingsTile extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-            leading: Container(
+          focusColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.15),
+          leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
+            child: Icon(
+              icon,
+              color: Theme.of(context).colorScheme.primary,
+              size: 20,
+            ),
           ),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
           subtitle: subtitle != null
-              ? Text(subtitle!, style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color))
+              ? Text(
+                  subtitle!,
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
+                )
               : null,
-          trailing: trailing ?? const Icon(Icons.chevron_right_rounded, size: 20),
+          trailing:
+              trailing ?? const Icon(Icons.chevron_right_rounded, size: 20),
           onTap: onTap,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
         if (!isLast)
-           Divider(height: 1, indent: 56, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.5)),
+          Divider(
+            height: 1,
+            indent: 56,
+            endIndent: 16,
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+          ),
       ],
     );
   }

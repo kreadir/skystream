@@ -5,8 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:skystream/core/providers/device_info_provider.dart';
 import 'package:skystream/core/extensions/extension_manager.dart';
 import 'package:skystream/core/domain/entity/multimedia_item.dart';
-import 'package:skystream/shared/widgets/focusable_item.dart';
 import 'package:skystream/shared/widgets/desktop_scroll_wrapper.dart';
+import 'package:skystream/shared/widgets/tv_cards_wrapper.dart';
 
 class SearchResultSection extends ConsumerStatefulWidget {
   final String providerName;
@@ -21,7 +21,8 @@ class SearchResultSection extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<SearchResultSection> createState() => _SearchResultSectionState();
+  ConsumerState<SearchResultSection> createState() =>
+      _SearchResultSectionState();
 }
 
 class _SearchResultSectionState extends ConsumerState<SearchResultSection> {
@@ -39,53 +40,73 @@ class _SearchResultSectionState extends ConsumerState<SearchResultSection> {
 
     final device = ref.watch(deviceProfileProvider).asData?.value;
     final isLarge = device?.isLargeScreen ?? false;
-
-    final double width = isLarge ? 170 : 110;
-    final double posterHeight = width * 1.5;
-    final double totalHeight = posterHeight + 100;
+    // Matching MediaHorizontalList/ContinueWatchingSection dimensions
+    final double width = isLarge ? 200.0 : 130.0;
+    final double listHeight = isLarge ? 350.0 : 230.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Header with Blue Accent Style
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Text(
-                    widget.providerName,
-                    style: isLarge
-                        ? Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold)
-                        : Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  _buildDebugTag(context, ref),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            widget.providerName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: isLarge ? 24 : 20,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        _buildDebugTag(context, ref),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      width: isLarge ? 30 : 20,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
+
         SizedBox(
-          height: totalHeight,
+          height: listHeight,
           child: DesktopScrollWrapper(
             controller: _scrollController,
             child: ListView.separated(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
               itemCount: widget.results.length,
               separatorBuilder: (context, index) =>
                   SizedBox(width: isLarge ? 24 : 12),
               itemBuilder: (context, rIndex) {
                 final item = widget.results[rIndex];
-                return FocusableItem(
+                final uniqueTag =
+                    'search_${widget.providerId}_${item.url}_$rIndex';
+
+                return TvCardsWrapper(
                   onTap: () => context.push('/details', extra: item),
                   borderRadius: BorderRadius.circular(12),
                   child: SizedBox(
@@ -93,32 +114,43 @@ class _SearchResultSectionState extends ConsumerState<SearchResultSection> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        AspectRatio(
-                          aspectRatio: 2 / 3,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: CachedNetworkImage(
-                              imageUrl: item.posterUrl,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                  color: Theme.of(context).dividerColor),
-                              errorWidget: (context, url, _) =>
-                                  const Icon(Icons.broken_image),
+                        Expanded(
+                          child: Hero(
+                            tag: uniqueTag, // Added Hero tag support
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: CachedNetworkImage(
+                                imageUrl: item.posterUrl,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                placeholder: (context, url) => Container(
+                                  color: Theme.of(context).dividerColor,
+                                ),
+                                errorWidget: (context, url, _) => Container(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
+                                  child: const Icon(
+                                    Icons.broken_image,
+                                    color: Colors.white24,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           item.title,
-                          maxLines: 2,
+                          maxLines: 1, // Matched Dashboard style
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w500,
-                                fontSize: isLarge ? 15 : null,
-                              ),
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.8),
+                            fontSize: isLarge ? 22 : 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
@@ -128,7 +160,6 @@ class _SearchResultSectionState extends ConsumerState<SearchResultSection> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
       ],
     );
   }
@@ -137,9 +168,9 @@ class _SearchResultSectionState extends ConsumerState<SearchResultSection> {
     bool isDebug = false;
     try {
       final manager = ref.read(extensionManagerProvider.notifier);
-      final p = manager
-          .getAllProviders()
-          .firstWhere((p) => p.id == widget.providerId);
+      final p = manager.getAllProviders().firstWhere(
+        (p) => p.id == widget.providerId,
+      );
       if (p.isDebug) {
         isDebug = true;
       }

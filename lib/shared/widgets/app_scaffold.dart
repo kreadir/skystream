@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:skystream/core/providers/device_info_provider.dart';
 import 'package:skystream/shared/widgets/custom_bottom_nav.dart';
+import 'package:virtual_mouse/virtual_mouse.dart';
 
 class AppScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -17,8 +18,9 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
     final String location = GoRouterState.of(context).uri.toString();
     if (location.startsWith('/home')) return 0;
     if (location.startsWith('/search')) return 1;
-    if (location.startsWith('/library')) return 2;
-    if (location.startsWith('/settings')) return 3;
+    if (location.startsWith('/discover')) return 2;
+    if (location.startsWith('/library')) return 3;
+    if (location.startsWith('/settings')) return 4;
     return 0;
   }
 
@@ -31,9 +33,12 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
         context.go('/search');
         break;
       case 2:
-        context.go('/library');
+        context.go('/discover');
         break;
       case 3:
+        context.go('/library');
+        break;
+      case 4:
         context.go('/settings');
         break;
     }
@@ -46,13 +51,15 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
     return deviceProfileAsync.when(
       data: (profile) {
         // Desktop or TV use Side Navigation
+        // VirtualMouse cursor only shown on TV, not desktop
         if (profile.isLargeScreen) {
-          return Scaffold(
+          final sideNavScaffold = Scaffold(
             body: Row(
               children: [
                 NavigationRail(
                   selectedIndex: _calculateSelectedIndex(context),
-                  onDestinationSelected: (index) => _onItemTapped(index, context),
+                  onDestinationSelected: (index) =>
+                      _onItemTapped(index, context),
                   labelType: NavigationRailLabelType.all,
                   groupAlignment: 0.0, // Center
                   destinations: const [
@@ -64,6 +71,11 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                     NavigationRailDestination(
                       icon: Icon(Icons.search),
                       label: Text('Search'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.dashboard_outlined),
+                      selectedIcon: Icon(Icons.dashboard),
+                      label: Text('Discover'),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.library_books_outlined),
@@ -78,12 +90,22 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                   ],
                 ),
                 const VerticalDivider(thickness: 1, width: 1),
-                Expanded(
-                  child: widget.child,
-                ),
+                Expanded(child: widget.child),
               ],
             ),
           );
+
+          // Wrap with VirtualMouse only on TV
+          if (profile.isTv) {
+            return VirtualMouse(
+              visible: true,
+              velocity: 5,
+              pointerColor: Theme.of(context).colorScheme.primary,
+              child: sideNavScaffold,
+            );
+          }
+
+          return sideNavScaffold;
         }
 
         // Mobile uses Bottom Navigation
@@ -95,7 +117,8 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
           ),
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
     );
   }

@@ -56,6 +56,7 @@ class _HomeSectionState extends ConsumerState<HomeSection> {
           height: totalHeight,
           child: DesktopScrollWrapper(
             controller: _scrollController,
+            showButtons: isLarge, // Show nav buttons on both desktop and TV
             child: ListView.separated(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(
@@ -96,10 +97,11 @@ class _HomeSectionState extends ConsumerState<HomeSection> {
                           item.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            fontSize: isLarge ? 15 : null,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                fontSize: isLarge ? 15 : null,
+                              ),
                         ),
                       ],
                     ),
@@ -113,4 +115,3 @@ class _HomeSectionState extends ConsumerState<HomeSection> {
     );
   }
 }
-

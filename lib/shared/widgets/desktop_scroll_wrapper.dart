@@ -8,6 +8,9 @@ class DesktopScrollWrapper extends StatefulWidget {
   final Future<void> Function()? onScrollLeft;
   final Future<void> Function()? onScrollRight;
 
+  /// Whether to show navigation buttons. If null, defaults to true on desktop platforms.
+  final bool? showButtons;
+
   const DesktopScrollWrapper({
     super.key,
     required this.child,
@@ -15,6 +18,7 @@ class DesktopScrollWrapper extends StatefulWidget {
     this.scrollAmount = 300.0,
     this.onScrollLeft,
     this.onScrollRight,
+    this.showButtons,
   });
 
   @override
@@ -41,7 +45,7 @@ class _DesktopScrollWrapperState extends State<DesktopScrollWrapper> {
 
   void _updateArrows() {
     if (!widget.controller.hasClients) return;
-    
+
     final position = widget.controller.position;
     final showLeft = position.pixels > 0;
     final showRight = position.pixels < position.maxScrollExtent;
@@ -67,12 +71,12 @@ class _DesktopScrollWrapperState extends State<DesktopScrollWrapper> {
     }
 
     if (!widget.controller.hasClients) return;
-    
+
     final current = widget.controller.offset;
-    final target = right 
-        ? current + widget.scrollAmount 
+    final target = right
+        ? current + widget.scrollAmount
         : current - widget.scrollAmount;
-        
+
     widget.controller.animateTo(
       target.clamp(0.0, widget.controller.position.maxScrollExtent),
       duration: const Duration(milliseconds: 300),
@@ -80,17 +84,24 @@ class _DesktopScrollWrapperState extends State<DesktopScrollWrapper> {
     );
   }
 
+  bool get _shouldShowButtons {
+    // If explicitly set, use that value
+    if (widget.showButtons != null) return widget.showButtons!;
+    // Default: show on desktop platforms only
+    return Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Only show on Desktop
-    if (Platform.isAndroid || Platform.isIOS) {
+    // Only show buttons if enabled
+    if (!_shouldShowButtons) {
       return widget.child;
     }
 
     return Stack(
       children: [
         widget.child,
-        
+
         // Left Button
         if (_showLeft)
           Positioned(
@@ -127,17 +138,14 @@ class _ScrollButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _ScrollButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _ScrollButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: Material(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
         shape: const CircleBorder(),
         elevation: 4,
         child: InkWell(
@@ -145,10 +153,7 @@ class _ScrollButton extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Icon(
-              icon,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+            child: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
           ),
         ),
       ),

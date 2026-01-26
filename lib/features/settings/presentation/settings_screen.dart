@@ -4,6 +4,7 @@ import '../../../core/storage/storage_service.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/utils/app_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../../shared/widgets/tv_input_widgets.dart';
 
 import 'widgets/settings_widgets.dart';
 import 'package:go_router/go_router.dart';
@@ -238,7 +239,8 @@ class SettingsScreen extends ConsumerWidget {
                                     .clearPreferences();
 
                                 // Restart App
-                                if (context.mounted) await AppUtils.restartApp(context);
+                                if (context.mounted)
+                                  await AppUtils.restartApp(context);
                               },
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.orange,
@@ -285,7 +287,8 @@ class SettingsScreen extends ConsumerWidget {
                                     .deleteAllData();
 
                                 // Restart App
-                                if (context.mounted) await AppUtils.restartApp(context);
+                                if (context.mounted)
+                                  await AppUtils.restartApp(context);
                               },
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.red,
@@ -376,14 +379,15 @@ class SettingsScreen extends ConsumerWidget {
               groupValue: current,
               onChanged: (val) {
                 if (val != null) {
-                  if (isLeft)
+                  if (isLeft) {
                     ref
                         .read(playerSettingsProvider.notifier)
                         .setLeftGesture(val);
-                  else
+                  } else {
                     ref
                         .read(playerSettingsProvider.notifier)
                         .setRightGesture(val);
+                  }
                   Navigator.pop(context);
                 }
               },
@@ -481,11 +485,12 @@ class SettingsScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text("Size: ${size.toInt()}"),
-                Slider(
+                TvSlider(
                   value: size,
                   min: 10,
                   max: 80,
                   divisions: 70,
+                  step: 1.0,
                   onChanged: (v) => setState(() => size = v),
                 ),
                 const SizedBox(height: 8),
@@ -497,7 +502,7 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             actions: [
-              TextButton(
+              TvButton(
                 onPressed: () => Navigator.pop(ctx),
                 child: Text(
                   "Cancel",
@@ -506,7 +511,10 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              FilledButton(
+              const SizedBox(width: 8),
+              TvButton(
+                autofocus: true,
+                isPrimary: true,
                 onPressed: () {
                   // 0x99000000 is ~60% opacity black
                   final bg = showBackground ? 0x99000000 : 0x00000000;
@@ -515,10 +523,6 @@ class SettingsScreen extends ConsumerWidget {
                       .setSubtitleSettings(size, settings.subtitleColor, bg);
                   Navigator.pop(ctx);
                 },
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                ),
                 child: const Text("Save"),
               ),
             ],

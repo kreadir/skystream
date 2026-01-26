@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/extensions/models/extension_plugin.dart';
+import '../../../core/providers/device_info_provider.dart';
+import '../../../shared/widgets/tv_input_widgets.dart';
 import '../providers/extensions_controller.dart';
 
 class ExtensionsScreen extends ConsumerStatefulWidget {
@@ -70,7 +72,9 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (state.repositories.isEmpty && state.installedPlugins.isEmpty) {
-             return const Center(child: Text("No repositories or plugins found"));
+            return const Center(
+              child: Text("No repositories or plugins found"),
+            );
           }
           return Center(
             child: ConstrainedBox(
@@ -78,14 +82,18 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
               child: ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.only(bottom: 80), // Fab space
-                itemCount: state.repositories.length + (state.installedPlugins.any((p) => p.isDebug) ? 1 : 0),
+                itemCount:
+                    state.repositories.length +
+                    (state.installedPlugins.any((p) => p.isDebug) ? 1 : 0),
                 itemBuilder: (context, index) {
-                  final debugPlugins = state.installedPlugins.where((p) => p.isDebug).toList();
+                  final debugPlugins = state.installedPlugins
+                      .where((p) => p.isDebug)
+                      .toList();
                   final hasDebug = debugPlugins.isNotEmpty;
 
                   // Render Debug Section at index 0 if it exists
                   if (hasDebug && index == 0) {
-                     return _buildDebugSection(context, debugPlugins);
+                    return _buildDebugSection(context, debugPlugins);
                   }
 
                   // Adjust index for repositories
@@ -123,7 +131,9 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
                               repo.name,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     fontWeight: FontWeight.bold,
                                   ),
                             ),
@@ -146,7 +156,9 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
                             if (entry.key == 0)
                               Divider(
                                 height: 1,
-                                color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                                color: Theme.of(
+                                  context,
+                                ).dividerColor.withValues(alpha: 0.5),
                               ),
                             _PluginTile(plugin: entry.value),
                             if (!isLast)
@@ -154,7 +166,9 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
                                 height: 1,
                                 indent: 56,
                                 endIndent: 16,
-                                color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                                color: Theme.of(
+                                  context,
+                                ).dividerColor.withValues(alpha: 0.5),
                               ),
                           ],
                         );
@@ -215,7 +229,10 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
     );
   }
 
-  Widget _buildDebugSection(BuildContext context, List<ExtensionPlugin> debugPlugins) {
+  Widget _buildDebugSection(
+    BuildContext context,
+    List<ExtensionPlugin> debugPlugins,
+  ) {
     return Card(
       margin: const EdgeInsets.only(
         bottom: 16,
@@ -227,7 +244,9 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.orange.withValues(alpha: 0.5)), // Orange border for debug
+        side: BorderSide(
+          color: Colors.orange.withValues(alpha: 0.5),
+        ), // Orange border for debug
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
@@ -245,8 +264,8 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
           ),
         ),
         children: debugPlugins.asMap().entries.map((entry) {
-            final isLast = entry.key == debugPlugins.length - 1;
-            return Column(
+          final isLast = entry.key == debugPlugins.length - 1;
+          return Column(
             children: [
               _PluginTile(plugin: entry.value, isDebugSection: true),
               if (!isLast)
@@ -257,7 +276,7 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
                   color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
                 ),
             ],
-            );
+          );
         }).toList(),
       ),
     );
@@ -292,20 +311,22 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
 
   void _showAddRepoDialog(BuildContext context, WidgetRef ref) {
     final controller = TextEditingController();
+    final isTv = ref.read(deviceProfileProvider).asData?.value.isTv ?? false;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         surfaceTintColor: Colors.transparent, // Remove M3 tint
         title: const Text("Add Repository"),
-        content: TextField(
+        content: TvTextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: "Repository URL or Shortcode",
-          ),
-          autofocus: true,
+          hintText: "Repository URL or Shortcode",
+          autofocus: false, // Don't trap focus - start on Add button
+          textInputAction: TextInputAction.done,
         ),
         actions: [
-          TextButton(
+          TvButton(
+            showFocusHighlight: isTv,
             onPressed: () => Navigator.pop(context),
             child: Text(
               "Cancel",
@@ -314,7 +335,11 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
               ),
             ),
           ),
-          FilledButton(
+          const SizedBox(width: 8),
+          TvButton(
+            autofocus: true,
+            isPrimary: true,
+            showFocusHighlight: isTv,
             onPressed: () {
               if (controller.text.isNotEmpty) {
                 ref
@@ -323,10 +348,6 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
                 Navigator.pop(context);
               }
             },
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            ),
             child: const Text("Add"),
           ),
         ],
@@ -345,7 +366,7 @@ class _PluginTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // If this IS a debug tile, just show basic info
     if (isDebugSection) {
-       return ListTile(
+      return ListTile(
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -382,8 +403,8 @@ class _PluginTile extends ConsumerWidget {
           ],
         ),
         subtitle: Text(
-           "v${plugin.version} • Asset Plugin",
-           style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
+          "v${plugin.version} • Asset Plugin",
+          style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
         ),
         // No actions for debug plugins
       );
@@ -395,18 +416,16 @@ class _PluginTile extends ConsumerWidget {
     // We explicitly exclude any installed plugin that ends with .debug matching this online plugin
     final installedPlugin = state.installedPlugins
         .cast<ExtensionPlugin?>()
-        .firstWhere(
-          (p) {
-             if (p == null) return false;
-             // If the installed plugin is a debug one, NEVER match it to an online plugin
-             if (p.isDebug) {
-               return false;
-             }
+        .firstWhere((p) {
+          if (p == null) return false;
+          // If the installed plugin is a debug one, NEVER match it to an online plugin
+          if (p.isDebug) {
+            return false;
+          }
 
-             return p.packageId == plugin.packageId || p.internalName == plugin.internalName;
-          },
-          orElse: () => null,
-        );
+          return p.packageId == plugin.packageId ||
+              p.internalName == plugin.internalName;
+        }, orElse: () => null);
 
     final isInstalled = installedPlugin != null;
     final updateAvailable = state.availableUpdates[plugin.packageId];
@@ -431,7 +450,7 @@ class _PluginTile extends ConsumerWidget {
       ),
       subtitle: Text(
         isInstalled
-            ? "v${installedPlugin!.version} • Installed"
+            ? "v${installedPlugin.version} • Installed"
             : "v${plugin.version} • ${plugin.description ?? ''}",
         style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
       ),
@@ -457,7 +476,7 @@ class _PluginTile extends ConsumerWidget {
               onPressed: () {
                 ref
                     .read(extensionsControllerProvider.notifier)
-                    .uninstallPlugin(installedPlugin!);
+                    .uninstallPlugin(installedPlugin);
               },
             )
           else

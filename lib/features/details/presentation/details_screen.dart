@@ -10,8 +10,8 @@ import '../../library/presentation/library_provider.dart';
 import '../../../core/extensions/extension_manager.dart';
 import '../../../../core/providers/device_info_provider.dart';
 import '../../../core/storage/storage_service.dart';
-import '../../../../core/extensions/providers/js_based_provider.dart';
 import '../../library/presentation/history_provider.dart';
+import '../../../../shared/widgets/tv_input_widgets.dart';
 
 class DetailsScreen extends ConsumerStatefulWidget {
   final MultimediaItem item;
@@ -52,7 +52,8 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
           episodes: [
             Episode(
               name: itemToUse.title,
-              url: itemToUse.url, // The main item URL is the file path/stream link
+              url: itemToUse
+                  .url, // The main item URL is the file path/stream link
               posterUrl: itemToUse.posterUrl,
             ),
           ],
@@ -153,10 +154,19 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
     final storage = ref.read(storageServiceProvider);
     final lastEpisodeUrl = storage.getLastEpisodeUrl(widget.item.url);
     final position = storage.getPosition(widget.item.url);
-    final duration = ref.read(watchHistoryProvider)
-        .firstWhere((i) => i.item.url == widget.item.url, orElse: () => HistoryItem(item: widget.item, position: 0, duration: 1, timestamp: 0))
+    final duration = ref
+        .read(watchHistoryProvider)
+        .firstWhere(
+          (i) => i.item.url == widget.item.url,
+          orElse: () => HistoryItem(
+            item: widget.item,
+            position: 0,
+            duration: 1,
+            timestamp: 0,
+          ),
+        )
         .duration;
-    
+
     // Calculate progress (safety for zero duration)
     final progress = duration > 0 ? (position / duration) * 100 : 0;
 
@@ -173,10 +183,10 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
         // If > 95% finished, try next episode
         if (progress > 95) {
           if (lastIndex + 1 < allEpisodes.length) {
-             _play(context, allEpisodes[lastIndex + 1].url, details);
-             return;
+            _play(context, allEpisodes[lastIndex + 1].url, details);
+            return;
           }
-        } 
+        }
         // Else (or if no next episode), resume current
         _play(context, lastEpisodeUrl, details);
         return;
@@ -537,37 +547,50 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
     if (_isMovie) {
       final storage = ref.watch(storageServiceProvider);
       final pos = storage.getPosition(widget.item.url);
-      // Threshold: > 5 seconds and < 95% (handled by remove history logic usually, but checks existing)
+      // Threshold: > 5 seconds and < 95%
       if (pos > 5000) isResuming = true;
     }
 
-    final playBtn = FilledButton.icon(
+    final playBtn = TvButton(
+      isPrimary: true,
+      autofocus: true,
       onPressed:
           (details != null &&
               details.episodes != null &&
               details.episodes!.isNotEmpty)
           ? () => _handlePlayPress(context, details)
           : null,
-      icon: const Icon(Icons.play_arrow_rounded),
-      label: Text(isResuming ? 'Resume' : 'Play'),
-      style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        minimumSize: const Size(double.infinity, 50),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.play_arrow_rounded),
+            const SizedBox(width: 8),
+            Text(isResuming ? 'Resume' : 'Play'),
+          ],
+        ),
       ),
     );
 
-    final downloadBtn = OutlinedButton.icon(
+    final downloadBtn = TvButton(
+      isPrimary: false,
+      isOutlined: true,
       onPressed: () {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Coming soon')));
       },
-      icon: const Icon(Icons.download_rounded),
-      label: const Text('Download'),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        minimumSize: const Size(double.infinity, 50),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.download_rounded),
+            const SizedBox(width: 8),
+            const Text('Download'),
+          ],
+        ),
       ),
     );
 
@@ -581,25 +604,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       children: [
         Expanded(child: playBtn),
         const SizedBox(width: 12),
-        Expanded(
-          child: FilledButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Coming soon')));
-            },
-            icon: const Icon(Icons.download_rounded),
-            label: const Text('Download'),
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHigh,
-              foregroundColor: Theme.of(context).colorScheme.onSurface,
-              minimumSize: const Size(double.infinity, 50),
-            ),
-          ),
-        ),
+        Expanded(child: downloadBtn),
       ],
     );
   }
@@ -713,6 +718,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
           const SizedBox(height: 16),
         ],
         ListView.builder(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: episodes.length,
