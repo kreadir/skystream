@@ -1,7 +1,7 @@
 # SkyStream
 
 ![Downloads](https://img.shields.io/github/downloads/akashdh11/skystream/total?style=for-the-badge&color=blue) 
-![Stars](https://img.shields.io/github/stars/akashdh11/skystream?style=for-the-badge&color=green)
+![Stars](https://img.shields.io/github/stars/akashdh11/skystream?style=for-the-badge&color=brown)
 ![Latest Release](https://img.shields.io/github/v/release/akashdh11/skystream?style=for-the-badge&color=orange)
 ![Open Issues](https://img.shields.io/github/issues/akashdh11/skystream?style=for-the-badge&color=red)
 
