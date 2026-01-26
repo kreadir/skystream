@@ -9,11 +9,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import '../../../../core/extensions/base_provider.dart';
-import '../../../../core/models/torrent_status.dart'; // Added
-import '../components/torrent_info_widget.dart'; // Added
+import '../../../../core/models/torrent_status.dart';
+import '../components/torrent_info_widget.dart';
 import '../../../settings/presentation/player_settings_provider.dart';
 import '../../../../core/providers/device_info_provider.dart';
 import '../../../../shared/widgets/tv_input_widgets.dart';
+import 'player_stream_widgets.dart';
+import 'player_control_components.dart';
 
 class SkyStreamPlayerControls extends ConsumerStatefulWidget {
   final Player player;
@@ -156,7 +158,6 @@ class SkyStreamPlayerControlsState
   bool _showTorrentInfo = false; // Changed from true
   Timer? _hideTimer;
   bool _isLocked = false;
-  double? _dragValue;
   Duration? _swipeSeekValue; // Horizontal drag value
   double _boostLevel = 1.0;
 
@@ -214,15 +215,17 @@ class SkyStreamPlayerControlsState
     _position = widget.player.state.position;
     _duration = widget.player.state.duration;
 
+    // OPTIMIZATION: Removed setState calls for position/buffering - now using StreamBuilder widgets
+    // This reduces rebuilds from 60+/second to only when visibility/lock state changes
     _subscriptions.addAll([
+      // Playing state: Only for timer/PiP sync, NOT for UI rebuilds (StreamBuilder handles that)
       widget.player.stream.playing.listen((val) {
-        if (mounted) setState(() => _isPlaying = val);
+        _isPlaying = val; // Update local cache without setState
         if (val) {
           _startHideTimer();
         } else {
           _cancelHideTimer();
         }
-
         // Sync PiP state with Android
         if (Platform.isAndroid) {
           const MethodChannel(
@@ -230,19 +233,22 @@ class SkyStreamPlayerControlsState
           ).invokeMethod('setPipState', {'isPlaying': val});
         }
       }),
+      // Buffering: No setState needed - StreamBuilder in PlayerPlayPauseButton handles UI
       widget.player.stream.buffering.listen((val) {
-        if (mounted) setState(() => _isBuffering = val);
+        _isBuffering = val; // Update local cache for non-UI logic
       }),
+      // Position: No setState needed - StreamBuilder in PlayerProgressBar handles UI
       widget.player.stream.position.listen((val) {
-        if (mounted) setState(() => _position = val);
+        _position = val; // Update local cache for seek calculations
       }),
+      // Duration: Only setState when transitioning from zero (to show controls)
       widget.player.stream.duration.listen((val) {
-        if (mounted) {
-          if (_duration == Duration.zero && val != Duration.zero) {
+        _duration = val; // Update local cache
+        if (mounted && _duration == Duration.zero && val != Duration.zero) {
+          setState(() {
             _isVisible = true;
-            _startHideTimer();
-          }
-          setState(() => _duration = val);
+          });
+          _startHideTimer();
         }
       }),
       widget.player.stream.width.listen((_) => _updateOrientation()),
@@ -1728,139 +1734,35 @@ class SkyStreamPlayerControlsState
         ignoring: !_isVisible,
         child: Stack(
           children: [
-            // Top overlay (back button, title)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: GestureDetector(
-                onTap: () {},
-                onDoubleTap: () {},
-                onHorizontalDragStart: (_) {},
-                onVerticalDragStart: (_) {},
-                child: Container(
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).viewPadding.top + 16,
-                    left: 16,
-                    right: 16,
-                    bottom: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      TvButton(
-                        showFocusHighlight: _isTv,
-                        focusNode: _backFocusNode,
-                        onPressed:
-                            widget.onBackPointer ??
-                            () => Navigator.of(context).pop(),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 36,
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (widget.subtitle != null)
-                              Text(
-                                widget.subtitle!,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 48),
-                    ],
-                  ),
-                ),
-              ),
+            // Top overlay (back button, title) - Extracted to component
+            PlayerTopBar(
+              title: widget.title,
+              subtitle: widget.subtitle,
+              onBack: widget.onBackPointer ?? () => Navigator.of(context).pop(),
+              isTv: _isTv,
+              backFocusNode: _backFocusNode,
             ),
 
             // Torrent Info Overlay
             if (widget.torrentStatus != null && _showTorrentInfo)
               Positioned(
                 top: 80,
-                right: 20, // Changed from left: 20
+                right: 20,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 300),
                   child: TorrentInfoWidget(status: widget.torrentStatus),
                 ),
               ),
 
-            // Playback controls
-            Align(
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Seek Backward
-                  TvButton(
-                    showFocusHighlight: _isTv,
-                    onPressed: () =>
-                        _seekRelative(const Duration(seconds: -10)),
-                    child: const Icon(
-                      Icons.replay_10,
-                      color: Colors.white,
-                      size: 36,
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                  // Play/Pause Toggle
-                  TvButton(
-                    showFocusHighlight: _isTv,
-                    autofocus: true,
-                    focusNode: _playFocusNode,
-                    onPressed: _togglePlay,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Colors.black45, // Slight circle bg
-                        shape: BoxShape.circle,
-                      ),
-                      child: (_isBuffering || widget.isLoading)
-                          ? const Padding(
-                              padding: EdgeInsets.all(20.0),
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
-                            )
-                          : Icon(
-                              _isPlaying ? Icons.pause : Icons.play_arrow,
-                              color: Colors.white,
-                              size: 64,
-                            ),
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                  // Seek Forward
-                  TvButton(
-                    showFocusHighlight: _isTv,
-                    onPressed: () => _seekRelative(const Duration(seconds: 10)),
-                    child: const Icon(
-                      Icons.forward_10,
-                      color: Colors.white,
-                      size: 36,
-                    ),
-                  ),
-                ],
-              ),
+            // Playback controls - Extracted to component
+            PlayerCenterControls(
+              player: widget.player,
+              isLoading: widget.isLoading,
+              isTv: _isTv,
+              playFocusNode: _playFocusNode,
+              onSeekBackward: () => _seekRelative(const Duration(seconds: -10)),
+              onSeekForward: () => _seekRelative(const Duration(seconds: 10)),
+              onPlayPause: _togglePlay,
             ),
 
             // Bottom overlay (slider, actions)
@@ -1883,77 +1785,10 @@ class SkyStreamPlayerControlsState
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Time / Slider / Duration
-                      Row(
-                        children: [
-                          const SizedBox(width: 12),
-                          SizedBox(
-                            width: _duration.inHours > 0 ? 65 : 45,
-                            child: Text(
-                              _formatDuration(
-                                _dragValue != null
-                                    ? Duration(
-                                        milliseconds: _dragValue!.toInt(),
-                                      )
-                                    : _position,
-                              ),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontFeatures: [FontFeature.tabularFigures()],
-                              ),
-                              textAlign: TextAlign.right,
-                            ),
-                          ),
-                          Expanded(
-                            child: SliderTheme(
-                              data: SliderThemeData(
-                                trackHeight: 4,
-                                thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 8,
-                                ),
-                                overlayShape: const RoundSliderOverlayShape(
-                                  overlayRadius: 16,
-                                ),
-                                activeTrackColor: Colors.white,
-                                inactiveTrackColor: Colors.grey,
-                                trackShape: const RoundedRectSliderTrackShape(),
-                                thumbColor: Colors.white,
-                                overlayColor: Colors.white.withOpacity(0.2),
-                              ),
-                              child: TvSlider(
-                                value:
-                                    (_dragValue ??
-                                            _position.inMilliseconds.toDouble())
-                                        .clamp(
-                                          0,
-                                          _duration.inMilliseconds.toDouble(),
-                                        ),
-                                min: 0.0,
-                                max: _duration.inMilliseconds.toDouble(),
-                                step: 5000, // 5 seconds step
-                                onChanged: (val) {
-                                  _cancelHideTimer();
-                                  widget.player.seek(
-                                    Duration(milliseconds: val.toInt()),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(
-                            width: _duration.inHours > 0 ? 65 : 45,
-                            child: Text(
-                              _formatDuration(_duration),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontFeatures: [FontFeature.tabularFigures()],
-                              ),
-                              textAlign: TextAlign.left,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                        ],
+                      // Time / Slider / Duration - Using StreamBuilder widget to avoid parent rebuilds
+                      PlayerProgressBar(
+                        player: widget.player,
+                        onSeekStart: _cancelHideTimer,
                       ),
 
                       const SizedBox(height: 16),

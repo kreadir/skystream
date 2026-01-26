@@ -18,9 +18,13 @@ class DiscoverScreen extends ConsumerStatefulWidget {
   ConsumerState<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
+class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
+    with AutomaticKeepAliveClientMixin {
   late ScrollController _scrollController;
   final ValueNotifier<bool> _isScrolledNotifier = ValueNotifier<bool>(false);
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -48,6 +52,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     final heroMovieAsync = ref.watch(discoverHeroMovieProvider); // Updated
     final popularMoviesAsync = ref.watch(popularMoviesProvider);
     final popularTVAsync = ref.watch(popularTVProvider);
@@ -128,7 +133,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                             ? Colors.blueAccent
                             : Theme.of(
                                 context,
-                              ).colorScheme.onSurface.withOpacity(0.1),
+                              ).colorScheme.onSurface.withValues(alpha: 0.1),
                         radius: 18,
                         child: Icon(
                           Icons.tune,
@@ -154,7 +159,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   child: CircleAvatar(
                     backgroundColor: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.1),
+                    ).colorScheme.onSurface.withValues(alpha: 0.1),
                     radius: 18,
                     child: Icon(
                       Icons.search,
