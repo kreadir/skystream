@@ -560,13 +560,16 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
               details.episodes!.isNotEmpty)
           ? () => _handlePlayPress(context, details)
           : null,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.play_arrow_rounded),
-          const SizedBox(width: 8),
-          Text(isResuming ? 'Resume' : 'Play'),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.play_arrow_rounded),
+            const SizedBox(width: 8),
+            Text(isResuming ? 'Resume' : 'Play'),
+          ],
+        ),
       ),
     );
 
@@ -578,13 +581,16 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
           context,
         ).showSnackBar(const SnackBar(content: Text('Coming soon')));
       },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.download_rounded),
-          const SizedBox(width: 8),
-          const Text('Download'),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.download_rounded),
+            const SizedBox(width: 8),
+            const Text('Download'),
+          ],
+        ),
       ),
     );
 
