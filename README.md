@@ -1,6 +1,10 @@
 # SkyStream
 
-![Downloads](https://img.shields.io/github/downloads/akashdh11/skystream/total?style=for-the-badge&color=blue) ![Latest Release](https://img.shields.io/github/v/release/akashdh11/skystream?style=for-the-badge&color=orange)
+![Downloads](https://img.shields.io/github/downloads/akashdh11/skystream/total?style=for-the-badge&color=blue) 
+![Stars](https://img.shields.io/github/stars/akashdh11/skystream?style=for-the-badge&color=green)
+![Latest Release](https://img.shields.io/github/v/release/akashdh11/skystream?style=for-the-badge&color=orange)
+![Open Issues](https://img.shields.io/github/issues/akashdh11/skystream?style=for-the-badge&color=red)
+
 
 **⚠️ Warning: By default, this app doesn't provide any video sources; you have to install extensions to add functionality to the app.**
 
