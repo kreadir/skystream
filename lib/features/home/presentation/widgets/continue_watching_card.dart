@@ -98,7 +98,7 @@ class ContinueWatchingCard extends ConsumerWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF1E1E1E),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: Row(
               children: [
@@ -111,6 +111,7 @@ class ContinueWatchingCard extends ConsumerWidget {
                     child: CachedNetworkImage(
                       imageUrl: item.posterUrl,
                       fit: BoxFit.cover,
+                      memCacheWidth: 200, // P15: Optimize memory
                       placeholder: (context, url) =>
                           Container(color: Theme.of(context).dividerColor),
                       errorWidget: (context, url, err) =>
@@ -191,7 +192,7 @@ class ContinueWatchingCard extends ConsumerWidget {
             top: 4,
             right: 4,
             child: Material(
-              color: Colors.black.withOpacity(0.6),
+              color: Colors.black.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(12),
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),

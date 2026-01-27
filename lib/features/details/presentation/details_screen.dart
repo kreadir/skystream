@@ -240,6 +240,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                           imageUrl: item.bannerUrl ?? item.posterUrl,
                           fit: BoxFit.cover,
                           alignment: Alignment.topCenter,
+                          memCacheWidth: 800, // P19: Optimize memory
                           placeholder: (context, url) =>
                               Container(color: Theme.of(context).dividerColor),
                           errorWidget: (context, url, error) =>
@@ -339,6 +340,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                     width: 250,
                     height: 375,
                     fit: BoxFit.cover,
+                    memCacheWidth: 250, // P19: Optimize memory
                   ),
                 ),
               ),
@@ -435,6 +437,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                   width: 100,
                   height: 150,
                   fit: BoxFit.cover,
+                  memCacheWidth: 200, // P19: Optimize memory (2x for retina)
                 ),
               ),
             ),
@@ -492,7 +495,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
         else if (snapshot.hasError)
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.red.withOpacity(0.1),
+            color: Colors.red.withValues(alpha: 0.1),
             child: Text("Error: ${snapshot.error}"),
           )
         else if (_isMovie)

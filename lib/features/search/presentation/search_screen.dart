@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:skystream/core/providers/device_info_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +15,7 @@ class SearchScreen extends ConsumerStatefulWidget {
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  Timer? _debounce; // P7: Debounce timer to prevent excessive API calls
 
   @override
   void initState() {
@@ -23,6 +25,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel(); // P7: Cancel debounce timer
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -93,7 +96,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     : null,
               ),
               onChanged: (val) {
-                ref.read(searchQueryProvider.notifier).set(val);
+                // P7: Debounce search to avoid triggering on every keystroke
+                _debounce?.cancel();
+                _debounce = Timer(const Duration(milliseconds: 300), () {
+                  ref.read(searchQueryProvider.notifier).set(val);
+                });
+                // Trigger immediate UI update for clear button visibility
+                setState(() {});
               },
             ),
           ),

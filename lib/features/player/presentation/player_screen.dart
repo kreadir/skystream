@@ -31,7 +31,8 @@ class PlayerScreen extends ConsumerStatefulWidget {
   ConsumerState<PlayerScreen> createState() => _PlayerScreenState();
 }
 
-class _PlayerScreenState extends ConsumerState<PlayerScreen> {
+class _PlayerScreenState extends ConsumerState<PlayerScreen>
+    with WidgetsBindingObserver {
   late final Player _player;
   late final VideoController _videoController;
 
@@ -52,7 +53,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   final GlobalKey<SkyStreamPlayerControlsState> _controlsKeyFinal = GlobalKey();
 
-  Timer? _progressTimer;
   bool _isTv = false;
   String? _cachedProviderId;
 
@@ -151,10 +151,59 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       }
     });
 
-    // Periodic progress save (every 10 seconds)
-    _progressTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      _saveProgress();
+    // OPTIMIZATION: Event-driven progress saving instead of Timer.periodic
+    // Saves on: pause, seek threshold, app lifecycle, stream change, dispose
+    _setupEventDrivenProgressSaving();
+  }
+
+  // Track last saved position for threshold-based saving
+  Duration _lastSavedPosition = Duration.zero;
+  static const double _saveThresholdPercent = 0.05; // Save every 5% of progress
+
+  void _setupEventDrivenProgressSaving() {
+    // 1. Save when user pauses + P11: Control torrent polling
+    _player.stream.playing.listen((isPlaying) {
+      if (!isPlaying && mounted) {
+        _saveProgress();
+        // P11: Pause torrent polling when video paused (save CPU)
+        _torrentPollTimer?.cancel();
+        _torrentPollTimer = null;
+      } else if (isPlaying &&
+          _torrentStatus != null &&
+          _torrentPollTimer == null) {
+        // P11: Resume torrent polling when playing (only if we were in torrent mode)
+        _startTorrentPolling();
+      }
     });
+
+    // 2. Save on position threshold (every 5% of video)
+    _player.stream.position.listen((pos) {
+      if (!mounted) return;
+      final duration = _player.state.duration;
+      if (duration == Duration.zero) return;
+
+      final currentPct = pos.inMilliseconds / duration.inMilliseconds;
+      final lastPct =
+          _lastSavedPosition.inMilliseconds / duration.inMilliseconds;
+
+      if ((currentPct - lastPct).abs() >= _saveThresholdPercent) {
+        _saveProgress();
+        _lastSavedPosition = pos;
+      }
+    });
+
+    // 3. Register for app lifecycle events
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Save progress when app goes to background
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      _saveProgress();
+    }
   }
 
   KeyEventResult _handleSkipFocusKey(FocusNode node, KeyEvent event) {
@@ -709,8 +758,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // Remove lifecycle observer
     _torrentPollTimer?.cancel();
-    _progressTimer?.cancel();
     _saveProgress(); // Final save on exit
 
     // Stop torrent server/streaming to release resources
@@ -905,9 +954,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       child: Scaffold(
         // backgroundColor: Colors.black, // Inherit from Theme (Scaffold is Black)
         body: MouseRegion(
-          cursor: _controlsVisible
-              ? SystemMouseCursors.basic
-              : SystemMouseCursors.none,
+          // Cursor is controlled by SkyStreamPlayerControls to avoid state desync
           onHover: (_) {
             if (!_controlsVisible) {
               setState(() => _controlsVisible = true);
@@ -919,14 +966,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             onKeyEvent: _handleKey,
             child: Stack(
               children: [
-                Center(
-                  child: Video(
-                    controller: _videoController,
-                    fit: _videoFit,
-                    subtitleViewConfiguration: const SubtitleViewConfiguration(
-                      visible: false,
+                // Video widget wrapped in RepaintBoundary to isolate repaints
+                RepaintBoundary(
+                  child: Center(
+                    child: Video(
+                      controller: _videoController,
+                      fit: _videoFit,
+                      subtitleViewConfiguration:
+                          const SubtitleViewConfiguration(visible: false),
+                      controls: (state) => const SizedBox.shrink(),
                     ),
-                    controls: (state) => const SizedBox.shrink(),
                   ),
                 ),
 
@@ -963,24 +1012,26 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                   ),
                 ),
 
-                // Custom Controls Overlay
-                SkyStreamPlayerControls(
-                  key: _controlsKeyFinal,
-                  isLoading: _isLoading,
-                  forceShowControls: _forceShowControls,
-                  player: _player,
-                  title: _playerTitle,
-                  subtitle: _streamSubtitle,
-                  streams: _streams,
-                  currentStream: _currentStream,
-                  externalSubtitles: _externalSubtitles,
-                  torrentStatus: _torrentStatus, // Added
-                  onStreamSelected: _changeStream,
-                  onTorrentFileSelected: _onTorrentFileSelected,
-                  onResize: _updateResizeMode,
-                  onVisibilityChanged: (v) {
-                    if (mounted) setState(() => _controlsVisible = v);
-                  },
+                // Custom Controls Overlay wrapped in RepaintBoundary
+                RepaintBoundary(
+                  child: SkyStreamPlayerControls(
+                    key: _controlsKeyFinal,
+                    isLoading: _isLoading,
+                    forceShowControls: _forceShowControls,
+                    player: _player,
+                    title: _playerTitle,
+                    subtitle: _streamSubtitle,
+                    streams: _streams,
+                    currentStream: _currentStream,
+                    externalSubtitles: _externalSubtitles,
+                    torrentStatus: _torrentStatus, // Added
+                    onStreamSelected: _changeStream,
+                    onTorrentFileSelected: _onTorrentFileSelected,
+                    onResize: _updateResizeMode,
+                    onVisibilityChanged: (v) {
+                      if (mounted) setState(() => _controlsVisible = v);
+                    },
+                  ),
                 ),
 
                 // Loading overlay on top for interactivity

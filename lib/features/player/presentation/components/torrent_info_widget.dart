@@ -14,7 +14,7 @@ class TorrentInfoWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.8),
+        color: Colors.black.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white24, width: 1),
       ),

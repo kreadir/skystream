@@ -84,6 +84,7 @@ class _HomeSectionState extends ConsumerState<HomeSection> {
                             child: CachedNetworkImage(
                               imageUrl: item.posterUrl,
                               fit: BoxFit.cover,
+                              memCacheWidth: 350, // P15: Optimize memory
                               placeholder: (context, url) => Container(
                                 color: Theme.of(context).dividerColor,
                               ),

@@ -114,7 +114,7 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                     decoration: BoxDecoration(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.1),
+                      ).colorScheme.onSurface.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -124,7 +124,7 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                           style: TextStyle(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -135,7 +135,7 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                           size: 10,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ],
                     ),
@@ -222,9 +222,10 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                                   ).colorScheme.surfaceContainerHighest,
                                   child: Icon(
                                     Icons.error_outline,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface.withOpacity(0.2),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.2),
                                   ),
                                 ),
                               ),
@@ -240,7 +241,7 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                           style: TextStyle(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.8),
+                            ).colorScheme.onSurface.withValues(alpha: 0.8),
                             fontSize: isDesktop ? 22 : 14,
                             fontWeight: FontWeight.w500,
                           ),

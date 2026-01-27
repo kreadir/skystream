@@ -19,7 +19,11 @@ class LibraryScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.bookmark_outline_rounded, size: 64, color: Theme.of(context).dividerColor),
+                  Icon(
+                    Icons.bookmark_outline_rounded,
+                    size: 64,
+                    color: Theme.of(context).dividerColor,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Your library is empty',
@@ -51,8 +55,12 @@ class LibraryScreen extends ConsumerWidget {
                           child: CachedNetworkImage(
                             imageUrl: item.posterUrl,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(color: Theme.of(context).dividerColor),
-                            errorWidget: (context, url, _) => const Icon(Icons.broken_image),
+                            memCacheWidth: 300, // P15: Optimize memory
+                            placeholder: (context, url) => Container(
+                              color: Theme.of(context).dividerColor,
+                            ),
+                            errorWidget: (context, url, _) =>
+                                const Icon(Icons.broken_image),
                           ),
                         ),
                       ),
@@ -63,9 +71,8 @@ class LibraryScreen extends ConsumerWidget {
                           item.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(fontWeight: FontWeight.w500),
                         ),
                       ),
                     ],
@@ -76,4 +83,3 @@ class LibraryScreen extends ConsumerWidget {
     );
   }
 }
-

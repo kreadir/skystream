@@ -82,13 +82,16 @@ class UpdateService {
       );
     } else if (Platform.isWindows) {
       return release.assets.firstWhere(
-        (a) => a.name.endsWith('.exe') || a.name.endsWith('.msix'),
+        (a) =>
+            a.name.endsWith('.exe') ||
+            a.name.endsWith('.msix') ||
+            a.name.endsWith('.zip'),
         orElse: () => throw Exception('No Windows installer found'),
       );
     } else if (Platform.isMacOS) {
       return release.assets.firstWhere(
-        (a) => a.name.endsWith('.dmg'),
-        orElse: () => throw Exception('No DMG found'),
+        (a) => a.name.endsWith('.dmg') || a.name.endsWith('.zip'),
+        orElse: () => throw Exception('No DMG or ZIP found'),
       );
     } else if (Platform.isLinux) {
       return release.assets.firstWhere(

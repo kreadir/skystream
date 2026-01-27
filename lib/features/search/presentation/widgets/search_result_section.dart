@@ -123,6 +123,8 @@ class _SearchResultSectionState extends ConsumerState<SearchResultSection> {
                                 imageUrl: item.posterUrl,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
+                                memCacheWidth:
+                                    300, // P15: Optimize memory usage
                                 placeholder: (context, url) => Container(
                                   color: Theme.of(context).dividerColor,
                                 ),
@@ -147,7 +149,7 @@ class _SearchResultSectionState extends ConsumerState<SearchResultSection> {
                           style: TextStyle(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.8),
+                            ).colorScheme.onSurface.withValues(alpha: 0.8),
                             fontSize: isLarge ? 22 : 14,
                             fontWeight: FontWeight.w500,
                           ),

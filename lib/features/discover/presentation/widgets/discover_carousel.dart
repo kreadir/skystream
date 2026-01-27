@@ -78,8 +78,8 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
                   margin: const EdgeInsets.symmetric(horizontal: 4.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(
-                      _currentIndex == entry.key
+                    color: Theme.of(context).colorScheme.onSurface.withValues(
+                      alpha: _currentIndex == entry.key
                           ? 0.9
                           : 0.3, // Slightly lower opacity for inactive
                     ),
@@ -100,7 +100,7 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
                 child: Padding(
                   padding: const EdgeInsets.only(left: 20),
                   child: Material(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     shape: const CircleBorder(),
                     clipBehavior: Clip.antiAlias,
                     child: IconButton(
@@ -130,7 +130,7 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
                 child: Padding(
                   padding: const EdgeInsets.only(right: 20),
                   child: Material(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     shape: const CircleBorder(),
                     clipBehavior: Clip.antiAlias,
                     child: IconButton(
@@ -324,16 +324,16 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
                           // ).scaffoldBackgroundColor.withOpacity(0.0),
                           Theme.of(
                             context,
-                          ).scaffoldBackgroundColor.withOpacity(0.0),
+                          ).scaffoldBackgroundColor.withValues(alpha: 0.0),
                           Theme.of(
                             context,
-                          ).scaffoldBackgroundColor.withOpacity(0.4),
+                          ).scaffoldBackgroundColor.withValues(alpha: 0.4),
                           Theme.of(
                             context,
-                          ).scaffoldBackgroundColor.withOpacity(0.8),
+                          ).scaffoldBackgroundColor.withValues(alpha: 0.8),
                           Theme.of(
                             context,
-                          ).scaffoldBackgroundColor.withOpacity(0.9),
+                          ).scaffoldBackgroundColor.withValues(alpha: 0.9),
                           Theme.of(context).scaffoldBackgroundColor,
                         ],
                         stops: const [
@@ -380,9 +380,8 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
                               if (type != null) ...[
                                 Icon(
                                   isMovie ? Icons.movie_outlined : Icons.tv,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface.withOpacity(0.7),
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
                                   size: 16,
                                 ),
                                 const SizedBox(width: 6),
@@ -460,9 +459,15 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Theme.of(context).scaffoldBackgroundColor.withOpacity(0.0),
-                  Theme.of(context).scaffoldBackgroundColor.withOpacity(0.0),
-                  Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+                  Theme.of(
+                    context,
+                  ).scaffoldBackgroundColor.withValues(alpha: 0.0),
+                  Theme.of(
+                    context,
+                  ).scaffoldBackgroundColor.withValues(alpha: 0.0),
+                  Theme.of(
+                    context,
+                  ).scaffoldBackgroundColor.withValues(alpha: 0.9),
                   Theme.of(context).scaffoldBackgroundColor,
                 ],
                 stops: const [0.0, 0.4, 0.85, 1.0],
@@ -511,6 +516,7 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
       width: 300,
       fit: BoxFit.contain,
       alignment: Alignment.bottomCenter,
+      memCacheWidth: 300, // P19: Optimize memory
       placeholder: (context, url) => const SizedBox(height: 140, width: 300),
       errorWidget: (context, url, error) => _buildTitleFallback(title),
     );
@@ -522,6 +528,8 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
       child: Text(
         title.toUpperCase(),
         textAlign: TextAlign.center,
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: Theme.of(context).colorScheme.onSurface,
           fontSize: 40,
