@@ -78,7 +78,7 @@ SkyStream is a modern, media streaming client. It draws inspiration from the ver
 | Platform       |         Support          |
 |:---------------|:------------------------:|
 | **Android**    |            ✅             |
-| **Android TV** |         ✅ (Beta)         |
+| **Android TV** |            ✅             |
 | **iOS**        | ✅ (Sideloading required) |
 | **Windows**    |            ✅             |
 | **macOS**      |            ✅             |
@@ -99,8 +99,8 @@ SkyStream is a modern, media streaming client. It draws inspiration from the ver
 
 Download the latest version from the **[Releases Page](https://github.com/akashdh11/skystream/releases/latest)**.
 
-### 🤖 Android
-1. Download the `skystream-android-arm64.apk` (recommended for most modern phones) or `universal.apk` from Releases.
+### 🤖 Android / Android TV
+1. Download the `skystream-android-arm64-v8a-vX.X.X.apk` (recommended for most modern phones) or `skystream-android-armeabi-v7a-vX.X.X.apk` (for TV) from Releases.
 2. Open the file and tap **Install**.
    - *Note: You may need to allow "Install form Unknown Sources" in your browser settings.*
 3. Open SkyStream and install extensions via **Settings > Extensions**.
