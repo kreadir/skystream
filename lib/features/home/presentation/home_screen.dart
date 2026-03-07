@@ -85,23 +85,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             forceMaterialTransparency: true,
             backgroundColor: Colors.transparent,
             elevation: 0,
-            flexibleSpace: AnimatedBuilder(
-              animation: _scrollController,
-              builder: (context, child) {
-                double offset = 0;
-                if (_scrollController.hasClients) {
-                  offset = _scrollController.offset * 0.8;
-                }
-                // Transition to base background color over 300 pixels
-                final opacity = (offset / 300).clamp(0.0, 1.0);
-
-                return Opacity(
-                  opacity: opacity,
-                  child: Container(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                  ),
-                );
-              },
+            flexibleSpace: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              color: isScrolled
+                  ? Theme.of(context).scaffoldBackgroundColor
+                  : Colors.transparent,
             ),
             title: const Text('SkyStream'),
           ),
@@ -251,14 +239,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
         return RefreshIndicator(
           onRefresh: () => ref.refresh(homeDataProvider.future),
-          child: SingleChildScrollView(
+          child: CustomScrollView(
             controller: _scrollController,
-            padding: const EdgeInsets.only(bottom: 80), // Add padding for FAB
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (data.containsKey('Trending')) ...[
-                  DiscoverCarousel(
+            slivers: [
+              // Carousel
+              if (data.containsKey('Trending'))
+                SliverToBoxAdapter(
+                  child: DiscoverCarousel(
                     movies: data['Trending']!
                         .take(7)
                         .cast<MultimediaItem>()
@@ -270,8 +257,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       context.push('/details', extra: item);
                     },
                   ),
-                ] else if (data.isNotEmpty) ...[
-                  DiscoverCarousel(
+                )
+              else if (data.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: DiscoverCarousel(
                     movies: data.values.first
                         .take(7)
                         .cast<MultimediaItem>()
@@ -283,34 +272,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       context.push('/details', extra: item);
                     },
                   ),
-                ],
+                ),
 
-                if (history.isNotEmpty) ...[
-                  ContinueWatchingSection(
+              // Continue Watching
+              if (history.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: ContinueWatchingSection(
                     title: 'Continue Watching',
                     items: history.cast<HistoryItem>(),
                   ),
-                ],
+                ),
 
-                ...data.entries.where((e) => e.key != 'Trending').map((entry) {
-                  return MediaHorizontalList(
-                    title: entry.key,
-                    mediaList: entry.value
-                        .cast<MultimediaItem>()
-                        .map(_mapItemToMap)
-                        .toList(),
-                    category: ViewAllCategory.trending, // Placeholder
-                    showViewAll:
-                        false, // Provider sections don't support view all yet
-                    onTap: (movieMap) {
-                      final item = movieMap['_originalItem'] as MultimediaItem;
-                      context.push('/details', extra: item);
-                    },
-                    heroTagPrefix: 'home',
-                  );
-                }),
-              ],
-            ),
+              // Category sections — lazily built
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final entries = data.entries
+                        .where((e) => e.key != 'Trending')
+                        .toList();
+                    if (index >= entries.length) return null;
+                    final entry = entries[index];
+                    return RepaintBoundary(
+                      child: MediaHorizontalList(
+                        title: entry.key,
+                        mediaList: entry.value
+                            .cast<MultimediaItem>()
+                            .map(_mapItemToMap)
+                            .toList(),
+                        category: ViewAllCategory.trending,
+                        showViewAll: false,
+                        onTap: (movieMap) {
+                          final item =
+                              movieMap['_originalItem'] as MultimediaItem;
+                          context.push('/details', extra: item);
+                        },
+                        heroTagPrefix: 'home',
+                      ),
+                    );
+                  },
+                  childCount: data.entries
+                      .where((e) => e.key != 'Trending')
+                      .length,
+                ),
+              ),
+
+              // Bottom padding for FAB
+              const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
+            ],
           ),
         );
       },

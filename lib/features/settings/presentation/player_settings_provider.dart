@@ -13,6 +13,8 @@ class PlayerSettings {
   final double subtitleSize;
   final int subtitleColor;
   final int subtitleBackgroundColor;
+  final String?
+  preferredPlayer; // null = internal, 'vlc' / 'mpv' etc. = external
 
   const PlayerSettings({
     this.leftGesture = PlayerGesture.brightness,
@@ -24,10 +26,11 @@ class PlayerSettings {
     this.subtitleSize = 22.0,
     this.subtitleColor = 0xFFFFFFFF, // White
     this.subtitleBackgroundColor = 0x00000000, // Transparent
+    this.preferredPlayer,
   });
 
   PlayerSettings copyWith({
-    PlayerGesture? leftGesture, 
+    PlayerGesture? leftGesture,
     PlayerGesture? rightGesture,
     bool? doubleTapEnabled,
     bool? swipeSeekEnabled,
@@ -36,6 +39,8 @@ class PlayerSettings {
     double? subtitleSize,
     int? subtitleColor,
     int? subtitleBackgroundColor,
+    String? preferredPlayer,
+    bool clearPreferredPlayer = false,
   }) {
     return PlayerSettings(
       leftGesture: leftGesture ?? this.leftGesture,
@@ -46,7 +51,11 @@ class PlayerSettings {
       defaultResizeMode: defaultResizeMode ?? this.defaultResizeMode,
       subtitleSize: subtitleSize ?? this.subtitleSize,
       subtitleColor: subtitleColor ?? this.subtitleColor,
-      subtitleBackgroundColor: subtitleBackgroundColor ?? this.subtitleBackgroundColor,
+      subtitleBackgroundColor:
+          subtitleBackgroundColor ?? this.subtitleBackgroundColor,
+      preferredPlayer: clearPreferredPlayer
+          ? null
+          : (preferredPlayer ?? this.preferredPlayer),
     );
   }
 }
@@ -68,7 +77,9 @@ class PlayerSettingsNotifier extends Notifier<PlayerSettings> {
     final subSize = prefs.getDouble('player_sub_size') ?? 22.0;
     final subColor = prefs.getInt('player_sub_color') ?? 0xFFFFFFFF;
     final subBg = prefs.getInt('player_sub_bg') ?? 0x00000000;
-    
+
+    final prefPlayer = prefs.getString('player_preferred');
+
     state = PlayerSettings(
       leftGesture: _parse(l),
       rightGesture: _parse(r),
@@ -79,6 +90,7 @@ class PlayerSettingsNotifier extends Notifier<PlayerSettings> {
       subtitleSize: subSize,
       subtitleColor: subColor,
       subtitleBackgroundColor: subBg,
+      preferredPlayer: prefPlayer,
     );
   }
 
@@ -123,7 +135,23 @@ class PlayerSettingsNotifier extends Notifier<PlayerSettings> {
     await prefs.setDouble('player_sub_size', size);
     await prefs.setInt('player_sub_color', color);
     await prefs.setInt('player_sub_bg', bg);
-    state = state.copyWith(subtitleSize: size, subtitleColor: color, subtitleBackgroundColor: bg);
+    state = state.copyWith(
+      subtitleSize: size,
+      subtitleColor: color,
+      subtitleBackgroundColor: bg,
+    );
+  }
+
+  /// Set the preferred external player (null = internal player)
+  Future<void> setPreferredPlayer(String? playerId) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (playerId == null) {
+      await prefs.remove('player_preferred');
+      state = state.copyWith(clearPreferredPlayer: true);
+    } else {
+      await prefs.setString('player_preferred', playerId);
+      state = state.copyWith(preferredPlayer: playerId);
+    }
   }
 
   PlayerGesture _parse(String s) {
@@ -134,4 +162,7 @@ class PlayerSettingsNotifier extends Notifier<PlayerSettings> {
   }
 }
 
-final playerSettingsProvider = NotifierProvider<PlayerSettingsNotifier, PlayerSettings>(PlayerSettingsNotifier.new);
+final playerSettingsProvider =
+    NotifierProvider<PlayerSettingsNotifier, PlayerSettings>(
+      PlayerSettingsNotifier.new,
+    );

@@ -10,6 +10,8 @@ import '../../../shared/widgets/tv_input_widgets.dart';
 import 'widgets/settings_widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'player_settings_provider.dart';
+import '../../../core/services/external_player_service.dart';
+import '../../../core/network/doh_service.dart';
 
 // Simple provider for app version
 final appVersionProvider = FutureProvider<String>((ref) async {
@@ -52,31 +54,23 @@ class SettingsScreen extends ConsumerWidget {
                         builder: (context) => AlertDialog(
                           surfaceTintColor: Colors.transparent,
                           title: const Text('Choose Theme'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _themeOption(
-                                context,
-                                ref,
-                                'System',
-                                ThemeMode.system,
-                                themeMode,
-                              ),
-                              _themeOption(
-                                context,
-                                ref,
-                                'Dark',
-                                ThemeMode.dark,
-                                themeMode,
-                              ),
-                              _themeOption(
-                                context,
-                                ref,
-                                'Light',
-                                ThemeMode.light,
-                                themeMode,
-                              ),
-                            ],
+                          content: RadioGroup<ThemeMode>(
+                            groupValue: themeMode,
+                            onChanged: (val) {
+                              if (val == null) return;
+                              ref
+                                  .read(themeModeProvider.notifier)
+                                  .setThemeMode(val);
+                              Navigator.pop(context);
+                            },
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _themeOption('System', ThemeMode.system),
+                                _themeOption('Dark', ThemeMode.dark),
+                                _themeOption('Light', ThemeMode.light),
+                              ],
+                            ),
                           ),
                           actions: [
                             TextButton(
@@ -101,6 +95,18 @@ class SettingsScreen extends ConsumerWidget {
               SettingsGroup(
                 title: 'Player',
                 children: [
+                  SettingsTile(
+                    icon: Icons.smart_display_rounded,
+                    title: 'Default Player',
+                    subtitle: _getPlayerDisplayName(
+                      playerSettings.preferredPlayer,
+                    ),
+                    onTap: () => _showDefaultPlayerDialog(
+                      context,
+                      ref,
+                      playerSettings.preferredPlayer,
+                    ),
+                  ),
                   SettingsTile(
                     icon: Icons.swipe_vertical_rounded,
                     title: 'Left Gesture',
@@ -183,10 +189,49 @@ class SettingsScreen extends ConsumerWidget {
                     icon: Icons.subtitles_rounded,
                     title: 'Subtitles',
                     subtitle: 'Customize appearance',
+                    isLast: true,
                     onTap: () =>
                         _showSubtitleDialog(context, ref, playerSettings),
                   ),
                 ],
+              ),
+              const SizedBox(height: 24),
+              ListenableBuilder(
+                listenable: DohService.instance,
+                builder: (context, _) => SettingsGroup(
+                  title: 'Network',
+                  children: [
+                    SettingsTile(
+                      icon: Icons.dns_rounded,
+                      title: 'DNS over HTTPS',
+                      subtitle: DohService.instance.enabled
+                          ? 'On (${_getDohProviderLabel(DohService.instance.provider, DohService.instance.customUrl)})'
+                          : 'Off',
+                      trailing: Switch(
+                        value: DohService.instance.enabled,
+                        onChanged: (val) {
+                          DohService.instance.setEnabled(val);
+                        },
+                      ),
+                      onTap: () {
+                        DohService.instance.setEnabled(
+                          !DohService.instance.enabled,
+                        );
+                      },
+                    ),
+                    if (DohService.instance.enabled)
+                      SettingsTile(
+                        icon: Icons.cloud_rounded,
+                        title: 'DoH Provider',
+                        subtitle: _getDohProviderLabel(
+                          DohService.instance.provider,
+                          DohService.instance.customUrl,
+                        ),
+                        isLast: true,
+                        onTap: () => _showDohProviderDialog(context),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
               SettingsGroup(
@@ -340,24 +385,8 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _themeOption(
-    BuildContext context,
-    WidgetRef ref,
-    String title,
-    ThemeMode value,
-    ThemeMode current,
-  ) {
-    return RadioListTile<ThemeMode>(
-      title: Text(title),
-      value: value,
-      groupValue: current,
-      onChanged: (val) {
-        if (val != null) {
-          ref.read(themeModeProvider.notifier).setThemeMode(val);
-          Navigator.pop(context);
-        }
-      },
-    );
+  Widget _themeOption(String title, ThemeMode value) {
+    return RadioListTile<ThemeMode>(title: Text(title), value: value);
   }
 
   void _showGestureDialog(
@@ -371,29 +400,26 @@ class SettingsScreen extends ConsumerWidget {
       builder: (context) => AlertDialog(
         surfaceTintColor: Colors.transparent,
         title: Text('Select ${isLeft ? "Left" : "Right"} Gesture'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: PlayerGesture.values.map((g) {
-            return RadioListTile<PlayerGesture>(
-              title: Text(g.name[0].toUpperCase() + g.name.substring(1)),
-              value: g,
-              groupValue: current,
-              onChanged: (val) {
-                if (val != null) {
-                  if (isLeft) {
-                    ref
-                        .read(playerSettingsProvider.notifier)
-                        .setLeftGesture(val);
-                  } else {
-                    ref
-                        .read(playerSettingsProvider.notifier)
-                        .setRightGesture(val);
-                  }
-                  Navigator.pop(context);
-                }
-              },
-            );
-          }).toList(),
+        content: RadioGroup<PlayerGesture>(
+          groupValue: current,
+          onChanged: (val) {
+            if (val == null) return;
+            if (isLeft) {
+              ref.read(playerSettingsProvider.notifier).setLeftGesture(val);
+            } else {
+              ref.read(playerSettingsProvider.notifier).setRightGesture(val);
+            }
+            Navigator.pop(context);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: PlayerGesture.values.map((g) {
+              return RadioListTile<PlayerGesture>(
+                title: Text(g.name[0].toUpperCase() + g.name.substring(1)),
+                value: g,
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
@@ -414,23 +440,22 @@ class SettingsScreen extends ConsumerWidget {
       builder: (context) => AlertDialog(
         surfaceTintColor: Colors.transparent,
         title: const Text('Select Seek Duration'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: options.map((sec) {
-            return RadioListTile<int>(
-              title: Text(_formatSeekDuration(sec)),
-              value: sec,
-              groupValue: current,
-              onChanged: (val) {
-                if (val != null) {
-                  ref
-                      .read(playerSettingsProvider.notifier)
-                      .setSeekDuration(val);
-                  Navigator.pop(context);
-                }
-              },
-            );
-          }).toList(),
+        content: RadioGroup<int>(
+          groupValue: current,
+          onChanged: (val) {
+            if (val == null) return;
+            ref.read(playerSettingsProvider.notifier).setSeekDuration(val);
+            Navigator.pop(context);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options.map((sec) {
+              return RadioListTile<int>(
+                title: Text(_formatSeekDuration(sec)),
+                value: sec,
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
@@ -443,25 +468,19 @@ class SettingsScreen extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         surfaceTintColor: Colors.transparent,
         title: const Text("Default Resize Mode"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: options
-              .map(
-                (e) => RadioListTile<String>(
-                  title: Text(e),
-                  value: e,
-                  groupValue: current,
-                  onChanged: (val) {
-                    if (val != null) {
-                      ref
-                          .read(playerSettingsProvider.notifier)
-                          .setDefaultResizeMode(val);
-                      Navigator.pop(ctx);
-                    }
-                  },
-                ),
-              )
-              .toList(),
+        content: RadioGroup<String>(
+          groupValue: current,
+          onChanged: (val) {
+            if (val == null) return;
+            ref.read(playerSettingsProvider.notifier).setDefaultResizeMode(val);
+            Navigator.pop(ctx);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options
+                .map((e) => RadioListTile<String>(title: Text(e), value: e))
+                .toList(),
+          ),
         ),
       ),
     );
@@ -529,6 +548,174 @@ class SettingsScreen extends ConsumerWidget {
                 },
                 child: const Text("Save"),
               ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  String _getPlayerDisplayName(String? playerId) {
+    if (playerId == null) return 'Internal (media_kit)';
+    final player = ExternalPlayerService.instance.getPlayerById(playerId);
+    return player?.displayName ?? playerId;
+  }
+
+  void _showDefaultPlayerDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String? currentPlayerId,
+  ) {
+    final platformPlayers = ExternalPlayerService.instance
+        .getPlayersForPlatform();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        surfaceTintColor: Colors.transparent,
+        title: const Text('Default Player'),
+        content: SingleChildScrollView(
+          child: RadioGroup<String?>(
+            groupValue: currentPlayerId,
+            onChanged: (val) {
+              ref.read(playerSettingsProvider.notifier).setPreferredPlayer(val);
+              Navigator.pop(context);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioListTile<String?>(
+                  title: const Text('Internal (media_kit)'),
+                  subtitle: const Text('Built-in player'),
+                  secondary: const Icon(Icons.play_circle_filled_rounded),
+                  value: null,
+                ),
+                const Divider(),
+                ...platformPlayers.map((player) {
+                  return RadioListTile<String?>(
+                    title: Text(player.displayName),
+                    secondary: Icon(player.icon),
+                    value: player.id,
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getDohProviderLabel(DohProvider provider, String customUrl) {
+    switch (provider) {
+      case DohProvider.cloudflare:
+        return 'Cloudflare';
+      case DohProvider.google:
+        return 'Google';
+      case DohProvider.custom:
+        return customUrl.isNotEmpty
+            ? Uri.tryParse(customUrl)?.host ?? customUrl
+            : 'Custom (not set)';
+    }
+  }
+
+  void _showDohProviderDialog(BuildContext context) {
+    final controller = TextEditingController(
+      text: DohService.instance.customUrl,
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          final current = DohService.instance.provider;
+          return AlertDialog(
+            surfaceTintColor: Colors.transparent,
+            title: const Text('DoH Provider'),
+            content: SingleChildScrollView(
+              child: RadioGroup<DohProvider>(
+                groupValue: current,
+                onChanged: (val) {
+                  if (val == null) return;
+                  if (val == DohProvider.custom) {
+                    setState(() {
+                      DohService.instance.setProvider(DohProvider.custom);
+                    });
+                  } else {
+                    DohService.instance.setProvider(val);
+                    DohService.instance.clearCache();
+                    Navigator.pop(ctx);
+                  }
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<DohProvider>(
+                      title: const Text('Cloudflare'),
+                      subtitle: const Text('1.1.1.1'),
+                      value: DohProvider.cloudflare,
+                    ),
+                    RadioListTile<DohProvider>(
+                      title: const Text('Google'),
+                      subtitle: const Text('8.8.8.8'),
+                      value: DohProvider.google,
+                    ),
+                    RadioListTile<DohProvider>(
+                      title: const Text('Custom'),
+                      subtitle: const Text('Enter your own endpoint'),
+                      value: DohProvider.custom,
+                    ),
+                    if (current == DohProvider.custom)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        child: TextField(
+                          controller: controller,
+                          decoration: const InputDecoration(
+                            labelText: 'DoH Endpoint URL',
+                            hintText: 'https://dns.example.com/dns-query',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          keyboardType: TextInputType.url,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              if (current == DohProvider.custom)
+                TextButton(
+                  onPressed: () {
+                    final url = controller.text.trim();
+                    if (url.isNotEmpty) {
+                      DohService.instance.setCustomUrl(url);
+                      DohService.instance.clearCache();
+                      Navigator.pop(ctx);
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
             ],
           );
         },

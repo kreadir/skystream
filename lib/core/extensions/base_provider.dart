@@ -17,7 +17,7 @@ abstract class SkyStreamProvider {
   // Returns categorized content (Section Name -> Items)
   Future<Map<String, List<MultimediaItem>>> getHome();
   Future<MultimediaItem> getDetails(String url);
-  
+
   // Returns list of video streams (urls)
   Future<List<StreamResult>> loadStreams(String url);
 }
@@ -28,7 +28,20 @@ class StreamResult {
   final Map<String, String>? headers;
   final List<SubtitleFile>? subtitles;
 
-  const StreamResult({required this.url, this.quality = 'Auto', this.headers, this.subtitles});
+  // DRM Fields
+  final String? drmKid;
+  final String? drmKey;
+  final String? licenseUrl;
+
+  const StreamResult({
+    required this.url,
+    this.quality = 'Auto',
+    this.headers,
+    this.subtitles,
+    this.drmKid,
+    this.drmKey,
+    this.licenseUrl,
+  });
 }
 
 class SubtitleFile {
@@ -37,12 +50,12 @@ class SubtitleFile {
   final String? lang;
 
   const SubtitleFile({required this.url, required this.label, this.lang});
-  
+
   factory SubtitleFile.fromJson(Map<String, dynamic> json) {
-      return SubtitleFile(
-          url: json['url'],
-          label: json['label'] ?? 'Unknown',
-          lang: json['lang']
-      );
+    return SubtitleFile(
+      url: json['url'],
+      label: json['label'] ?? 'Unknown',
+      lang: json['lang'],
+    );
   }
 }

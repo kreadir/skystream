@@ -37,24 +37,26 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final VideoController _videoController;
 
   String? _errorMessage;
-  bool _isLoading = true;
+  // --- ValueNotifier fields for granular rebuilds ---
+  final ValueNotifier<bool> _isLoading = ValueNotifier(true);
   // ignore: prefer_typing_uninitialized_variables
   var _historyNotifier;
 
-  late String _playerTitle;
-  String? _streamSubtitle;
+  late final ValueNotifier<String> _playerTitle;
+  final ValueNotifier<String?> _streamSubtitle = ValueNotifier(null);
   List<StreamResult> _streams = [];
   StreamResult? _currentStream; // Current active stream
   StreamResult? _previousStream; // Last active stream before manual switch
   bool _isManualSwitch = false; // Flag to track manual switching
   List<SubtitleFile> _externalSubtitles = [];
-  BoxFit _videoFit = BoxFit.contain;
-  bool _controlsVisible = true;
+  final ValueNotifier<BoxFit> _videoFit = ValueNotifier(BoxFit.contain);
+  final ValueNotifier<bool> _controlsVisible = ValueNotifier(true);
 
   final GlobalKey<SkyStreamPlayerControlsState> _controlsKeyFinal = GlobalKey();
 
   bool _isTv = false;
   String? _cachedProviderId;
+  final ValueNotifier<bool> _forceShowControls = ValueNotifier(false);
 
   late final FocusNode _skipFocusNode;
 
@@ -71,7 +73,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     WakelockPlus.enable();
 
-    _playerTitle = widget.item.title;
+    _playerTitle = ValueNotifier(widget.item.title);
 
     // Resolve Episode Title if Series
     if (widget.item.episodes != null && widget.item.episodes!.isNotEmpty) {
@@ -96,7 +98,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
             if (epTitle.isNotEmpty) {
               if (epTitle.startsWith(" - ")) epTitle = epTitle.substring(3);
-              _playerTitle = "${widget.item.title} $epTitle";
+              _playerTitle.value = "${widget.item.title} $epTitle";
             }
           }
         } catch (_) {}
@@ -107,7 +109,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _player = Player(
       configuration: const PlayerConfiguration(
         bufferSize: 128 * 1024 * 1024, // 128MB
-        logLevel: MPVLogLevel.info, // Enable logging for debugging
+        // logLevel: MPVLogLevel.info, // Enable logging for debugging
       ),
     );
 
@@ -119,17 +121,17 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
     final settings = ref.read(playerSettingsProvider);
     if (settings.defaultResizeMode == "Zoom") {
-      _videoFit = BoxFit.cover;
+      _videoFit.value = BoxFit.cover;
     } else if (settings.defaultResizeMode == "Stretch")
-      _videoFit = BoxFit.fill;
+      _videoFit.value = BoxFit.fill;
 
     _initPlayer();
 
     // Hide loading when video is ready
     _player.stream.videoParams.listen((args) {
       if (args.w != null && args.w! > 0) {
-        if (mounted && _isLoading) {
-          setState(() => _isLoading = false);
+        if (mounted && _isLoading.value) {
+          _isLoading.value = false;
         }
       }
     });
@@ -142,7 +144,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       if (_isOpeningStream) return;
       if (error.toString().toLowerCase().contains("abort")) return;
 
-      if (mounted && _isLoading) {
+      if (mounted && _isLoading.value) {
         if (_isManualSwitch) {
           _revertToPreviousStream("Stream failed. Reverting...");
         } else {
@@ -216,7 +218,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   }
 
   int _currentStreamIndex = 0;
-  bool _forceShowControls = false;
 
   TorrentStatus? _torrentStatus;
   Timer? _torrentPollTimer;
@@ -243,17 +244,18 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
               );
               if (file != null) {
                 final name = (file['path'] as String).split('/').last;
-                if (_playerTitle != name) {
-                  setState(() => _playerTitle = name);
+                if (_playerTitle.value != name) {
+                  _playerTitle.value = name;
                 }
               }
             }
           } catch (_) {}
         }
 
-        setState(() {
-          _torrentStatus = status;
-        });
+        // Update torrent status without setState — only controls care about it
+        _torrentStatus = status;
+        // Trigger controls rebuild if needed
+        _controlsKeyFinal.currentState?.updateTorrentStatus(status);
       }
     }
 
@@ -272,10 +274,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     final activeProvider = _resolveProvider();
     if (activeProvider == null) {
       if (mounted) {
-        setState(() {
-          _errorMessage = "No provider selected.";
-          _isLoading = false;
-        });
+        _errorMessage = "No provider selected.";
+        _isLoading.value = false;
+        setState(() {}); // Rebuild for error state
       }
       return;
     }
@@ -304,10 +305,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
     // Handle Failure
     if (mounted) {
-      setState(() {
-        _errorMessage = "No streams found.";
-        _isLoading = false;
-      });
+      _errorMessage = "No streams found.";
+      _isLoading.value = false;
+      setState(() {}); // Rebuild for error state
     }
   }
 
@@ -329,10 +329,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       );
 
       if (mounted) {
-        setState(() {
-          _streams = [stream];
-          _currentStreamIndex = 0;
-        });
+        _streams = [stream];
+        _currentStreamIndex = 0;
         _loadStreamAtIndex(0);
       }
       return true;
@@ -462,7 +460,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     if (stream.url.startsWith("magnet:") ||
         stream.url.endsWith(".torrent") ||
         (stream.url.startsWith("/") && stream.quality.contains("Torrent"))) {
-      setState(() => _streamSubtitle = "Initializing Torrent Engine...");
+      _streamSubtitle.value = "Initializing Torrent Engine...";
       final torrentUrl = await TorrentService().getStreamUrl(stream.url);
       if (torrentUrl != null) {
         // _startTorrentPolling(torrentUrl) - moved to caller to control flow
@@ -483,13 +481,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         "Unknown";
     final providerName = _getProviderDisplayName(rawProviderName);
 
-    setState(() {
-      _currentStreamIndex = index;
-      _currentStream = stream;
-      _isLoading = true;
-      _streamSubtitle = "$providerName - ${stream.quality}";
-      _externalSubtitles = stream.subtitles ?? [];
-    });
+    _currentStreamIndex = index;
+    _currentStream = stream;
+    _isLoading.value = true;
+    _streamSubtitle.value = "$providerName - ${stream.quality}";
+    _externalSubtitles = stream.subtitles ?? [];
 
     try {
       final playUrl = await _resolveStreamUrl(stream);
@@ -501,9 +497,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       }
 
       // RESTORE SUBTITLE: It might have been overwritten by "Initializing..."
-      setState(() {
-        _streamSubtitle = "$providerName - ${stream.quality}";
-      });
+      _streamSubtitle.value = "$providerName - ${stream.quality}";
 
       final headers = stream.headers ?? {};
       debugPrint("OPENING PLAYER with URL: $playUrl");
@@ -515,7 +509,19 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       // Ensure MPV uses these headers for sub-requests (playlists segments)
       await _applyPlaybackProperties(headers);
 
-      await _player.open(Media(playUrl, httpHeaders: headers));
+      // Handle ClearKey DRM injection via MPV / FFmpeg properties
+      final extras = <String, String>{};
+      if (stream.drmKid != null && stream.drmKey != null) {
+        debugPrint(
+          "INJECTING CLEARKEY DRM: KID=${stream.drmKid}, KEY=${stream.drmKey}",
+        );
+        // mpv delegates DASH to ffmpeg. We pass the key as a lavf option.
+        // Format: decryption_key=KID:KEY
+        extras['demuxer-lavf-o'] =
+            'decryption_key=${stream.drmKid}:${stream.drmKey}';
+      }
+
+      await _player.open(Media(playUrl, httpHeaders: headers, extras: extras));
 
       // Resume logic: Check if we have history for this item
       final storage = ref.read(storageServiceProvider);
@@ -536,10 +542,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     if (_currentStreamIndex < _streams.length - 1) {
       _loadStreamAtIndex(_currentStreamIndex + 1);
     } else {
-      setState(() {
-        _errorMessage = "All streams failed.";
-        _isLoading = false;
-      });
+      _errorMessage = "All streams failed.";
+      _isLoading.value = false;
+      setState(() {}); // Rebuild for error state
     }
   }
 
@@ -549,11 +554,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   void _revertToPreviousStream(String reason) {
     if (_previousStream == null || _isReverting) {
       if (_previousStream == null) {
-        setState(() {
-          _errorMessage = "Stream failed. No fallback available.";
-          _isLoading = false;
-          _isManualSwitch = false;
-        });
+        _errorMessage = "Stream failed. No fallback available.";
+        _isLoading.value = false;
+        _isManualSwitch = false;
+        setState(() {}); // Rebuild for error state
       }
       return;
     }
@@ -601,19 +605,17 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       _isManualSwitch = true;
     }
 
-    setState(() {
-      _isLoading = true;
-      _currentStream = stream;
-      _externalSubtitles = stream.subtitles ?? [];
+    _isLoading.value = true;
+    _currentStream = stream;
+    _externalSubtitles = stream.subtitles ?? [];
 
-      // OPTIMISTIC UPDATE: Update subtitle immediately to reflect target stream
-      final rawPName =
-          widget.item.provider ??
-          ref.read(activeProviderStateProvider)?.name ??
-          'Unknown';
-      final pName = _getProviderDisplayName(rawPName);
-      _streamSubtitle = "$pName - ${stream.quality}";
-    });
+    // OPTIMISTIC UPDATE: Update subtitle immediately to reflect target stream
+    final rawPName =
+        widget.item.provider ??
+        ref.read(activeProviderStateProvider)?.name ??
+        'Unknown';
+    final pName = _getProviderDisplayName(rawPName);
+    _streamSubtitle.value = "$pName - ${stream.quality}";
 
     final oldPos = _player.state.position;
     _isOpeningStream = true; // Start ignoring transient errors
@@ -628,21 +630,31 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       }
 
       // RESTORE SUBTITLE
-      setState(() {
-        final rawPName =
-            widget.item.provider ??
-            ref.read(activeProviderStateProvider)?.name ??
-            'Unknown';
-        final pName = _getProviderDisplayName(rawPName);
-        _streamSubtitle = "$pName - ${stream.quality}";
-      });
+      final rawPName =
+          widget.item.provider ??
+          ref.read(activeProviderStateProvider)?.name ??
+          'Unknown';
+      final pName = _getProviderDisplayName(rawPName);
+      _streamSubtitle.value = "$pName - ${stream.quality}";
 
       final headers = stream.headers ?? {};
 
       // Ensure MPV uses these headers for sub-requests (playlists segments)
       await _applyPlaybackProperties(headers);
 
-      await _player.open(Media(playUrl, httpHeaders: headers));
+      // Handle ClearKey DRM injection via MPV / FFmpeg properties
+      final extras = <String, String>{};
+      if (stream.drmKid != null && stream.drmKey != null) {
+        debugPrint(
+          "INJECTING CLEARKEY DRM: KID=${stream.drmKid}, KEY=${stream.drmKey}",
+        );
+        // mpv delegates DASH to ffmpeg. We pass the key as a lavf option.
+        // Format: decryption_key=KID:KEY
+        extras['demuxer-lavf-o'] =
+            'decryption_key=${stream.drmKid}:${stream.drmKey}';
+      }
+
+      await _player.open(Media(playUrl, httpHeaders: headers, extras: extras));
 
       if (oldPos > Duration.zero && !resetPosition) {
         await _safeSeekTo(oldPos.inMilliseconds);
@@ -650,22 +662,19 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         await _player.seek(Duration.zero);
       }
 
-      setState(() {
-        _isLoading = false;
-        if (isRevert) {
-          _isManualSwitch = false;
-          _isReverting = false;
-        }
-      });
+      _isLoading.value = false;
+      if (isRevert) {
+        _isManualSwitch = false;
+        _isReverting = false;
+      }
 
       if (!isRevert) _isManualSwitch = false;
     } catch (e) {
       debugPrint("Change stream failed: $e");
       if (isRevert) {
-        setState(() {
-          _errorMessage = "Revert failed: $e";
-          _isReverting = false;
-        });
+        _errorMessage = "Revert failed: $e";
+        _isReverting = false;
+        setState(() {}); // Rebuild for error state
       } else {
         _revertToPreviousStream("Switch failed. Reverting...");
       }
@@ -675,11 +684,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   }
 
   void _updateResizeMode(BoxFit mode) {
-    if (mounted) setState(() => _videoFit = mode);
+    if (mounted) _videoFit.value = mode;
   }
 
   Future<void> _onTorrentFileSelected(int index) async {
-    setState(() => _isLoading = true);
+    _isLoading.value = true;
     try {
       final url = await TorrentService().getStreamUrlForFileIndex(index);
       if (url != null && _currentStream != null && mounted) {
@@ -692,7 +701,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
           );
           if (file != null) {
             fileLabel = (file['path'] as String).split('/').last;
-            setState(() => _playerTitle = fileLabel);
+            _playerTitle.value = fileLabel;
           }
         } catch (_) {}
 
@@ -704,11 +713,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         // ignore: use_build_context_synchronously
         _changeStream(newStream, resetPosition: true);
       } else {
-        if (mounted) setState(() => _isLoading = false);
+        if (mounted) _isLoading.value = false;
       }
     } catch (e) {
       debugPrint("Failed to switch file: $e");
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) _isLoading.value = false;
     }
   }
 
@@ -767,6 +776,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
     _player.dispose(); // Ensure audio stops
     _skipFocusNode.dispose();
+    _isLoading.dispose();
+    _controlsVisible.dispose();
+    _forceShowControls.dispose();
+    _playerTitle.dispose();
+    _streamSubtitle.dispose();
+    _videoFit.dispose();
     WakelockPlus.disable();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
@@ -822,7 +837,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     // TV Navigation Logic
     if (isTv) {
       // If controls are visible, let the focus system handle navigation and selection
-      if (_controlsVisible) {
+      if (_controlsVisible.value) {
         if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
             event.logicalKey == LogicalKeyboardKey.arrowDown ||
             event.logicalKey == LogicalKeyboardKey.arrowLeft ||
@@ -836,14 +851,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         // Up/Down: Show controls
         if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
             event.logicalKey == LogicalKeyboardKey.arrowDown) {
-          setState(() {
-            _controlsVisible = true;
-            _forceShowControls = true;
-          });
-          // Reset force flag after a moment to allow properties to handle visibility
+          _controlsVisible.value = true;
+          _forceShowControls.value = true;
+          // Reset force flag after a moment
           Future.delayed(
             const Duration(milliseconds: 200),
-            () => setState(() => _forceShowControls = false),
+            () => _forceShowControls.value = false,
           );
           return KeyEventResult.handled;
         }
@@ -856,11 +869,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         event.logicalKey == LogicalKeyboardKey.enter ||
         event.logicalKey == LogicalKeyboardKey.mediaPlayPause) {
       _togglePlay();
-      if (!_controlsVisible) {
-        setState(() => _forceShowControls = true);
+      if (!_controlsVisible.value) {
+        _forceShowControls.value = true;
         Future.delayed(
           const Duration(milliseconds: 100),
-          () => setState(() => _forceShowControls = false),
+          () => _forceShowControls.value = false,
         );
       }
       return KeyEventResult.handled;
@@ -908,7 +921,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     }
 
     // Hide controls on Escape
-    if (_controlsVisible && event.logicalKey == LogicalKeyboardKey.escape) {
+    if (_controlsVisible.value &&
+        event.logicalKey == LogicalKeyboardKey.escape) {
       return KeyEventResult.ignored;
     }
 
@@ -943,105 +957,122 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       );
     }
 
-    return PopScope(
-      canPop: !_controlsVisible,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        if (_controlsVisible) {
-          _controlsKeyFinal.currentState?.hideControls();
-        }
-      },
-      child: Scaffold(
-        // backgroundColor: Colors.black, // Inherit from Theme (Scaffold is Black)
-        body: MouseRegion(
-          // Cursor is controlled by SkyStreamPlayerControls to avoid state desync
-          onHover: (_) {
-            if (!_controlsVisible) {
-              setState(() => _controlsVisible = true);
+    return ValueListenableBuilder<bool>(
+      valueListenable: _controlsVisible,
+      builder: (context, controlsVisible, _) {
+        return PopScope(
+          canPop: !controlsVisible,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) return;
+            if (controlsVisible) {
+              _controlsKeyFinal.currentState?.hideControls();
             }
-            _controlsKeyFinal.currentState?.onUserInteraction();
           },
-          child: Focus(
-            autofocus: false,
-            onKeyEvent: _handleKey,
-            child: Stack(
-              children: [
-                // Video widget wrapped in RepaintBoundary to isolate repaints
-                RepaintBoundary(
-                  child: Center(
-                    child: Video(
-                      controller: _videoController,
-                      fit: _videoFit,
-                      subtitleViewConfiguration:
-                          const SubtitleViewConfiguration(visible: false),
-                      controls: (state) => const SizedBox.shrink(),
-                    ),
-                  ),
-                ),
-
-                // Custom Subtitles Position
-                Positioned(
-                  bottom: _controlsVisible ? 120 : 20,
-                  left: 20,
-                  right: 20,
-                  child: SubtitleView(
-                    controller: _videoController,
-                    configuration: SubtitleViewConfiguration(
-                      style: TextStyle(
-                        fontSize: ref
-                            .watch(playerSettingsProvider)
-                            .subtitleSize,
-                        color: Color(
-                          ref.watch(playerSettingsProvider).subtitleColor,
-                        ),
-                        backgroundColor: Color(
-                          ref
-                              .watch(playerSettingsProvider)
-                              .subtitleBackgroundColor,
-                        ),
-                        shadows: [
-                          const Shadow(
-                            offset: Offset(0, 1),
-                            blurRadius: 2,
-                            color: Colors.black,
+          child: Scaffold(
+            body: MouseRegion(
+              onHover: (_) {
+                if (!_controlsVisible.value) {
+                  _controlsVisible.value = true;
+                }
+                _controlsKeyFinal.currentState?.onUserInteraction();
+              },
+              child: Focus(
+                autofocus: false,
+                onKeyEvent: _handleKey,
+                child: Stack(
+                  children: [
+                    // Video widget — only rebuilds when _videoFit changes
+                    RepaintBoundary(
+                      child: ValueListenableBuilder<BoxFit>(
+                        valueListenable: _videoFit,
+                        builder: (_, fit, __) => Center(
+                          child: Video(
+                            controller: _videoController,
+                            fit: fit,
+                            subtitleViewConfiguration:
+                                const SubtitleViewConfiguration(visible: false),
+                            controls: (state) => const SizedBox.shrink(),
                           ),
-                        ],
+                        ),
                       ),
-                      padding: EdgeInsets.zero,
                     ),
-                  ),
-                ),
 
-                // Custom Controls Overlay wrapped in RepaintBoundary
-                RepaintBoundary(
-                  child: SkyStreamPlayerControls(
-                    key: _controlsKeyFinal,
-                    isLoading: _isLoading,
-                    forceShowControls: _forceShowControls,
-                    player: _player,
-                    title: _playerTitle,
-                    subtitle: _streamSubtitle,
-                    streams: _streams,
-                    currentStream: _currentStream,
-                    externalSubtitles: _externalSubtitles,
-                    torrentStatus: _torrentStatus, // Added
-                    onStreamSelected: _changeStream,
-                    onTorrentFileSelected: _onTorrentFileSelected,
-                    onResize: _updateResizeMode,
-                    onVisibilityChanged: (v) {
-                      if (mounted) setState(() => _controlsVisible = v);
-                    },
-                  ),
-                ),
+                    // Custom Subtitles Position — moves with controls visibility
+                    Positioned(
+                      bottom: controlsVisible ? 120 : 20,
+                      left: 20,
+                      right: 20,
+                      child: SubtitleView(
+                        controller: _videoController,
+                        configuration: SubtitleViewConfiguration(
+                          style: TextStyle(
+                            fontSize: ref
+                                .watch(playerSettingsProvider)
+                                .subtitleSize,
+                            color: Color(
+                              ref.watch(playerSettingsProvider).subtitleColor,
+                            ),
+                            backgroundColor: Color(
+                              ref
+                                  .watch(playerSettingsProvider)
+                                  .subtitleBackgroundColor,
+                            ),
+                            shadows: [
+                              const Shadow(
+                                offset: Offset(0, 1),
+                                blurRadius: 2,
+                                color: Colors.black,
+                              ),
+                            ],
+                          ),
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ),
 
-                // Loading overlay on top for interactivity
-                if (_isLoading && !_forceShowControls)
-                  _buildSkipButtonOverlay(),
-              ],
+                    // Custom Controls Overlay
+                    RepaintBoundary(
+                      child: SkyStreamPlayerControls(
+                        key: _controlsKeyFinal,
+                        isLoading: _isLoading.value,
+                        forceShowControls: _forceShowControls.value,
+                        player: _player,
+                        title: _playerTitle.value,
+                        subtitle: _streamSubtitle.value,
+                        streams: _streams,
+                        currentStream: _currentStream,
+                        externalSubtitles: _externalSubtitles,
+                        torrentStatus: _torrentStatus,
+                        onStreamSelected: _changeStream,
+                        onTorrentFileSelected: _onTorrentFileSelected,
+                        onResize: _updateResizeMode,
+                        onVisibilityChanged: (v) {
+                          if (mounted) _controlsVisible.value = v;
+                        },
+                      ),
+                    ),
+
+                    // Loading overlay
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _isLoading,
+                      builder: (_, loading, __) {
+                        if (!loading) return const SizedBox.shrink();
+                        return ValueListenableBuilder<bool>(
+                          valueListenable: _forceShowControls,
+                          builder: (_, forceShow, __) {
+                            if (forceShow) return const SizedBox.shrink();
+                            return _buildSkipButtonOverlay();
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -1083,8 +1114,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                         focusNode: _skipFocusNode,
                         autofocus: true,
                         showFocusHighlight: _isTv, // Only highlight on TV
-                        onPressed: () =>
-                            setState(() => _forceShowControls = true),
+                        onPressed: () => _forceShowControls.value = true,
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Row(

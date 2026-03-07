@@ -264,6 +264,9 @@ class JsBasedProvider extends SkyStreamProvider {
                       )
                       .toList()
                 : null,
+            drmKid: map['drmKid'],
+            drmKey: map['drmKey'],
+            licenseUrl: map['licenseUrl'],
           );
         }).toList();
       }

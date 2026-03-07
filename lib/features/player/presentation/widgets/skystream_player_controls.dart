@@ -259,9 +259,7 @@ class SkyStreamPlayerControlsState
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _seekAnimController.addListener(() {
-      setState(() {});
-    });
+    // No addListener needed — AnimatedBuilder wraps the seek widget directly
 
     if (Platform.isAndroid) {
       const MethodChannel(
@@ -477,6 +475,13 @@ class SkyStreamPlayerControlsState
       setState(() => _isVisible = false);
       widget.onVisibilityChanged?.call(false);
     }
+  }
+
+  /// Called by parent to update torrent status without parent setState
+  void updateTorrentStatus(TorrentStatus status) {
+    // No need to setState here — the torrent info section uses widget.torrentStatus
+    // which is passed from the parent. We just need to mark this widget dirty.
+    if (mounted) setState(() {});
   }
 
   void showControls() {
@@ -1330,15 +1335,23 @@ class SkyStreamPlayerControlsState
                     ),
                   ),
 
-                if (_seekAnimController.isAnimating)
-                  Positioned.fill(
-                    child: Align(
-                      alignment: _isSeekingLeft
-                          ? Alignment.centerLeft
-                          : Alignment.centerRight,
-                      child: _buildKickAnimation(),
-                    ),
-                  ),
+                // Seek animation — isolated via AnimatedBuilder
+                AnimatedBuilder(
+                  animation: _seekAnimController,
+                  builder: (context, _) {
+                    if (!_seekAnimController.isAnimating) {
+                      return const SizedBox.shrink();
+                    }
+                    return Positioned.fill(
+                      child: Align(
+                        alignment: _isSeekingLeft
+                            ? Alignment.centerLeft
+                            : Alignment.centerRight,
+                        child: _buildKickAnimation(),
+                      ),
+                    );
+                  },
+                ),
 
                 // Seek feedback overlay
                 if (_swipeSeekValue != null)

@@ -7,6 +7,9 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import '../../storage/storage_service.dart';
+import '../../network/doh_service.dart';
+import '../../network/cloudflare_bypass.dart';
+import 'package:encrypt/encrypt.dart' as encryptLib;
 
 final jsEngineProvider = Provider<JsEngineService>((ref) {
   final storage = ref.read(storageServiceProvider);
@@ -23,8 +26,10 @@ class JsEngineService {
 
   JsEngineService(this._storage) {
     _dio.interceptors.add(CookieManager(_cookieJar));
+    _dio.interceptors.add(DohInterceptor()); // DNS over HTTPS
     _runtime = getJavascriptRuntime();
-    _initPolyfills();
+    // Defer polyfill injection to avoid blocking the UI thread
+    Future.microtask(() => _initPolyfills());
   }
 
   void _initPolyfills() {
@@ -60,6 +65,44 @@ class JsEngineService {
     });
     _runtime.onMessage('get_storage', (dynamic args) {
       return _handleStorage(args, false);
+    });
+
+    // Crypto Bridge
+    _runtime.onMessage('crypto_decrypt_aes', (dynamic args) async {
+      try {
+        Map<String, dynamic> req;
+        if (args is Map) {
+          req = Map<String, dynamic>.from(args);
+        } else {
+          req = jsonDecode(args);
+        }
+
+        // Dart's base64 requires clean, padded strings without whitespaces
+        String _normalizeB64(String input) {
+          String cleaned = input.replaceAll(RegExp(r'\s+'), '');
+          while (cleaned.length % 4 != 0) {
+            cleaned += '=';
+          }
+          return cleaned;
+        }
+
+        final String encryptedB64 = _normalizeB64(req['data']);
+        final String keyB64 = _normalizeB64(req['key']);
+        final String ivB64 = _normalizeB64(req['iv']);
+
+        // Uses the 'encrypt' package
+        final key = encryptLib.Key.fromBase64(keyB64);
+        final iv = encryptLib.IV.fromBase64(ivB64);
+        final encrypter = encryptLib.Encrypter(
+          encryptLib.AES(key, mode: encryptLib.AESMode.cbc),
+        );
+        final decrypted = encrypter.decrypt64(encryptedB64, iv: iv);
+
+        return decrypted;
+      } catch (e) {
+        if (kDebugMode) debugPrint("[JS Crypto Error] ${e.toString()}");
+        return "";
+      }
     });
 
     _runtime.evaluate("""
@@ -169,13 +212,49 @@ class JsEngineService {
 
       // print("[JS HTTP] Back $url ($requestId) -> ${response.statusCode}");
 
+      // --- Cloudflare Bypass ---
+      final responseHeaders = response.headers.map.map(
+        (k, v) => MapEntry(k, v.join(',')),
+      );
+      final responseBody = response.data.toString();
+
+      if (CloudflareBypass.instance.isCloudflareChallenge(
+        response.statusCode,
+        responseHeaders,
+        responseBody,
+      )) {
+        if (kDebugMode) {
+          debugPrint(
+            '[JS HTTP] CF challenge detected for $url, solving via WebView...',
+          );
+        }
+        // Solve the challenge AND extract page HTML directly from the WebView.
+        // This avoids TLS fingerprinting issues that cause Dio retries to fail.
+        final cfResult = await CloudflareBypass.instance.solveAndFetch(url);
+        if (cfResult != null) {
+          if (kDebugMode) {
+            debugPrint(
+              '[JS HTTP] CF solved, got ${cfResult.body.length} chars from WebView',
+            );
+          }
+          return {
+            'code': cfResult.statusCode,
+            'statusCode': cfResult.statusCode,
+            'status': cfResult.statusCode,
+            'body': cfResult.body,
+            'headers': <String, String>{},
+            'finalUrl': cfResult.finalUrl,
+          };
+        }
+      }
+
       // CloudStream Callback plugin expect 'status' and 'body'.
       return {
         'code': response.statusCode,
         'statusCode': response.statusCode,
         'status': response.statusCode, // ALIAS for plugins like Ringz
-        'body': response.data.toString(),
-        'headers': response.headers.map.map((k, v) => MapEntry(k, v.join(','))),
+        'body': responseBody,
+        'headers': responseHeaders,
         'finalUrl': response.realUri.toString(),
       };
     } catch (e) {
