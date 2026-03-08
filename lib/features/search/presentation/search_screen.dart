@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:skystream/core/providers/device_info_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'search_provider.dart';
@@ -34,13 +33,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final searchResultsAsync = ref.watch(searchResultsProvider);
-    final device = ref.watch(deviceProfileProvider).asData?.value;
-    final isLarge = device?.isLargeScreen ?? false;
-
-    // Matches HomeSection card size
-    final double width = isLarge ? 170 : 110;
-    final double posterHeight = width * 1.5;
-    final double totalHeight = posterHeight + 100;
 
     return Scaffold(
       appBar: AppBar(
@@ -50,59 +42,62 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           behavior: HitTestBehavior.opaque,
           child: SizedBox(
             height: 48,
-            child: TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              autofocus: false,
-              style: const TextStyle(fontSize: 16),
-              textAlignVertical: TextAlignVertical.center,
-              decoration: InputDecoration(
-                hintText: 'Search movies, series...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                // fillColor inherited from AppTheme (0xFF22222E)
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-                hintStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                prefixIconConstraints: const BoxConstraints(
-                  minWidth: 48,
-                  minHeight: 48,
-                ),
-                suffixIcon: _controller.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _controller.clear();
-                          ref.read(searchQueryProvider.notifier).set('');
-                        },
-                      )
-                    : null,
-              ),
-              onChanged: (val) {
-                // P7: Debounce search to avoid triggering on every keystroke
-                _debounce?.cancel();
-                _debounce = Timer(const Duration(milliseconds: 300), () {
-                  ref.read(searchQueryProvider.notifier).set(val);
-                });
-                // Trigger immediate UI update for clear button visibility
-                setState(() {});
+            child: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _controller,
+              builder: (context, value, child) {
+                return TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  autofocus: false,
+                  style: const TextStyle(fontSize: 16),
+                  textAlignVertical: TextAlignVertical.center,
+                  decoration: InputDecoration(
+                    hintText: 'Search movies, series...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    // fillColor inherited from AppTheme (0xFF22222E)
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                    hintStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                    suffixIcon: value.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _controller.clear();
+                              ref.read(searchQueryProvider.notifier).set('');
+                            },
+                          )
+                        : null,
+                  ),
+                  onChanged: (val) {
+                    // P7: Debounce search to avoid triggering on every keystroke
+                    _debounce?.cancel();
+                    _debounce = Timer(const Duration(milliseconds: 300), () {
+                      ref.read(searchQueryProvider.notifier).set(val);
+                    });
+                  },
+                );
               },
             ),
           ),

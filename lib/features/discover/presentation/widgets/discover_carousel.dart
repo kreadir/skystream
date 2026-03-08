@@ -157,7 +157,7 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
     // Determine type: 'title' usually implies movie, 'name' implies TV
     // But better to check 'media_type' if available (trending/search provides it),
     // fallback to title check.
-    String mediaType =
+    final String mediaType =
         movie['media_type'] ?? (movie['title'] != null ? 'movie' : 'tv');
 
     Navigator.of(context).push(
@@ -208,7 +208,7 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
     final genres = movie['genres_str'] as String? ?? '';
 
     final metadata = [
-      if (type != null) type,
+      ?type,
       if (genres.isNotEmpty) genres,
       if (year.isNotEmpty) year,
     ].join(' • ');
@@ -285,16 +285,16 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
                 //         colors: [
                 //           Theme.of(
                 //             context,
-                //           ).scaffoldBackgroundColor.withOpacity(0.9),
+                //           ).scaffoldBackgroundColor.withValues(alpha: 0.9),
                 //           Theme.of(
                 //             context,
-                //           ).scaffoldBackgroundColor.withOpacity(0.7),
+                //           ).scaffoldBackgroundColor.withValues(alpha: 0.7),
                 //           Theme.of(
                 //             context,
-                //           ).scaffoldBackgroundColor.withOpacity(0.5),
+                //           ).scaffoldBackgroundColor.withValues(alpha: 0.5),
                 //           Theme.of(
                 //             context,
-                //           ).scaffoldBackgroundColor.withOpacity(0.0),
+                //           ).scaffoldBackgroundColor.withValues(alpha: 0.0),
                 //           Theme.of(context).scaffoldBackgroundColor,
                 //         ],
                 //         stops: const [0.0, 0.1, 0.2, 0.3, 1],
@@ -303,7 +303,7 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
                 //   ),
                 // ),
                 Transform.translate(
-                  offset: Offset(0, 1),
+                  offset: const Offset(0, 1),
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -312,16 +312,16 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
                         colors: [
                           // Theme.of(
                           //   context,
-                          // ).scaffoldBackgroundColor.withOpacity(0.1),
+                          // ).scaffoldBackgroundColor.withValues(alpha: 0.1),
                           // Theme.of(
                           //   context,
-                          // ).scaffoldBackgroundColor.withOpacity(0.05),
+                          // ).scaffoldBackgroundColor.withValues(alpha: 0.05),
                           // Theme.of(
                           //   context,
-                          // ).scaffoldBackgroundColor.withOpacity(0.01),
+                          // ).scaffoldBackgroundColor.withValues(alpha: 0.01),
                           // Theme.of(
                           //   context,
-                          // ).scaffoldBackgroundColor.withOpacity(0.0),
+                          // ).scaffoldBackgroundColor.withValues(alpha: 0.0),
                           Theme.of(
                             context,
                           ).scaffoldBackgroundColor.withValues(alpha: 0.0),

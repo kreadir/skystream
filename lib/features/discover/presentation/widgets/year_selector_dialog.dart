@@ -24,12 +24,12 @@ class YearSelectorDialog extends ConsumerWidget {
           width: double.infinity,
           constraints: const BoxConstraints(maxHeight: 600, maxWidth: 500),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white12, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -98,8 +98,8 @@ class YearSelectorDialog extends ConsumerWidget {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.blueAccent.withOpacity(0.2)
-                              : Colors.white.withOpacity(0.05),
+                              ? Colors.blueAccent.withValues(alpha: 0.2)
+                              : Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: isSelected

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// DNS over HTTPS provider options.
 enum DohProvider {
@@ -9,10 +10,62 @@ enum DohProvider {
   custom, // User-defined URL
 }
 
+/// Riverpod state for DoH settings — replaces ChangeNotifier for UI reactivity.
+class DohSettings {
+  final bool enabled;
+  final DohProvider provider;
+  final String customUrl;
+
+  const DohSettings({
+    this.enabled = false,
+    this.provider = DohProvider.cloudflare,
+    this.customUrl = '',
+  });
+
+  DohSettings copyWith({
+    bool? enabled,
+    DohProvider? provider,
+    String? customUrl,
+  }) {
+    return DohSettings(
+      enabled: enabled ?? this.enabled,
+      provider: provider ?? this.provider,
+      customUrl: customUrl ?? this.customUrl,
+    );
+  }
+}
+
+class DohSettingsNotifier extends Notifier<DohSettings> {
+  @override
+  DohSettings build() => const DohSettings();
+
+  void setEnabled(bool value) {
+    state = state.copyWith(enabled: value);
+    DohService.instance._syncFromSettings(state);
+  }
+
+  void setProvider(DohProvider p) {
+    state = state.copyWith(provider: p);
+    DohService.instance._syncFromSettings(state);
+  }
+
+  void setCustomUrl(String url) {
+    state = state.copyWith(customUrl: url);
+    DohService.instance._syncFromSettings(state);
+  }
+
+  void clearCache() => DohService.instance.clearCache();
+}
+
+final dohSettingsProvider = NotifierProvider<DohSettingsNotifier, DohSettings>(
+  DohSettingsNotifier.new,
+);
+
 /// A DNS-over-HTTPS resolver that queries Cloudflare or Google for DNS records.
 ///
-/// Extends ChangeNotifier so the settings UI rebuilds reactively.
-class DohService extends ChangeNotifier {
+/// Settings state is managed by [dohSettingsProvider] (Riverpod).
+/// This class is a stateless singleton for DNS resolution only.
+class DohService {
   DohService._();
   static final DohService instance = DohService._();
 
@@ -34,19 +87,11 @@ class DohService extends ChangeNotifier {
   DohProvider get provider => _provider;
   String get customUrl => _customUrl;
 
-  void setEnabled(bool value) {
-    _enabled = value;
-    notifyListeners();
-  }
-
-  void setProvider(DohProvider p) {
-    _provider = p;
-    notifyListeners();
-  }
-
-  void setCustomUrl(String url) {
-    _customUrl = url;
-    notifyListeners();
+  /// Called by [DohSettingsNotifier] to sync state.
+  void _syncFromSettings(DohSettings settings) {
+    _enabled = settings.enabled;
+    _provider = settings.provider;
+    _customUrl = settings.customUrl;
   }
 
   String get _endpoint {

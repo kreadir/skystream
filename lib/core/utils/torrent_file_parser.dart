@@ -129,7 +129,7 @@ class TorrentFileParser {
   // --- Bencode Encoder (needed for InfoHash calculation) ---
   
   static Uint8List _encode(dynamic data) {
-    BytesBuilder builder = BytesBuilder();
+    final BytesBuilder builder = BytesBuilder();
     
     void encodeRecursive(dynamic obj) {
        if (obj is int) {

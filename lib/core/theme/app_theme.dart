@@ -145,7 +145,6 @@ class AppTheme {
           seedColor: primary, // Violet seed
           brightness: Brightness.light,
           surface: lightSurface,
-          background: lightBackground,
         );
 
     return ThemeData(

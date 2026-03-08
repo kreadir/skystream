@@ -42,15 +42,15 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog>
           decoration: BoxDecoration(
             color: Theme.of(
               context,
-            ).scaffoldBackgroundColor.withOpacity(0.9), // Glassmorphism base
+            ).scaffoldBackgroundColor.withValues(alpha: 0.9), // Glassmorphism base
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.5),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2), // Shadow always black
+                color: Colors.black.withValues(alpha: 0.2), // Shadow always black
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -293,14 +293,14 @@ class _RatingTab extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          tileColor: isSelected ? Colors.blueAccent.withOpacity(0.2) : null,
-          focusColor: Colors.blueAccent.withOpacity(0.5),
+          tileColor: isSelected ? Colors.blueAccent.withValues(alpha: 0.2) : null,
+          focusColor: Colors.blueAccent.withValues(alpha: 0.5),
           leading: Icon(
             Icons.star,
             color: isSelected
                 ? Colors.blueAccent
                 : (rating == null
-                      ? Theme.of(context).colorScheme.onSurface.withOpacity(0.3)
+                      ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)
                       : Colors.amber),
           ),
           title: Text(
@@ -356,18 +356,18 @@ class _LanguageTab extends ConsumerWidget {
             ref.read(languageProvider.notifier).setLanguage(lang.code);
           },
           borderRadius: BorderRadius.circular(16),
-          focusColor: Colors.blueAccent.withOpacity(0.6),
+          focusColor: Colors.blueAccent.withValues(alpha: 0.6),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: isSelected
-                  ? Colors.blueAccent.withOpacity(0.2)
-                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+                  ? Colors.blueAccent.withValues(alpha: 0.2)
+                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected
                     ? Colors.blueAccent
-                    : Theme.of(context).dividerColor.withOpacity(0.1),
+                    : Theme.of(context).dividerColor.withValues(alpha: 0.1),
               ),
             ),
             child: Row(
@@ -382,7 +382,7 @@ class _LanguageTab extends ConsumerWidget {
                         ? Colors.blueAccent
                         : Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.1),
+                          ).colorScheme.onSurface.withValues(alpha: 0.1),
                   ),
                   child: Text(
                     lang.code.split('-')[0].toUpperCase(),
@@ -413,7 +413,7 @@ class _LanguageTab extends ConsumerWidget {
                         lang.nativeName,
                         style: TextStyle(
                           color: isSelected
-                              ? Colors.blueAccent.withOpacity(0.7)
+                              ? Colors.blueAccent.withValues(alpha: 0.7)
                               : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 12,
                         ),
@@ -459,7 +459,7 @@ class _GenreTab extends ConsumerWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              tileColor: isSelected ? Colors.blueAccent.withOpacity(0.2) : null,
+              tileColor: isSelected ? Colors.blueAccent.withValues(alpha: 0.2) : null,
               leading: Icon(
                 Icons.category, // Distinct icon for All
                 color: isSelected ? Colors.blueAccent : Colors.white24,
@@ -471,7 +471,7 @@ class _GenreTab extends ConsumerWidget {
                       ? Colors.blueAccent
                       : Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
@@ -488,13 +488,13 @@ class _GenreTab extends ConsumerWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            tileColor: isSelected ? Colors.blueAccent.withOpacity(0.2) : null,
-            focusColor: Colors.blueAccent.withOpacity(0.5),
+            tileColor: isSelected ? Colors.blueAccent.withValues(alpha: 0.2) : null,
+            focusColor: Colors.blueAccent.withValues(alpha: 0.5),
             leading: Icon(
               isSelected ? Icons.check_circle : Icons.circle_outlined,
               color: isSelected
                   ? Colors.blueAccent
-                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
             title: Text(
               genre['name'],
@@ -509,7 +509,7 @@ class _GenreTab extends ConsumerWidget {
         },
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(
+      error: (_, _) => const Center(
         child: Text(
           "Failed to load genres",
           style: TextStyle(color: Colors.white),
@@ -546,13 +546,13 @@ class _YearTab extends ConsumerWidget {
               ref.read(discoverFilterProvider.notifier).setYear(null);
             },
             borderRadius: BorderRadius.circular(8),
-            focusColor: Colors.blueAccent.withOpacity(0.6),
+            focusColor: Colors.blueAccent.withValues(alpha: 0.6),
             child: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? Colors.blueAccent.withOpacity(0.2)
-                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+                    ? Colors.blueAccent.withValues(alpha: 0.2)
+                    : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isSelected ? Colors.blueAccent : Colors.transparent,
@@ -565,7 +565,7 @@ class _YearTab extends ConsumerWidget {
                       ? Colors.blueAccent
                       : Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 16,
                 ),
@@ -582,13 +582,13 @@ class _YearTab extends ConsumerWidget {
             ref.read(discoverFilterProvider.notifier).setYear(year);
           },
           borderRadius: BorderRadius.circular(8),
-          focusColor: Colors.blueAccent.withOpacity(0.4),
+          focusColor: Colors.blueAccent.withValues(alpha: 0.4),
           child: Container(
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: isSelected
-                  ? Colors.blueAccent.withOpacity(0.2)
-                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+                  ? Colors.blueAccent.withValues(alpha: 0.2)
+                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isSelected ? Colors.blueAccent : Colors.transparent,

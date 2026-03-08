@@ -36,11 +36,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   late final Player _player;
   late final VideoController _videoController;
 
-  String? _errorMessage;
+  final ValueNotifier<String?> _errorMessage = ValueNotifier(null);
   // --- ValueNotifier fields for granular rebuilds ---
   final ValueNotifier<bool> _isLoading = ValueNotifier(true);
-  // ignore: prefer_typing_uninitialized_variables
-  var _historyNotifier;
+  late final WatchHistoryNotifier _historyNotifier;
 
   late final ValueNotifier<String> _playerTitle;
   final ValueNotifier<String?> _streamSubtitle = ValueNotifier(null);
@@ -122,8 +121,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     final settings = ref.read(playerSettingsProvider);
     if (settings.defaultResizeMode == "Zoom") {
       _videoFit.value = BoxFit.cover;
-    } else if (settings.defaultResizeMode == "Stretch")
+    } else if (settings.defaultResizeMode == "Stretch") {
       _videoFit.value = BoxFit.fill;
+    }
 
     _initPlayer();
 
@@ -274,9 +274,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     final activeProvider = _resolveProvider();
     if (activeProvider == null) {
       if (mounted) {
-        _errorMessage = "No provider selected.";
+        _errorMessage.value = "No provider selected.";
         _isLoading.value = false;
-        setState(() {}); // Rebuild for error state
       }
       return;
     }
@@ -289,7 +288,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         // Load Streams from Provider
         final streams = await activeProvider.loadStreams(widget.videoUrl);
         if (streams.isNotEmpty) {
-          int initialIndex = _findSavedStreamIndex(streams);
+          final initialIndex = _findSavedStreamIndex(streams);
 
           if (mounted) {
             _streams = streams;
@@ -305,9 +304,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
     // Handle Failure
     if (mounted) {
-      _errorMessage = "No streams found.";
+      _errorMessage.value = "No streams found.";
       _isLoading.value = false;
-      setState(() {}); // Rebuild for error state
     }
   }
 
@@ -394,14 +392,17 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     }
     final native = _player.platform as NativePlayer;
 
-    if (headers.containsKey('user-agent')) {
-      final ua = headers['user-agent']!;
+    // Create a lowercase map for case-insensitive lookups
+    final lowerHeaders = headers.map((k, v) => MapEntry(k.toLowerCase(), v));
+
+    if (lowerHeaders.containsKey('user-agent')) {
+      final ua = lowerHeaders['user-agent']!;
       await native.setProperty('user-agent', ua);
     }
 
     // Set Referrer (Native property)
-    if (headers.containsKey('referer')) {
-      final ref = headers['referer']!;
+    if (lowerHeaders.containsKey('referer')) {
+      final ref = lowerHeaders['referer']!;
       await native.setProperty('referrer', ref);
     }
 
@@ -422,10 +423,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     }
 
     // Determine Cookie (Case Insensitive Check)
-    String? cookieKey;
-    for (var k in headers.keys) {
+    for (final k in headers.keys) {
       if (k.toLowerCase() == 'cookie') {
-        cookieKey = k;
         break;
       }
     }
@@ -542,9 +541,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     if (_currentStreamIndex < _streams.length - 1) {
       _loadStreamAtIndex(_currentStreamIndex + 1);
     } else {
-      _errorMessage = "All streams failed.";
+      _errorMessage.value = "All streams failed.";
       _isLoading.value = false;
-      setState(() {}); // Rebuild for error state
     }
   }
 
@@ -554,10 +552,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
   void _revertToPreviousStream(String reason) {
     if (_previousStream == null || _isReverting) {
       if (_previousStream == null) {
-        _errorMessage = "Stream failed. No fallback available.";
+        _errorMessage.value = "Stream failed. No fallback available.";
         _isLoading.value = false;
         _isManualSwitch = false;
-        setState(() {}); // Rebuild for error state
       }
       return;
     }
@@ -566,7 +563,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
     // Calculate margins to center the toast with a fixed width of approx 300px
     final screenWidth = MediaQuery.of(context).size.width;
-    final double toastWidth = 300.0;
+    const double toastWidth = 300.0;
     final double horizontalMargin = (screenWidth > toastWidth)
         ? (screenWidth - toastWidth) / 2
         : 16.0;
@@ -672,9 +669,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     } catch (e) {
       debugPrint("Change stream failed: $e");
       if (isRevert) {
-        _errorMessage = "Revert failed: $e";
+        _errorMessage.value = "Revert failed: $e";
         _isReverting = false;
-        setState(() {}); // Rebuild for error state
       } else {
         _revertToPreviousStream("Switch failed. Reverting...");
       }
@@ -710,7 +706,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
           quality: "Torrent ($fileLabel)",
           headers: {},
         );
-        // ignore: use_build_context_synchronously
         _changeStream(newStream, resetPosition: true);
       } else {
         if (mounted) _isLoading.value = false;
@@ -736,7 +731,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       final double progress = (pos / dur) * 100;
 
       // Mark as Watched logic
-      bool isSeries =
+      final bool isSeries =
           widget.item.episodes != null && widget.item.episodes!.length > 1;
 
       // Only remove from history if it's a Movie (or single episode) and finished
@@ -782,6 +777,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _playerTitle.dispose();
     _streamSubtitle.dispose();
     _videoFit.dispose();
+    _errorMessage.dispose();
     WakelockPlus.disable();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
@@ -932,145 +928,153 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (_errorMessage != null) {
-      return Scaffold(
-        // backgroundColor: Colors.black, // Inherit from Theme (Scaffold is Black)
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error, color: Colors.red, size: 48),
-              const SizedBox(height: 16),
-              Text(
-                _errorMessage!,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Go Back"),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return ValueListenableBuilder<bool>(
-      valueListenable: _controlsVisible,
-      builder: (context, controlsVisible, _) {
-        return PopScope(
-          canPop: !controlsVisible,
-          onPopInvokedWithResult: (didPop, result) async {
-            if (didPop) return;
-            if (controlsVisible) {
-              _controlsKeyFinal.currentState?.hideControls();
-            }
-          },
-          child: Scaffold(
-            body: MouseRegion(
-              onHover: (_) {
-                if (!_controlsVisible.value) {
-                  _controlsVisible.value = true;
-                }
-                _controlsKeyFinal.currentState?.onUserInteraction();
-              },
-              child: Focus(
-                autofocus: false,
-                onKeyEvent: _handleKey,
-                child: Stack(
-                  children: [
-                    // Video widget — only rebuilds when _videoFit changes
-                    RepaintBoundary(
-                      child: ValueListenableBuilder<BoxFit>(
-                        valueListenable: _videoFit,
-                        builder: (_, fit, __) => Center(
-                          child: Video(
-                            controller: _videoController,
-                            fit: fit,
-                            subtitleViewConfiguration:
-                                const SubtitleViewConfiguration(visible: false),
-                            controls: (state) => const SizedBox.shrink(),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Custom Subtitles Position — moves with controls visibility
-                    Positioned(
-                      bottom: controlsVisible ? 120 : 20,
-                      left: 20,
-                      right: 20,
-                      child: SubtitleView(
-                        controller: _videoController,
-                        configuration: SubtitleViewConfiguration(
-                          style: TextStyle(
-                            fontSize: ref
-                                .watch(playerSettingsProvider)
-                                .subtitleSize,
-                            color: Color(
-                              ref.watch(playerSettingsProvider).subtitleColor,
-                            ),
-                            backgroundColor: Color(
-                              ref
-                                  .watch(playerSettingsProvider)
-                                  .subtitleBackgroundColor,
-                            ),
-                            shadows: [
-                              const Shadow(
-                                offset: Offset(0, 1),
-                                blurRadius: 2,
-                                color: Colors.black,
-                              ),
-                            ],
-                          ),
-                          padding: EdgeInsets.zero,
-                        ),
-                      ),
-                    ),
-
-                    // Custom Controls Overlay
-                    RepaintBoundary(
-                      child: SkyStreamPlayerControls(
-                        key: _controlsKeyFinal,
-                        isLoading: _isLoading.value,
-                        forceShowControls: _forceShowControls.value,
-                        player: _player,
-                        title: _playerTitle.value,
-                        subtitle: _streamSubtitle.value,
-                        streams: _streams,
-                        currentStream: _currentStream,
-                        externalSubtitles: _externalSubtitles,
-                        torrentStatus: _torrentStatus,
-                        onStreamSelected: _changeStream,
-                        onTorrentFileSelected: _onTorrentFileSelected,
-                        onResize: _updateResizeMode,
-                        onVisibilityChanged: (v) {
-                          if (mounted) _controlsVisible.value = v;
-                        },
-                      ),
-                    ),
-
-                    // Loading overlay
-                    ValueListenableBuilder<bool>(
-                      valueListenable: _isLoading,
-                      builder: (_, loading, __) {
-                        if (!loading) return const SizedBox.shrink();
-                        return ValueListenableBuilder<bool>(
-                          valueListenable: _forceShowControls,
-                          builder: (_, forceShow, __) {
-                            if (forceShow) return const SizedBox.shrink();
-                            return _buildSkipButtonOverlay();
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                ),
+    return ValueListenableBuilder<String?>(
+      valueListenable: _errorMessage,
+      builder: (context, errorMsg, _) {
+        if (errorMsg != null) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
+                  Text(
+                    errorMsg,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Go Back"),
+                  ),
+                ],
               ),
             ),
-          ),
+          );
+        }
+
+        return ValueListenableBuilder<bool>(
+          valueListenable: _controlsVisible,
+          builder: (context, controlsVisible, _) {
+            return PopScope(
+              canPop: !controlsVisible,
+              onPopInvokedWithResult: (didPop, result) async {
+                if (didPop) return;
+                if (controlsVisible) {
+                  _controlsKeyFinal.currentState?.hideControls();
+                }
+              },
+              child: Scaffold(
+                body: MouseRegion(
+                  onHover: (_) {
+                    if (!_controlsVisible.value) {
+                      _controlsVisible.value = true;
+                    }
+                    _controlsKeyFinal.currentState?.onUserInteraction();
+                  },
+                  child: Focus(
+                    autofocus: false,
+                    onKeyEvent: _handleKey,
+                    child: Stack(
+                      children: [
+                        // Video widget — only rebuilds when _videoFit changes
+                        RepaintBoundary(
+                          child: ValueListenableBuilder<BoxFit>(
+                            valueListenable: _videoFit,
+                            builder: (_, fit, child) => Center(
+                              child: Video(
+                                controller: _videoController,
+                                fit: fit,
+                                subtitleViewConfiguration:
+                                    const SubtitleViewConfiguration(
+                                      visible: false,
+                                    ),
+                                controls: (state) => const SizedBox.shrink(),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Custom Subtitles Position — moves with controls visibility
+                        Positioned(
+                          bottom: controlsVisible ? 120 : 20,
+                          left: 20,
+                          right: 20,
+                          child: SubtitleView(
+                            controller: _videoController,
+                            configuration: SubtitleViewConfiguration(
+                              style: TextStyle(
+                                fontSize: ref
+                                    .watch(playerSettingsProvider)
+                                    .subtitleSize,
+                                color: Color(
+                                  ref
+                                      .watch(playerSettingsProvider)
+                                      .subtitleColor,
+                                ),
+                                backgroundColor: Color(
+                                  ref
+                                      .watch(playerSettingsProvider)
+                                      .subtitleBackgroundColor,
+                                ),
+                                shadows: const [
+                                  Shadow(
+                                    offset: Offset(0, 1),
+                                    blurRadius: 2,
+                                    color: Colors.black,
+                                  ),
+                                ],
+                              ),
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+
+                        // Custom Controls Overlay
+                        RepaintBoundary(
+                          child: SkyStreamPlayerControls(
+                            key: _controlsKeyFinal,
+                            isLoading: _isLoading.value,
+                            forceShowControls: _forceShowControls.value,
+                            player: _player,
+                            title: _playerTitle.value,
+                            subtitle: _streamSubtitle.value,
+                            streams: _streams,
+                            currentStream: _currentStream,
+                            externalSubtitles: _externalSubtitles,
+                            torrentStatus: _torrentStatus,
+                            onStreamSelected: _changeStream,
+                            onTorrentFileSelected: _onTorrentFileSelected,
+                            onResize: _updateResizeMode,
+                            onVisibilityChanged: (v) {
+                              if (mounted) _controlsVisible.value = v;
+                            },
+                          ),
+                        ),
+
+                        // Loading overlay
+                        ValueListenableBuilder<bool>(
+                          valueListenable: _isLoading,
+                          builder: (_, loading, child) {
+                            if (!loading) return const SizedBox.shrink();
+                            return ValueListenableBuilder<bool>(
+                              valueListenable: _forceShowControls,
+                              builder: (_, forceShow, child) {
+                                if (forceShow) return const SizedBox.shrink();
+                                return _buildSkipButtonOverlay();
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );

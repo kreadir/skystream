@@ -169,7 +169,7 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
                     ? EdgeInsets.zero
                     : const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: allItems.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
                   final data = allItems[index];
                   final item = data['item'] as MultimediaItem;
@@ -195,7 +195,7 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
                           side: BorderSide(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.3),
+                            ).colorScheme.onSurface.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
@@ -207,7 +207,7 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
                                   ? CachedNetworkImage(
                                       imageUrl: item.posterUrl,
                                       fit: BoxFit.cover,
-                                      errorWidget: (_, __, ___) =>
+                                      errorWidget: (_, _, _) =>
                                           const ShimmerPlaceholder(),
                                     )
                                   : const ShimmerPlaceholder(),
@@ -296,10 +296,10 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
       decoration: BoxDecoration(
         color: Theme.of(
           context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
         ),
       ),
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -334,7 +334,7 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
-                    ).colorScheme.primary.withOpacity(0.2),
+                    ).colorScheme.primary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(

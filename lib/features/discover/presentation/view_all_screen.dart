@@ -147,7 +147,7 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
     final isDesktop = screenWidth > 800;
     final maxExtent = isDesktop ? 240.0 : 150.0;
     final crossAxisCount = (screenWidth / maxExtent).ceil();
-    final childAspectRatio = 0.55;
+    const childAspectRatio = 0.55;
 
     return Scaffold(
       appBar: AppBar(
@@ -171,7 +171,7 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8),
+              Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8),
               Theme.of(context).scaffoldBackgroundColor,
             ],
             stops: const [0.0, 0.3],
@@ -241,7 +241,7 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
                               Icons.error_outline,
                               color: Theme.of(
                                 context,
-                              ).colorScheme.onSurface.withOpacity(0.2),
+                              ).colorScheme.onSurface.withValues(alpha: 0.2),
                             ),
                           ),
                         ),
@@ -256,7 +256,7 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
                     style: TextStyle(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.8),
+                      ).colorScheme.onSurface.withValues(alpha: 0.8),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),

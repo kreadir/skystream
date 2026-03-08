@@ -293,7 +293,7 @@ class ExtensionsController extends Notifier<ExtensionsState> {
 
       // Remove persistence
       final prefs = await SharedPreferences.getInstance();
-      var urls = prefs.getStringList('extension_repo_urls') ?? [];
+      final urls = prefs.getStringList('extension_repo_urls') ?? [];
       urls.remove(url);
       await prefs.setStringList('extension_repo_urls', urls);
 

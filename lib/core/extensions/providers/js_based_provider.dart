@@ -90,8 +90,9 @@ class JsBasedProvider extends SkyStreamProvider {
           } else {
             if (kDebugMode) {
               String msg = manifest.toString();
-              if (msg.length > 500)
+              if (msg.length > 500) {
                 msg = "${msg.substring(0, 500)}... [Truncated]";
+              }
               debugPrint(
                 "Error: getManifest returned non-Map: $msg for $_scriptPath",
               );
@@ -99,8 +100,9 @@ class JsBasedProvider extends SkyStreamProvider {
             _error = "Manifest type err";
           }
         } catch (e) {
-          if (kDebugMode)
+          if (kDebugMode) {
             debugPrint("Error loading manifest for $_scriptPath: $e");
+          }
           _error = "Manifest: $e";
         }
       } catch (e) {
@@ -245,8 +247,9 @@ class JsBasedProvider extends SkyStreamProvider {
               final realUrl = utf8.decode(realUrlBytes);
               finalUrl = LocalProxyService.instance.getProxyUrl(realUrl);
             } catch (e) {
-              if (kDebugMode)
+              if (kDebugMode) {
                 debugPrint("Error decoding MAGIC_PROXY_v1 url: $e");
+              }
             }
           }
 

@@ -340,10 +340,14 @@ class SkyStreamPlayerControlsState
     }
     try {
       ScreenBrightness().resetApplicationScreenBrightness();
-    } catch (e) {}
+    } catch (e) {
+      debugPrint('Failed to reset brightness: $e');
+    }
     try {
       FlutterVolumeController.updateShowSystemUI(true);
-    } catch (e) {}
+    } catch (e) {
+      debugPrint('Failed to restore volume UI: $e');
+    }
     SystemChrome.setPreferredOrientations([]); // Reset to system default
     super.dispose();
   }
@@ -1018,8 +1022,9 @@ class SkyStreamPlayerControlsState
     final profile = ref.read(deviceProfileProvider).asData?.value;
     final isTv = profile?.isTv ?? false;
     try {
-      if (isTv || Platform.isMacOS || Platform.isWindows || Platform.isLinux)
+      if (isTv || Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
         return;
+      }
     } catch (_) {}
 
     final x = details.globalPosition.dx;
@@ -1073,11 +1078,15 @@ class SkyStreamPlayerControlsState
     final delta = -details.primaryDelta! / 300;
 
     // Auto brightness threshold (-0.05)
-    double min = (_currentGesture == PlayerGesture.brightness) ? -0.05 : 0.0;
+    final double min = (_currentGesture == PlayerGesture.brightness)
+        ? -0.05
+        : 0.0;
     // Volume boost limit (200%)
-    double max = (_currentGesture == PlayerGesture.brightness) ? 1.0 : 2.0;
+    final double max = (_currentGesture == PlayerGesture.brightness)
+        ? 1.0
+        : 2.0;
 
-    double newVal = ((_osdValue ?? 0.0) + delta).clamp(min, max);
+    final double newVal = ((_osdValue ?? 0.0) + delta).clamp(min, max);
 
     // Update icon state
     final newIcon = _getIconForValue(_currentGesture!, newVal);
@@ -1127,8 +1136,9 @@ class SkyStreamPlayerControlsState
     final profile = ref.read(deviceProfileProvider).asData?.value;
     final isTv = profile?.isTv ?? false;
     try {
-      if (isTv || Platform.isMacOS || Platform.isWindows || Platform.isLinux)
+      if (isTv || Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
         return;
+      }
     } catch (_) {}
 
     // Avoid conflict with seek bar

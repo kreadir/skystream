@@ -85,7 +85,7 @@ class _TvCardsWrapperState extends State<TvCardsWrapper>
     return Focus(
       focusNode: _node,
       onFocusChange: _onFocusChange,
-      onKey: (node, event) {
+      onKeyEvent: (node, event) {
         return KeyEventResult.ignored;
       },
       child: MouseRegion(

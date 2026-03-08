@@ -100,7 +100,7 @@ class _DeveloperOptionsScreenState
         return scaffold;
       },
       loading: () => scaffold,
-      error: (_, __) => scaffold,
+      error: (_, _) => scaffold,
     );
   }
 

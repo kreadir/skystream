@@ -196,42 +196,46 @@ class SettingsScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              ListenableBuilder(
-                listenable: DohService.instance,
-                builder: (context, _) => SettingsGroup(
-                  title: 'Network',
-                  children: [
-                    SettingsTile(
-                      icon: Icons.dns_rounded,
-                      title: 'DNS over HTTPS',
-                      subtitle: DohService.instance.enabled
-                          ? 'On (${_getDohProviderLabel(DohService.instance.provider, DohService.instance.customUrl)})'
-                          : 'Off',
-                      trailing: Switch(
-                        value: DohService.instance.enabled,
-                        onChanged: (val) {
-                          DohService.instance.setEnabled(val);
+              Builder(
+                builder: (context) {
+                  final dohState = ref.watch(dohSettingsProvider);
+                  return SettingsGroup(
+                    title: 'Network',
+                    children: [
+                      SettingsTile(
+                        icon: Icons.dns_rounded,
+                        title: 'DNS over HTTPS',
+                        subtitle: dohState.enabled
+                            ? 'On (${_getDohProviderLabel(dohState.provider, dohState.customUrl)})'
+                            : 'Off',
+                        trailing: Switch(
+                          value: dohState.enabled,
+                          onChanged: (val) {
+                            ref
+                                .read(dohSettingsProvider.notifier)
+                                .setEnabled(val);
+                          },
+                        ),
+                        onTap: () {
+                          ref
+                              .read(dohSettingsProvider.notifier)
+                              .setEnabled(!dohState.enabled);
                         },
                       ),
-                      onTap: () {
-                        DohService.instance.setEnabled(
-                          !DohService.instance.enabled,
-                        );
-                      },
-                    ),
-                    if (DohService.instance.enabled)
-                      SettingsTile(
-                        icon: Icons.cloud_rounded,
-                        title: 'DoH Provider',
-                        subtitle: _getDohProviderLabel(
-                          DohService.instance.provider,
-                          DohService.instance.customUrl,
+                      if (dohState.enabled)
+                        SettingsTile(
+                          icon: Icons.cloud_rounded,
+                          title: 'DoH Provider',
+                          subtitle: _getDohProviderLabel(
+                            dohState.provider,
+                            dohState.customUrl,
+                          ),
+                          isLast: true,
+                          onTap: () => _showDohProviderDialog(context, ref),
                         ),
-                        isLast: true,
-                        onTap: () => _showDohProviderDialog(context),
-                      ),
-                  ],
-                ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 24),
               SettingsGroup(
@@ -285,8 +289,9 @@ class SettingsScreen extends ConsumerWidget {
                                     .clearPreferences();
 
                                 // Restart App
-                                if (context.mounted)
+                                if (context.mounted) {
                                   await AppUtils.restartApp(context);
+                                }
                               },
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.orange,
@@ -333,8 +338,9 @@ class SettingsScreen extends ConsumerWidget {
                                     .deleteAllData();
 
                                 // Restart App
-                                if (context.mounted)
+                                if (context.mounted) {
                                   await AppUtils.restartApp(context);
+                                }
                               },
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.red,
@@ -584,10 +590,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                RadioListTile<String?>(
-                  title: const Text('Internal (media_kit)'),
-                  subtitle: const Text('Built-in player'),
-                  secondary: const Icon(Icons.play_circle_filled_rounded),
+                const RadioListTile<String?>(
+                  title: Text('Internal (media_kit)'),
+                  subtitle: Text('Built-in player'),
+                  secondary: Icon(Icons.play_circle_filled_rounded),
                   value: null,
                 ),
                 const Divider(),
@@ -630,16 +636,16 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  void _showDohProviderDialog(BuildContext context) {
+  void _showDohProviderDialog(BuildContext context, WidgetRef ref) {
     final controller = TextEditingController(
-      text: DohService.instance.customUrl,
+      text: ref.read(dohSettingsProvider).customUrl,
     );
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) {
-          final current = DohService.instance.provider;
+          final current = ref.read(dohSettingsProvider).provider;
           return AlertDialog(
             surfaceTintColor: Colors.transparent,
             title: const Text('DoH Provider'),
@@ -650,30 +656,32 @@ class SettingsScreen extends ConsumerWidget {
                   if (val == null) return;
                   if (val == DohProvider.custom) {
                     setState(() {
-                      DohService.instance.setProvider(DohProvider.custom);
+                      ref
+                          .read(dohSettingsProvider.notifier)
+                          .setProvider(DohProvider.custom);
                     });
                   } else {
-                    DohService.instance.setProvider(val);
-                    DohService.instance.clearCache();
+                    ref.read(dohSettingsProvider.notifier).setProvider(val);
+                    ref.read(dohSettingsProvider.notifier).clearCache();
                     Navigator.pop(ctx);
                   }
                 },
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    RadioListTile<DohProvider>(
-                      title: const Text('Cloudflare'),
-                      subtitle: const Text('1.1.1.1'),
+                    const RadioListTile<DohProvider>(
+                      title: Text('Cloudflare'),
+                      subtitle: Text('1.1.1.1'),
                       value: DohProvider.cloudflare,
                     ),
-                    RadioListTile<DohProvider>(
-                      title: const Text('Google'),
-                      subtitle: const Text('8.8.8.8'),
+                    const RadioListTile<DohProvider>(
+                      title: Text('Google'),
+                      subtitle: Text('8.8.8.8'),
                       value: DohProvider.google,
                     ),
-                    RadioListTile<DohProvider>(
-                      title: const Text('Custom'),
-                      subtitle: const Text('Enter your own endpoint'),
+                    const RadioListTile<DohProvider>(
+                      title: Text('Custom'),
+                      subtitle: Text('Enter your own endpoint'),
                       value: DohProvider.custom,
                     ),
                     if (current == DohProvider.custom)
@@ -709,8 +717,8 @@ class SettingsScreen extends ConsumerWidget {
                   onPressed: () {
                     final url = controller.text.trim();
                     if (url.isNotEmpty) {
-                      DohService.instance.setCustomUrl(url);
-                      DohService.instance.clearCache();
+                      ref.read(dohSettingsProvider.notifier).setCustomUrl(url);
+                      ref.read(dohSettingsProvider.notifier).clearCache();
                       Navigator.pop(ctx);
                     }
                   },

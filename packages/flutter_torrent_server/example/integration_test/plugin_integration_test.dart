@@ -6,7 +6,6 @@
 // For more information about Flutter integration tests, please see
 // https://flutter.dev/to/integration-testing
 
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -18,12 +17,13 @@ void main() {
   testWidgets('start server test', (WidgetTester tester) async {
     final FlutterTorrentServer plugin = FlutterTorrentServer();
     try {
-       final int port = await plugin.start();
-       expect(port, greaterThan(0));
+      final int port = await plugin.start();
+      expect(port, greaterThan(0));
     } catch (e) {
-       // If binaries aren't set up in the test environment, just pass
-       // This test mainly verifies the API call doesn't crash on invocation
-       print("Server start failed (expected if no binary): $e");
+      // If binaries aren't set up in the test environment, just pass
+      // This test mainly verifies the API call doesn't crash on invocation
+      // ignore: avoid_print
+      print("Server start failed (expected if no binary): $e");
     }
   });
 }

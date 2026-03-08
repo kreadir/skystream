@@ -80,7 +80,7 @@ class TorrentService {
     if (_serverUrl == null) return null;
 
     try {
-      String linkToAdd = await _prepareMagnetLink(magnetLink);
+      final String linkToAdd = await _prepareMagnetLink(magnetLink);
 
       // Add Torrent
       final hash = await _server.addTorrent(linkToAdd);

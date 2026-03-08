@@ -12,6 +12,7 @@ class LocalProxyService {
   HttpServer? _server;
   int _serverPort = 0;
   final Map<String, String> _playlists = {};
+  static const int _maxPlaylists = 50;
 
   int get port => _serverPort;
 
@@ -32,16 +33,22 @@ class LocalProxyService {
   String serveM3u8(String content) {
     if (_server == null) startServer(); // Ensure started
 
-    final uuid = "${DateTime.now().millisecondsSinceEpoch}_${(content.length % 1000)}";
+    // Evict oldest entries if at capacity
+    while (_playlists.length >= _maxPlaylists) {
+      _playlists.remove(_playlists.keys.first);
+    }
+
+    final uuid =
+        "${DateTime.now().millisecondsSinceEpoch}_${(content.length % 1000)}";
     _playlists[uuid] = content;
     return "http://127.0.0.1:$_serverPort/$uuid.m3u8";
   }
 
   /// Returns a proxied URL for the given target URL.
   String getProxyUrl(String targetUrl) {
-     if (_server == null) startServer(); 
-     final encoded = Uri.encodeComponent(targetUrl);
-     return "http://127.0.0.1:$_serverPort/proxy?url=$encoded";
+    if (_server == null) startServer();
+    final encoded = Uri.encodeComponent(targetUrl);
+    return "http://127.0.0.1:$_serverPort/proxy?url=$encoded";
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
@@ -57,13 +64,12 @@ class LocalProxyService {
       // M3U8 HANDLER
       // Expected path: /<uuid>.m3u8
       if (path.length > 1 && path.endsWith('.m3u8')) {
-         await _handlePlaylistRequest(request, path);
-         return;
+        await _handlePlaylistRequest(request, path);
+        return;
       }
 
       request.response.statusCode = HttpStatus.notFound;
       request.response.close();
-
     } catch (e) {
       debugPrint("LocalProxyService: Server Error: $e");
       try {
@@ -74,19 +80,19 @@ class LocalProxyService {
   }
 
   Future<void> _handlePlaylistRequest(HttpRequest request, String path) async {
-      final uuid = path.substring(1).replaceAll(".m3u8", "");
-      if (_playlists.containsKey(uuid)) {
-        final content = _playlists[uuid]!;
-        request.response.headers.contentType = ContentType(
-          "application",
-          "vnd.apple.mpegurl",
-        );
-        request.response.headers.add("Access-Control-Allow-Origin", "*");
-        request.response.write(content);
-      } else {
-        request.response.statusCode = HttpStatus.notFound;
-      }
-      request.response.close();
+    final uuid = path.substring(1).replaceAll(".m3u8", "");
+    if (_playlists.containsKey(uuid)) {
+      final content = _playlists[uuid]!;
+      request.response.headers.contentType = ContentType(
+        "application",
+        "vnd.apple.mpegurl",
+      );
+      request.response.headers.add("Access-Control-Allow-Origin", "*");
+      request.response.write(content);
+    } else {
+      request.response.statusCode = HttpStatus.notFound;
+    }
+    request.response.close();
   }
 
   Future<void> _handleProxyRequest(HttpRequest request) async {
@@ -98,7 +104,7 @@ class LocalProxyService {
     }
 
     final client = HttpClient();
-    client.autoUncompress = true; 
+    client.autoUncompress = true;
     client.badCertificateCallback = (cert, host, port) => true;
 
     try {
@@ -128,10 +134,10 @@ class LocalProxyService {
       // debugPrint("Proxy: $targetUrl | $mimeType | isM3u8: $isM3u8");
 
       if (isM3u8 && response.statusCode == 200) {
-          await _rewriteM3u8Response(response, request, targetUrl);
+        await _rewriteM3u8Response(response, request, targetUrl);
       } else {
-          // Pipe binary data
-          await response.pipe(request.response);
+        // Pipe binary data
+        await response.pipe(request.response);
       }
     } catch (e) {
       debugPrint("LocalProxyService: Proxy Request Error: $e");
@@ -141,67 +147,75 @@ class LocalProxyService {
   }
 
   bool _isM3u8(String? mimeType, String url) {
-     return (mimeType == "application/vnd.apple.mpegurl" ||
-            mimeType == "application/x-mpegurl" ||
-            mimeType == "audio/x-mpegurl" ||
-            mimeType == "video/x-mpegurl" ||
-            url.contains(".m3u8") ||
-            url.contains(".m3u"));
+    return (mimeType == "application/vnd.apple.mpegurl" ||
+        mimeType == "application/x-mpegurl" ||
+        mimeType == "audio/x-mpegurl" ||
+        mimeType == "video/x-mpegurl" ||
+        url.contains(".m3u8") ||
+        url.contains(".m3u"));
   }
 
-  Future<void> _rewriteM3u8Response(HttpClientResponse sourceResponse, HttpRequest clientRequest, String originalUrl) async {
-      final contentBytes = await sourceResponse.toList();
-      final allBytes = contentBytes.expand((x) => x).toList();
+  Future<void> _rewriteM3u8Response(
+    HttpClientResponse sourceResponse,
+    HttpRequest clientRequest,
+    String originalUrl,
+  ) async {
+    final contentBytes = await sourceResponse.toList();
+    final allBytes = contentBytes.expand((x) => x).toList();
 
-      if (!_isValidM3u8(allBytes)) {
-         // Fallback to binary pipe
-         clientRequest.response.add(allBytes);
-         await clientRequest.response.close();
-         return;
-      }
+    if (!_isValidM3u8(allBytes)) {
+      // Fallback to binary pipe
+      clientRequest.response.add(allBytes);
+      await clientRequest.response.close();
+      return;
+    }
 
-      final content = utf8.decode(allBytes, allowMalformed: true);
-      final baseUrl = Uri.parse(originalUrl);
+    final content = utf8.decode(allBytes, allowMalformed: true);
+    final baseUrl = Uri.parse(originalUrl);
 
-      final rewritten = content.split('\n').map((line) {
+    final rewritten = content
+        .split('\n')
+        .map((line) {
           final trimmed = line.trim();
           if (trimmed.isEmpty) return line;
-          
+
           if (trimmed.startsWith("#")) {
-              if (trimmed.contains('URI="')) {
-                  return trimmed.replaceAllMapped(RegExp(r'URI="([^"]+)"'), (match) {
-                      final uri = match.group(1)!;
-                      return _rewriteUrl(uri, baseUrl);
-                  });
-              }
-              return line;
+            if (trimmed.contains('URI="')) {
+              return trimmed.replaceAllMapped(RegExp(r'URI="([^"]+)"'), (
+                match,
+              ) {
+                final uri = match.group(1)!;
+                return _rewriteUrl(uri, baseUrl);
+              });
+            }
+            return line;
           }
-          
+
           // Segment URL
           return _rewriteUrl(trimmed, baseUrl, isSegment: true);
-      }).join('\n');
+        })
+        .join('\n');
 
-      clientRequest.response.write(rewritten);
-      await clientRequest.response.close();
+    clientRequest.response.write(rewritten);
+    await clientRequest.response.close();
   }
 
   bool _isValidM3u8(List<int> bytes) {
-      try {
-        if (bytes.length > 7) {
-            final prefix = utf8.decode(bytes.take(7).toList());
-            return prefix.startsWith("#EXT");
-        }
-      } catch (_) {}
-      return false;
+    try {
+      if (bytes.length > 7) {
+        final prefix = utf8.decode(bytes.take(7).toList());
+        return prefix.startsWith("#EXT");
+      }
+    } catch (_) {}
+    return false;
   }
 
   String _rewriteUrl(String uri, Uri baseUrl, {bool isSegment = false}) {
-      try {
-          final absoluteUrl = baseUrl.resolve(uri).toString();
-          return getProxyUrl(absoluteUrl); // Recursive proxy
-      } catch (e) {
-          return uri;
-      }
+    try {
+      final absoluteUrl = baseUrl.resolve(uri).toString();
+      return getProxyUrl(absoluteUrl); // Recursive proxy
+    } catch (e) {
+      return uri;
+    }
   }
-
 }

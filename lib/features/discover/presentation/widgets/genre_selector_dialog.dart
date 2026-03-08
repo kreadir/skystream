@@ -21,12 +21,12 @@ class GenreSelectorDialog extends ConsumerWidget {
           width: double.infinity,
           constraints: const BoxConstraints(maxHeight: 600, maxWidth: 500),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white12, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -93,7 +93,7 @@ class GenreSelectorDialog extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         tileColor: isSelected
-                            ? Colors.blueAccent.withOpacity(0.2)
+                            ? Colors.blueAccent.withValues(alpha: 0.2)
                             : null,
                         leading: Icon(
                           isSelected
@@ -117,7 +117,7 @@ class GenreSelectorDialog extends ConsumerWidget {
                   ),
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (_, __) => const Center(
+                  error: (_, _) => const Center(
                     child: Text(
                       "Failed to load genres",
                       style: TextStyle(color: Colors.white),

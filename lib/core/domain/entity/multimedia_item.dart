@@ -79,6 +79,23 @@ class MultimediaItem {
       headers: headers ?? this.headers,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MultimediaItem &&
+          runtimeType == other.runtimeType &&
+          url == other.url &&
+          title == other.title &&
+          posterUrl == other.posterUrl &&
+          provider == other.provider;
+
+  @override
+  int get hashCode =>
+      url.hashCode ^
+      title.hashCode ^
+      posterUrl.hashCode ^
+      (provider?.hashCode ?? 0);
 }
 
 class Episode {
@@ -125,4 +142,16 @@ class Episode {
       'headers': headers,
     };
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Episode &&
+          runtimeType == other.runtimeType &&
+          url == other.url &&
+          season == other.season &&
+          episode == other.episode;
+
+  @override
+  int get hashCode => url.hashCode ^ season.hashCode ^ episode.hashCode;
 }

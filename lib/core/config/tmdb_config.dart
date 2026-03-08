@@ -1,5 +1,7 @@
 class TmdbConfig {
-  static const String apiKey = 'e0c2202a44c34ce7a62f4fee6da2a6e4';
+  /// TMDB API key loaded from environment.
+  /// Pass via: flutter run --dart-define=TMDB_API_KEY=your_key_here
+  static const String apiKey = String.fromEnvironment('TMDB_API_KEY');
   static const String baseUrl = 'https://api.themoviedb.org/3';
   static const String imageBaseUrl = 'https://image.tmdb.org/t/p/original';
   static const String posterSizeUrl = 'https://image.tmdb.org/t/p/w500';

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -69,7 +70,7 @@ class FlutterTorrentServerDesktop extends FlutterTorrentServerPlatform {
 
       // As we just killed everything, valid server start is handled below.
       // But just in case, let's proceed.
-      print("Starting TorrServer: $binaryPath");
+      debugPrint("Starting TorrServer: $binaryPath");
       _serverProcess = await Process.start(binaryPath, [
         '-p',
         '$_port',
@@ -78,10 +79,10 @@ class FlutterTorrentServerDesktop extends FlutterTorrentServerPlatform {
       ]);
 
       _serverProcess!.stdout.transform(utf8.decoder).listen((data) {
-        print("TorrServer: $data");
+        debugPrint("TorrServer: $data");
       });
       _serverProcess!.stderr.transform(utf8.decoder).listen((data) {
-        print("TorrServer Error: $data");
+        debugPrint("TorrServer Error: $data");
       });
 
       // Wait for it to be ready
@@ -103,7 +104,7 @@ class FlutterTorrentServerDesktop extends FlutterTorrentServerPlatform {
 
       return _port;
     } catch (e) {
-      print("Failed to start TorrServer: $e");
+      debugPrint("Failed to start TorrServer: $e");
       rethrow;
     }
   }

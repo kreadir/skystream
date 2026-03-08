@@ -356,7 +356,7 @@ class TmdbService {
         }
         final today = DateTime.now();
 
-        var finalResults = processedResults.where((item) {
+        final finalResults = processedResults.where((item) {
           final mediaType = item['media_type'];
           if (mediaType != 'movie' && mediaType != 'tv') return false;
 
@@ -430,7 +430,7 @@ class TmdbService {
       final today = DateTime.now().toString().split(' ')[0];
       final isMovie = path.contains('movie');
 
-      final query = {
+      final query = <String, dynamic>{
         'api_key': TmdbConfig.apiKey,
         'language': 'en-US', // Always show titles in English per user request
         'sort_by': sortBy,
@@ -439,18 +439,18 @@ class TmdbService {
         'vote_count.gte': 100, // Basic filter to avoid garbage with 1 vote
         // Content Filter: Original Language
         if (fullLanguageCode != 'en-US') 'with_original_language': isoCode,
-        // Content Filter: Genre
-        if (genreId != null) 'with_genres': genreId,
-        // Content Filter: Year
-        if (year != null)
-          (isMovie ? 'primary_release_year' : 'first_air_date_year'): year,
-        // Content Filter: Rating
-        if (minRating != null) 'vote_average.gte': minRating,
         // Content Filter: Released Only (Fix for user request)
         if (isMovie) 'release_date.lte': today,
         if (!isMovie) 'first_air_date.lte': today,
         ...?additionalParams,
       };
+
+      // Add nullable filters
+      if (genreId != null) query['with_genres'] = genreId;
+      if (year != null) {
+        query[isMovie ? 'primary_release_year' : 'first_air_date_year'] = year;
+      }
+      if (minRating != null) query['vote_average.gte'] = minRating;
 
       final response = await _dio.get(path, queryParameters: query);
 

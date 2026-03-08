@@ -187,7 +187,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       if (provider == null) throw Exception('No active provider');
 
       final streams = await provider.loadStreams(episodeDataUrl);
-      if (!mounted) return;
+      if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -215,11 +215,10 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
         _launchStream(context, streams.first, item, episodeDataUrl, playerId);
       } else {
         // Show source picker
-        if (!mounted) return;
         _showSourcePicker(context, streams, item, episodeDataUrl, playerId);
       }
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e. Using internal player.')),
@@ -243,7 +242,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       title: item.title,
     );
 
-    if (!success && mounted) {
+    if (!success && context.mounted) {
       final playerName =
           ExternalPlayerService.instance.getPlayerById(playerId)?.displayName ??
           playerId;
@@ -570,7 +569,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontSize: 16,
                   height: 1.5,
-                  color: Colors.white70,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 32),
@@ -703,7 +702,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: seasons.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final s = seasons[index];
           final isSelected = s == _selectedSeason;
@@ -769,14 +768,14 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
           context,
         ).showSnackBar(const SnackBar(content: Text('Coming soon')));
       },
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+      child: const Padding(
+        padding: EdgeInsets.all(16.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.download_rounded),
-            const SizedBox(width: 8),
-            const Text('Download'),
+            Icon(Icons.download_rounded),
+            SizedBox(width: 8),
+            Text('Download'),
           ],
         ),
       ),
@@ -920,7 +919,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                         imageUrl: ep.posterUrl!,
                         width: 80,
                         fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => const Icon(Icons.movie),
+                        errorWidget: (_, _, _) => const Icon(Icons.movie),
                       )
                     : Container(
                         width: 80,

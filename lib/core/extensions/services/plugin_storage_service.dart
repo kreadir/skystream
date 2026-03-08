@@ -148,7 +148,7 @@ class PluginStorageService {
             final manifest = _extractManifestFromJs(content);
             if (manifest != null) {
               // Auto-generate meta.json
-              final repoId = 'Local'; // recovered
+              const repoId = 'Local'; // recovered
               manifest['repositoryId'] = repoId;
               await metaFile.writeAsString(jsonEncode(manifest));
               plugins.add(ExtensionPlugin.fromJson(manifest, repoId));

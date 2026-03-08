@@ -184,9 +184,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                       scrollController: _scrollController,
                     );
                   },
-                  loading: () => Padding(
-                    padding: const EdgeInsets.only(bottom: 24.0),
-                    child: const SizedBox(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.only(bottom: 24.0),
+                    child: SizedBox(
                       height: 500,
                       width: double.infinity,
                       child: ShimmerPlaceholder(),
@@ -284,9 +284,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Title Placeholder
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: const ShimmerPlaceholder.rectangular(
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: ShimmerPlaceholder.rectangular(
                 width: 150,
                 height: 24,
               ),
@@ -299,8 +299,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
                 itemCount: 5,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (_, __) => Column(
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                itemBuilder: (_, _) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ClipRRect(
@@ -310,8 +310,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                         height: 195,
                       ),
                     ),
-                    SizedBox(height: 8),
-                    ShimmerPlaceholder.rectangular(width: 100, height: 14),
+                    const SizedBox(height: 8),
+                    const ShimmerPlaceholder.rectangular(width: 100, height: 14),
                   ],
                 ),
               ),

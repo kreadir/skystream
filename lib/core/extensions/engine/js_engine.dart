@@ -9,7 +9,7 @@ import 'package:cookie_jar/cookie_jar.dart';
 import '../../storage/storage_service.dart';
 import '../../network/doh_service.dart';
 import '../../network/cloudflare_bypass.dart';
-import 'package:encrypt/encrypt.dart' as encryptLib;
+import 'package:encrypt/encrypt.dart' as encrypt_lib;
 
 final jsEngineProvider = Provider<JsEngineService>((ref) {
   final storage = ref.read(storageServiceProvider);
@@ -78,7 +78,7 @@ class JsEngineService {
         }
 
         // Dart's base64 requires clean, padded strings without whitespaces
-        String _normalizeB64(String input) {
+        String normalizeB64(String input) {
           String cleaned = input.replaceAll(RegExp(r'\s+'), '');
           while (cleaned.length % 4 != 0) {
             cleaned += '=';
@@ -86,15 +86,15 @@ class JsEngineService {
           return cleaned;
         }
 
-        final String encryptedB64 = _normalizeB64(req['data']);
-        final String keyB64 = _normalizeB64(req['key']);
-        final String ivB64 = _normalizeB64(req['iv']);
+        final String encryptedB64 = normalizeB64(req['data']);
+        final String keyB64 = normalizeB64(req['key']);
+        final String ivB64 = normalizeB64(req['iv']);
 
         // Uses the 'encrypt' package
-        final key = encryptLib.Key.fromBase64(keyB64);
-        final iv = encryptLib.IV.fromBase64(ivB64);
-        final encrypter = encryptLib.Encrypter(
-          encryptLib.AES(key, mode: encryptLib.AESMode.cbc),
+        final key = encrypt_lib.Key.fromBase64(keyB64);
+        final iv = encrypt_lib.IV.fromBase64(ivB64);
+        final encrypter = encrypt_lib.Encrypter(
+          encrypt_lib.AES(key, mode: encrypt_lib.AESMode.cbc),
         );
         final decrypted = encrypter.decrypt64(encryptedB64, iv: iv);
 
@@ -148,8 +148,14 @@ class JsEngineService {
     """);
 
     // Timer Polyfill
+    // NOTE: True async timers (delay-based scheduling) cannot be implemented
+    // in this synchronous JS runtime. Callbacks execute immediately.
+    // Extensions that depend on real setTimeout delays may behave unexpectedly.
     _runtime.evaluate("""
       function setTimeout(callback, delay) {
+         if (delay && delay > 0) {
+            console.warn("setTimeout with delay=" + delay + "ms executes immediately in SkyStream runtime");
+         }
          try { callback(); } catch(e) { console.error(e); }
          return 1;
       }
@@ -427,7 +433,7 @@ class JsEngineService {
   }
 
   String _sanitizeLog(dynamic args) {
-    String msg = args.toString();
+    final String msg = args.toString();
     // Detect HTML-like content (checking for common tags/doctypes)
     if (msg.length > 500 &&
         (msg.toLowerCase().contains("<!doctype html>") ||

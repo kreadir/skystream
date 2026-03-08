@@ -29,13 +29,13 @@ class DiscoverSearchDelegate extends SearchDelegate {
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: TextStyle(
-          color: theme.colorScheme.onSurface.withOpacity(0.5),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
         ),
         border: InputBorder.none,
       ),
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: theme.colorScheme.primary,
-        selectionColor: theme.colorScheme.primary.withOpacity(0.3),
+        selectionColor: theme.colorScheme.primary.withValues(alpha: 0.3),
       ),
     );
   }
@@ -143,7 +143,7 @@ class _SearchSuggestionsListState extends State<_SearchSuggestionsList> {
     if (_isLoading) {
       return Center(
         child: CircularProgressIndicator(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
         ),
       );
     }
@@ -153,7 +153,7 @@ class _SearchSuggestionsListState extends State<_SearchSuggestionsList> {
         child: Text(
           'No results found',
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
       );
@@ -179,7 +179,7 @@ class _SearchSuggestionsListState extends State<_SearchSuggestionsList> {
                     width: 40,
                     height: 60,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => const ShimmerPlaceholder(),
+                    placeholder: (_, _) => const ShimmerPlaceholder(),
                   )
                 : Container(
                     width: 40,
@@ -195,7 +195,7 @@ class _SearchSuggestionsListState extends State<_SearchSuggestionsList> {
           subtitle: Text(
             '$mediaType ${year.isNotEmpty ? '($year)' : ''}',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
               fontSize: 12,
             ),
           ),
@@ -311,7 +311,7 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
       final screenWidth = MediaQuery.of(context).size.width;
       final isDesktop = screenWidth > 800;
       final maxExtent = isDesktop ? 240.0 : 150.0;
-      final childAspectRatio = 0.55;
+      const childAspectRatio = 0.55;
 
       return GridView.builder(
         padding: const EdgeInsets.all(16),
@@ -343,13 +343,13 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
             Icon(
               Icons.search_off,
               size: 60,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
               "No results found for \"${widget.query}\"",
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 16,
               ),
             ),
@@ -361,7 +361,7 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 800;
     final maxExtent = isDesktop ? 240.0 : 150.0;
-    final childAspectRatio = 0.55;
+    const childAspectRatio = 0.55;
 
     return GridView.builder(
       controller: _scrollController,
@@ -413,8 +413,8 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      placeholder: (_, __) => const ShimmerPlaceholder(),
-                      errorWidget: (_, __, ___) => Container(
+                      placeholder: (_, _) => const ShimmerPlaceholder(),
+                      errorWidget: (_, _, _) => Container(
                         color: Theme.of(
                           context,
                         ).colorScheme.surfaceContainerHighest,
@@ -432,7 +432,7 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
                 style: TextStyle(
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.9),
+                  ).colorScheme.onSurface.withValues(alpha: 0.9),
                   fontWeight: FontWeight.w500,
                   fontSize: 13,
                 ),
