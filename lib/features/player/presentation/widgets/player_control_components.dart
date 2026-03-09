@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
-import '../../../../shared/widgets/tv_input_widgets.dart';
+import '../../../../shared/widgets/custom_widgets.dart';
 import 'player_stream_widgets.dart';
 
 /// Top bar with back button and title for the player.
@@ -41,7 +41,7 @@ class PlayerTopBar extends StatelessWidget {
           ),
           child: Row(
             children: [
-              TvButton(
+              CustomButton(
                 showFocusHighlight: isTv,
                 focusNode: backFocusNode,
                 onPressed: onBack ?? () => Navigator.of(context).pop(),
@@ -117,7 +117,7 @@ class PlayerCenterControls extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Seek Backward
-          TvButton(
+          CustomButton(
             showFocusHighlight: isTv,
             onPressed: onSeekBackward,
             child: const Icon(Icons.replay_10, color: Colors.white, size: 36),
@@ -133,7 +133,7 @@ class PlayerCenterControls extends StatelessWidget {
           ),
           const SizedBox(width: 48),
           // Seek Forward
-          TvButton(
+          CustomButton(
             showFocusHighlight: isTv,
             onPressed: onSeekForward,
             child: const Icon(Icons.forward_10, color: Colors.white, size: 36),
@@ -235,7 +235,7 @@ class PlayerActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FocusTraversalOrder(
       order: NumericFocusOrder(focusOrder.toDouble()),
-      child: TvButton(
+      child: CustomButton(
         showFocusHighlight: isTv,
         onPressed: onTap,
         child: Container(

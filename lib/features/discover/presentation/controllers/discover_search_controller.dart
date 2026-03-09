@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/tmdb_provider.dart';
+import '../../../../core/models/tmdb_item.dart';
 
 class DiscoverSearchState {
-  final List<Map<String, dynamic>> suggestions;
-  final List<Map<String, dynamic>> results;
+  final List<TmdbItem> suggestions;
+  final List<TmdbItem> results;
   final bool isLoading;
   final String query;
   final int page;
@@ -20,8 +21,8 @@ class DiscoverSearchState {
   });
 
   DiscoverSearchState copyWith({
-    List<Map<String, dynamic>>? suggestions,
-    List<Map<String, dynamic>>? results,
+    List<TmdbItem>? suggestions,
+    List<TmdbItem>? results,
     bool? isLoading,
     String? query,
     int? page,
@@ -52,7 +53,7 @@ class DiscoverSearchController extends Notifier<DiscoverSearchState> {
   void onQueryChanged(String query) {
     if (query == state.query) return;
 
-    if (query.trim().length < 2) {
+    if (query.trim().isEmpty) {
       _debounce?.cancel();
       state = state.copyWith(query: query, suggestions: [], isLoading: false);
       return;
@@ -148,6 +149,6 @@ class DiscoverSearchController extends Notifier<DiscoverSearchState> {
 }
 
 final discoverSearchControllerProvider =
-    NotifierProvider<DiscoverSearchController, DiscoverSearchState>(
+    NotifierProvider.autoDispose<DiscoverSearchController, DiscoverSearchState>(
       DiscoverSearchController.new,
     );

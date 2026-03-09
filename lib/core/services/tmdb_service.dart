@@ -1,4 +1,6 @@
+import '../models/tmdb_item.dart';
 import 'package:dio/dio.dart';
+import '../models/tmdb_genre.dart';
 import '../config/tmdb_config.dart';
 
 class TmdbService {
@@ -9,9 +11,7 @@ class TmdbService {
     _dio.interceptors.addAll(baseDio.interceptors);
   }
 
-  Future<List<Map<String, dynamic>>> getGenres({
-    String language = 'en-US',
-  }) async {
+  Future<List<TmdbGenre>> getGenres({String language = 'en-US'}) async {
     final response = await _dio.get(
       '/genre/movie/list',
       queryParameters: {
@@ -20,13 +20,15 @@ class TmdbService {
       }, // Always English per user request
     );
     if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(response.data['genres']);
+      return (response.data['genres'] as List)
+          .map((i) => TmdbGenre.fromJson(i))
+          .toList();
     }
     return [];
   }
 
   // Use discovery endpoint to enforce filters (e.g. valid release dates)
-  Future<List<Map<String, dynamic>>> getTrending({
+  Future<List<TmdbItem>> getTrending({
     String language = 'en-US',
     int? genreId,
     int? year,
@@ -50,7 +52,7 @@ class TmdbService {
     return _getResults('/trending/all/day', language: language, page: page);
   }
 
-  Future<List<Map<String, dynamic>>> getPopularMovies({
+  Future<List<TmdbItem>> getPopularMovies({
     String language = 'en-US',
     int? genreId,
     int? year,
@@ -68,7 +70,7 @@ class TmdbService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getTopRated({
+  Future<List<TmdbItem>> getTopRated({
     String language = 'en-US',
     int? genreId,
     int? year,
@@ -86,7 +88,7 @@ class TmdbService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getNowPlayingMovies({
+  Future<List<TmdbItem>> getNowPlayingMovies({
     String language = 'en-US',
     int? genreId,
     int? year,
@@ -122,7 +124,7 @@ class TmdbService {
     return _getResults('/movie/now_playing', language: language, page: page);
   }
 
-  Future<List<Map<String, dynamic>>> getTrendingMovies({
+  Future<List<TmdbItem>> getTrendingMovies({
     String language = 'en-US',
     int? genreId,
     int? year,
@@ -146,7 +148,7 @@ class TmdbService {
     return _getResults('/trending/movie/week', language: language, page: page);
   }
 
-  Future<List<Map<String, dynamic>>> getTrendingAllDay({
+  Future<List<TmdbItem>> getTrendingAllDay({
     String language = 'en-US',
     int? genreId,
     int? year,
@@ -170,7 +172,7 @@ class TmdbService {
     return _getResults('/trending/all/day', language: language, page: page);
   }
 
-  Future<List<Map<String, dynamic>>> getOnTheAirTV({
+  Future<List<TmdbItem>> getOnTheAirTV({
     String language = 'en-US',
     int? genreId,
     int? year,
@@ -194,7 +196,7 @@ class TmdbService {
     return _getResults('/tv/on_the_air', language: language, page: page);
   }
 
-  Future<List<Map<String, dynamic>>> getPopularTV({
+  Future<List<TmdbItem>> getPopularTV({
     String language = 'en-US',
     int? genreId,
     int? year,
@@ -212,7 +214,7 @@ class TmdbService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getTopRatedTV({
+  Future<List<TmdbItem>> getTopRatedTV({
     String language = 'en-US',
     int? genreId,
     int? year,
@@ -230,7 +232,7 @@ class TmdbService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getAiringTodayTV({
+  Future<List<TmdbItem>> getAiringTodayTV({
     String language = 'en-US',
     int? genreId,
     int? year,
@@ -254,7 +256,7 @@ class TmdbService {
     return _getResults('/tv/airing_today', language: language, page: page);
   }
 
-  Future<List<Map<String, dynamic>>> multiSearch({
+  Future<List<TmdbItem>> multiSearch({
     required String query,
     String language = 'en-US',
     int page = 1,
@@ -395,12 +397,12 @@ class TmdbService {
         }
       }
 
-      return uniqueResults;
+      return uniqueResults.map((i) => TmdbItem.fromJson(i)).toList();
     }
     return [];
   }
 
-  Future<List<Map<String, dynamic>>> _getDiscoveryResults(
+  Future<List<TmdbItem>> _getDiscoveryResults(
     String path,
     String fullLanguageCode,
     String sortBy, {
@@ -439,13 +441,15 @@ class TmdbService {
     final response = await _dio.get(path, queryParameters: query);
 
     if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(response.data['results']);
+      return (response.data['results'] as List)
+          .map((i) => TmdbItem.fromJson(i as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }
 
   /// Helper to reduce boilerplate
-  Future<List<Map<String, dynamic>>> _getResults(
+  Future<List<TmdbItem>> _getResults(
     String path, {
     String language = 'en-US',
     int page = 1,
@@ -459,7 +463,9 @@ class TmdbService {
       },
     );
     if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(response.data['results']);
+      return (response.data['results'] as List)
+          .map((i) => TmdbItem.fromJson(i as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }

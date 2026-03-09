@@ -1,4 +1,7 @@
+import 'package:html_unescape/html_unescape.dart';
+
 class MultimediaItem {
+  static final _unescape = HtmlUnescape();
   final String title;
   final String url;
   final String posterUrl;
@@ -23,12 +26,14 @@ class MultimediaItem {
 
   factory MultimediaItem.fromJson(Map<String, dynamic> json) {
     return MultimediaItem(
-      title: json['title'] ?? '',
+      title: json['title'] != null ? _unescape.convert(json['title']) : '',
       url: json['url'] ?? '',
       posterUrl: json['posterUrl'] ?? '',
       bannerUrl:
           json['backgroundPosterUrl'] ?? json['bannerUrl'], // Handle JS naming
-      description: json['description'],
+      description: json['description'] != null
+          ? _unescape.convert(json['description'])
+          : null,
       isFolder: json['isFolder'] ?? false,
       episodes: json['episodes'] != null
           ? (json['episodes'] as List)
@@ -99,6 +104,7 @@ class MultimediaItem {
 }
 
 class Episode {
+  static final _unescape = HtmlUnescape();
   final String name;
   final String url;
   final int season;
@@ -119,11 +125,13 @@ class Episode {
 
   factory Episode.fromJson(Map<String, dynamic> json) {
     return Episode(
-      name: json['name'] ?? '',
+      name: json['name'] != null ? _unescape.convert(json['name']) : '',
       url: json['url'] ?? '',
       season: json['season'] ?? 0,
       episode: json['episode'] ?? 0,
-      description: json['description'],
+      description: json['description'] != null
+          ? _unescape.convert(json['description'])
+          : null,
       posterUrl: json['posterUrl'],
       headers: json['headers'] != null
           ? Map<String, String>.from(json['headers'])

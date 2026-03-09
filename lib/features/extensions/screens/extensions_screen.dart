@@ -3,7 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/extensions/models/extension_plugin.dart';
 import '../../../core/providers/device_info_provider.dart';
-import '../../../shared/widgets/tv_input_widgets.dart';
+import '../../../shared/widgets/custom_widgets.dart';
 import '../providers/extensions_controller.dart';
 
 class ExtensionsScreen extends ConsumerStatefulWidget {
@@ -318,14 +318,14 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
       builder: (context) => AlertDialog(
         surfaceTintColor: Colors.transparent, // Remove M3 tint
         title: const Text("Add Repository"),
-        content: TvTextField(
+        content: CustomTextField(
           controller: controller,
           hintText: "Repository URL or Shortcode",
           autofocus: false, // Don't trap focus - start on Add button
           textInputAction: TextInputAction.done,
         ),
         actions: [
-          TvButton(
+          CustomButton(
             showFocusHighlight: isTv,
             onPressed: () => Navigator.pop(context),
             child: Text(
@@ -336,7 +336,7 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          TvButton(
+          CustomButton(
             autofocus: true,
             isPrimary: true,
             showFocusHighlight: isTv,

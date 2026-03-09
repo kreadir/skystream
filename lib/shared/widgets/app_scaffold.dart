@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:skystream/core/providers/device_info_provider.dart';
+import 'package:skystream/core/utils/responsive_breakpoints.dart';
 import 'package:skystream/shared/widgets/custom_bottom_nav.dart';
 import 'package:virtual_mouse/virtual_mouse.dart';
 
@@ -51,8 +52,9 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
     return deviceProfileAsync.when(
       data: (profile) {
         // Desktop or TV use Side Navigation
+        // Or if the screen is physically wide enough (like iPads/Tablets in landscape)
         // VirtualMouse cursor only shown on TV, not desktop
-        if (profile.isLargeScreen) {
+        if (profile.isLargeScreen || context.isDesktop) {
           final sideNavScaffold = Scaffold(
             body: Row(
               children: [

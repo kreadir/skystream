@@ -4,18 +4,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:skystream/core/domain/entity/multimedia_item.dart';
 import 'package:skystream/core/extensions/extension_manager.dart';
 import 'package:skystream/features/search/presentation/search_provider.dart';
+import '../../../../shared/widgets/cards_wrapper.dart';
 import '../details_screen.dart';
 import '../../../../shared/widgets/desktop_scroll_wrapper.dart';
-import '../../../../shared/widgets/tv_cards_wrapper.dart'; // Import TvCardsWrapper
 import '../../../../shared/widgets/shimmer_placeholder.dart';
 
 // Delegates to the shared searchAllProviders() function — no duplicated
 // fan-out, mapping, or filtering logic.
 final _providerSearchProvider = FutureProvider.family
-    .autoDispose<List<ProviderSearchResult>, String>((ref, query) async {
+    .autoDispose<SearchAggregateState, String>((ref, query) async {
       final manager = ref.read(extensionManagerProvider.notifier);
       // Collect the final emission from the incremental stream
-      return await searchAllProviders(query, manager).last;
+
+      var cancelled = false;
+      ref.onDispose(() => cancelled = true);
+
+      return await searchAllProviders(
+        query,
+        manager,
+        isCancelled: () => cancelled,
+      ).last;
     });
 
 class ProviderSearchSection extends ConsumerStatefulWidget {
@@ -72,9 +80,9 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
       );
     } else {
       content = searchAsync.when(
-        data: (results) {
+        data: (state) {
           final allItems = <Map<String, dynamic>>[];
-          for (var pResult in results) {
+          for (var pResult in state.results) {
             for (var item in pResult.results) {
               allItems.add({
                 'item': item,
@@ -117,7 +125,7 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
                   final item = data['item'] as MultimediaItem;
                   final providerName = data['providerName'] as String;
 
-                  return TvCardsWrapper(
+                  return CardsWrapper(
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(

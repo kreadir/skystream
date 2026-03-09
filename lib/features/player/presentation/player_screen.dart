@@ -11,8 +11,8 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../core/domain/entity/multimedia_item.dart';
 import '../../../../core/providers/device_info_provider.dart';
-import '../../../../shared/widgets/tv_input_widgets.dart';
 import '../../../../features/settings/presentation/player_settings_provider.dart';
+import '../../../shared/widgets/custom_widgets.dart';
 import 'widgets/skystream_player_controls.dart';
 import 'player_controller.dart';
 
@@ -408,7 +408,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
               child: Center(
                 child: playerState.isManualSwitch
                     ? const SizedBox.shrink()
-                    : TvButton(
+                    : CustomButton(
                         isPrimary: false,
                         backgroundColor: Colors.grey.withValues(alpha: 0.3),
                         focusNode: _skipFocusNode,

@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/config/tmdb_config.dart';
+import '../../../../shared/widgets/cards_wrapper.dart';
 import '../../../details/presentation/tmdb_movie_details_screen.dart';
 import '../../../../shared/widgets/desktop_scroll_wrapper.dart'; // Import DesktopScrollWrapper
-import '../../../../shared/widgets/tv_cards_wrapper.dart'; // Import TvCardsWrapper
 import '../../../../core/utils/responsive_breakpoints.dart';
 import '../../../../shared/widgets/shimmer_placeholder.dart';
 import '../view_all_screen.dart'; // Import ViewAllScreen
+import '../../../../core/models/tmdb_item.dart';
 
 class MediaHorizontalList extends StatefulWidget {
   final String title;
-  final List<Map<String, dynamic>> mediaList;
+  final List<TmdbItem> mediaList;
   final ViewAllCategory category;
-  final void Function(Map<String, dynamic>)? onTap;
+  final void Function(TmdbItem)? onTap;
   final bool showViewAll;
   final String? heroTagPrefix;
 
@@ -93,7 +94,7 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
               if (widget.showViewAll) const SizedBox(width: 8),
 
               if (widget.showViewAll)
-                TvCardsWrapper(
+                CardsWrapper(
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -162,7 +163,7 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                   SizedBox(width: isDesktop ? 24 : 12),
               itemBuilder: (context, index) {
                 final item = widget.mediaList[index];
-                final posterPath = item['poster_path'];
+                final posterPath = item.posterPath;
                 String imageUrl;
                 if (posterPath != null) {
                   if (posterPath.startsWith('http')) {
@@ -173,15 +174,13 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                 } else {
                   imageUrl = 'https://via.placeholder.com/150x225';
                 }
-                final itemTitle = item['title'] ?? item['name'] ?? 'Unknown';
+                final itemTitle = item.title;
                 final prefix = widget.heroTagPrefix ?? 'list';
                 final uniqueTag =
-                    '${prefix}_${widget.title}_${item['id']}_${itemTitle.hashCode}_$index';
-                final mediaType =
-                    item['media_type'] ??
-                    (item['title'] != null ? 'movie' : 'tv');
+                    '${prefix}_${widget.title}_${item.id}_${itemTitle.hashCode}_$index';
+                final mediaType = item.mediaType;
 
-                return TvCardsWrapper(
+                return CardsWrapper(
                   onTap: () {
                     if (widget.onTap != null) {
                       widget.onTap!(item);
@@ -189,7 +188,7 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => TmdbMovieDetailsScreen(
-                            movieId: item['id'],
+                            movieId: item.id,
                             mediaType: mediaType,
                             heroTag: uniqueTag,
                             placeholderPoster: imageUrl,

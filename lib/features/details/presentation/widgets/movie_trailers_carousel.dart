@@ -1,0 +1,213 @@
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../../shared/widgets/cards_wrapper.dart';
+import '../../../../shared/widgets/desktop_scroll_wrapper.dart';
+import '../../../../core/utils/responsive_breakpoints.dart';
+import '../../../../core/models/tmdb_details.dart';
+
+class MovieTrailersCarousel extends StatefulWidget {
+  final List<TmdbVideo> trailers;
+  final Color? textColor;
+
+  const MovieTrailersCarousel({
+    super.key,
+    required this.trailers,
+    this.textColor,
+  });
+
+  @override
+  State<MovieTrailersCarousel> createState() => _MovieTrailersCarouselState();
+}
+
+class _MovieTrailersCarouselState extends State<MovieTrailersCarousel> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.trailers.isEmpty) return const SizedBox.shrink();
+
+    final isDesktop = context.isDesktop;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isDesktop) ...[
+          Text(
+            "Trailers & Clips",
+            style: TextStyle(
+              color: widget.textColor,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 160,
+            child: DesktopScrollWrapper(
+              controller: _scrollController,
+              child: ListView.separated(
+                clipBehavior: Clip.none,
+                controller: _scrollController,
+                scrollDirection: Axis.horizontal,
+                itemCount: widget.trailers.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 16),
+                itemBuilder: _buildDesktopItem,
+              ),
+            ),
+          ),
+          const SizedBox(height: 50),
+        ] else ...[
+          Row(
+            children: [
+              Text(
+                "Trailers",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.3),
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      "Official Trailers",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 12,
+                      ),
+                    ),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 150,
+            child: ListView.builder(
+              clipBehavior: Clip.none,
+              scrollDirection: Axis.horizontal,
+              itemCount: widget.trailers.length,
+              itemBuilder: _buildMobileItem,
+            ),
+          ),
+          const SizedBox(height: 32),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDesktopItem(BuildContext context, int index) {
+    final video = widget.trailers[index];
+    final key = video.key;
+    return CardsWrapper(
+      onTap: () async {
+        final uri = Uri.parse('https://www.youtube.com/watch?v=$key');
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        }
+      },
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            image: DecorationImage(
+              image: NetworkImage(
+                'https://img.youtube.com/vi/$key/mqdefault.jpg',
+              ),
+              fit: BoxFit.cover,
+            ),
+            color: Colors.black,
+          ),
+          child: const Center(
+            child: Icon(
+              Icons.play_circle_outline,
+              color: Colors.white,
+              size: 40,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileItem(BuildContext context, int index) {
+    final video = widget.trailers[index];
+    final videoKey = video.key;
+    final thumbUrl = 'https://img.youtube.com/vi/$videoKey/0.jpg';
+    return CardsWrapper(
+      onTap: () async {
+        final uri = Uri.parse('https://www.youtube.com/watch?v=$videoKey');
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Container(
+        width: 200,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          image: DecorationImage(
+            image: NetworkImage(thumbUrl),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.play_arrow, color: Colors.white),
+              ),
+            ),
+            Positioned(
+              bottom: 8,
+              left: 8,
+              child: Text(
+                video.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

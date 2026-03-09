@@ -4,6 +4,7 @@ import 'package:skystream/shared/widgets/focusable_item.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:skystream/core/utils/responsive_breakpoints.dart';
 import '../../../../core/domain/entity/multimedia_item.dart';
 import '../../../../shared/widgets/desktop_scroll_wrapper.dart';
 
@@ -30,7 +31,7 @@ class _HomeSectionState extends ConsumerState<HomeSection> {
     if (widget.items.isEmpty) return const SizedBox.shrink();
 
     final device = ref.watch(deviceProfileProvider).asData?.value;
-    final isLarge = device?.isLargeScreen ?? false;
+    final isLarge = (device?.isLargeScreen ?? false) || context.isDesktop;
 
     final double width = isLarge ? 170 : 110;
     final double posterHeight = width * 1.5; // 2:3 aspect ratio

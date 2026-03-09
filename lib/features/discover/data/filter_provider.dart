@@ -1,14 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/models/tmdb_genre.dart';
+
 class FilterState {
-  final Map<String, dynamic>? selectedGenre; // {id: 123, name: 'Action'}
+  final TmdbGenre? selectedGenre; // {id: 123, name: 'Action'}
   final int? selectedYear;
   final double? minRating;
 
   const FilterState({this.selectedGenre, this.selectedYear, this.minRating});
 
   FilterState copyWith({
-    Map<String, dynamic>? selectedGenre,
+    TmdbGenre? selectedGenre,
     int? selectedYear,
     double? minRating,
     bool clearGenre = false,
@@ -27,7 +29,7 @@ class FilterNotifier extends Notifier<FilterState> {
   @override
   FilterState build() => const FilterState();
 
-  void setGenre(Map<String, dynamic>? genre) {
+  void setGenre(TmdbGenre? genre) {
     state = state.copyWith(selectedGenre: genre, clearGenre: genre == null);
   }
 

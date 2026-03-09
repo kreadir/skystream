@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
-import '../../../../shared/widgets/tv_input_widgets.dart';
+
+import '../../../../shared/widgets/custom_widgets.dart';
 
 /// A self-contained progress bar widget that uses StreamBuilder to avoid
 /// rebuilding the parent widget on every position update.
@@ -88,7 +89,7 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
                       thumbColor: Colors.white,
                       overlayColor: Colors.white.withValues(alpha: 0.2),
                     ),
-                    child: TvSlider(
+                    child: CustomSlider(
                       value: displayValue.clamp(
                         0,
                         durationMs > 0 ? durationMs : 1.0,
@@ -97,8 +98,22 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
                       max: durationMs > 0 ? durationMs : 1.0,
                       step: 5000, // 5 seconds step
                       onChanged: (val) {
+                        setState(() {
+                          _dragValue = val;
+                        });
+                      },
+                      onChangeStart: (val) {
                         widget.onSeekStart?.call();
+                        setState(() {
+                          _dragValue = val;
+                        });
+                      },
+                      onChangeEnd: (val) {
                         widget.player.seek(Duration(milliseconds: val.toInt()));
+                        widget.onSeekEnd?.call();
+                        setState(() {
+                          _dragValue = null;
+                        });
                       },
                     ),
                   ),
@@ -156,7 +171,7 @@ class PlayerPlayPauseButton extends StatelessWidget {
           builder: (context, playingSnapshot) {
             final isPlaying = playingSnapshot.data ?? false;
 
-            return TvButton(
+            return CustomButton(
               showFocusHighlight: isTv,
               autofocus: true,
               focusNode: focusNode,

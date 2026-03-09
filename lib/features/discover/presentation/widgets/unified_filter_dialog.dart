@@ -490,7 +490,7 @@ class _GenreTab extends ConsumerWidget {
 
           final genre = genres[index - 1]; // Offset index
           final isSelected =
-              selectedGenre != null && selectedGenre['id'] == genre['id'];
+              selectedGenre != null && selectedGenre.id == genre.id;
           return ListTile(
             onTap: () {
               ref.read(discoverFilterProvider.notifier).setGenre(genre);
@@ -511,7 +511,7 @@ class _GenreTab extends ConsumerWidget {
                     ).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
             title: Text(
-              genre['name'],
+              genre.name,
               style: TextStyle(
                 color: isSelected
                     ? Colors.blueAccent

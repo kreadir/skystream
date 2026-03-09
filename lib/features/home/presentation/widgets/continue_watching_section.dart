@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:skystream/core/utils/responsive_breakpoints.dart';
 import 'package:skystream/core/providers/device_info_provider.dart';
 import 'package:skystream/features/home/presentation/widgets/continue_watching_card.dart';
 import 'package:skystream/features/library/presentation/history_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:skystream/shared/widgets/desktop_scroll_wrapper.dart';
 
 class ContinueWatchingSection extends ConsumerStatefulWidget {
@@ -35,7 +37,7 @@ class _ContinueWatchingSectionState
     if (widget.items.isEmpty) return const SizedBox.shrink();
 
     final device = ref.watch(deviceProfileProvider).asData?.value;
-    final isLarge = device?.isLargeScreen ?? false;
+    final isLarge = (device?.isLargeScreen ?? false) || context.isDesktop;
 
     final double width = isLarge ? 360.0 : 280.0;
     final double listHeight = isLarge ? 200.0 : 150.0;

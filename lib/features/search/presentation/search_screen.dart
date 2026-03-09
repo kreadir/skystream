@@ -104,19 +104,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ),
       ),
       body: searchResultsAsync.when(
-        data: (providerResults) {
+        data: (state) {
           // Flatten to check for any results
-          final allResults = providerResults.expand((e) => e.results).toList();
+          final allResults = state.results.expand((e) => e.results).toList();
 
-          if (allResults.isEmpty) {
+          if (allResults.isEmpty && !state.isLoading) {
             return _buildEmptyState(context);
+          } else if (allResults.isEmpty && state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
           }
 
           return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            itemCount: providerResults.length,
+            itemCount: state.results.length,
             itemBuilder: (context, index) {
-              final pResult = providerResults[index];
+              final pResult = state.results[index];
               if (pResult.results.isEmpty) return const SizedBox.shrink();
 
               return SearchResultSection(
@@ -135,7 +137,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Widget _buildEmptyState(BuildContext context) {
     final query = ref.read(searchQueryProvider);
-    if (query.length < 2) {
+    if (query.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

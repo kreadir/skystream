@@ -62,6 +62,8 @@ class DohSettingsNotifier extends AsyncNotifier<DohSettings> {
         provider: provider,
         customUrl: customUrl,
       );
+      // Wait for instance init if not already done, though it should be
+      await DohService.instance.init();
       DohService.instance._syncFromSettings(settings);
       return settings;
     } catch (_) {
@@ -122,6 +124,7 @@ class DohService {
   // In-memory cache: domain -> (ip, expiry)
   final Map<String, _DohCacheEntry> _cache = {};
 
+  bool _initialized = false;
   bool _enabled = false;
   DohProvider _provider = DohProvider.cloudflare;
   String _customUrl = '';
@@ -129,6 +132,29 @@ class DohService {
   bool get enabled => _enabled;
   DohProvider get provider => _provider;
   String get customUrl => _customUrl;
+
+  /// Initialize from SharedPreferences. Should be called exactly once at boot.
+  Future<void> init() async {
+    if (_initialized) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _enabled = prefs.getBool(DohSettingsNotifier._kEnabledKey) ?? false;
+      final providerName = prefs.getString(DohSettingsNotifier._kProviderKey);
+      _customUrl = prefs.getString(DohSettingsNotifier._kCustomUrlKey) ?? '';
+      _provider = DohProvider.values.firstWhere(
+        (p) => p.name == providerName,
+        orElse: () => DohProvider.cloudflare,
+      );
+      _initialized = true;
+      if (kDebugMode) {
+        debugPrint(
+          '[DoH] Eagerly initialized settings -> enabled: $_enabled, provider: ${_provider.name}',
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[DoH] Failed to eager init settings: $e');
+    }
+  }
 
   /// Called by [DohSettingsNotifier] to sync state.
   void _syncFromSettings(DohSettings settings) {
@@ -222,54 +248,4 @@ class _DohCacheEntry {
   final String ip;
   final DateTime expiry;
   _DohCacheEntry({required this.ip, required this.expiry});
-}
-
-/// Dio Interceptor that resolves domains via DoH before requests go out.
-///
-/// It rewrites the request URL to use the resolved IP and sets the Host header,
-/// so the HTTP request goes directly to the correct IP without depending on
-/// the system's (potentially censored) DNS resolver.
-class DohInterceptor extends Interceptor {
-  final DohService _doh;
-
-  DohInterceptor([DohService? doh]) : _doh = doh ?? DohService.instance;
-
-  @override
-  void onRequest(
-    RequestOptions options,
-    RequestInterceptorHandler handler,
-  ) async {
-    if (!_doh.enabled) {
-      return handler.next(options);
-    }
-
-    final uri = options.uri;
-    final host = uri.host;
-
-    // Skip IP addresses and localhost
-    if (_isIpAddress(host) || host == 'localhost') {
-      return handler.next(options);
-    }
-
-    final resolvedIp = await _doh.resolve(host);
-    if (resolvedIp != null) {
-      // Rewrite URL with resolved IP
-      final newUri = uri.replace(host: resolvedIp);
-      options.path = newUri.toString();
-
-      // Set Host header so the server knows which domain we're requesting
-      options.headers['Host'] = host;
-
-      if (kDebugMode) {
-        debugPrint('[DoH Interceptor] $host -> $resolvedIp');
-      }
-    }
-
-    handler.next(options);
-  }
-
-  bool _isIpAddress(String host) {
-    // Simple check for IPv4
-    return RegExp(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$').hasMatch(host);
-  }
 }

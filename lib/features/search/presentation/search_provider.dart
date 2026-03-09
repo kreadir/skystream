@@ -17,31 +17,44 @@ class ProviderSearchResult {
   });
 }
 
+class SearchAggregateState {
+  final List<ProviderSearchResult> results;
+  final bool isLoading;
+
+  const SearchAggregateState({this.results = const [], this.isLoading = false});
+}
+
 /// Shared search orchestration — the single source of truth for provider
 /// fan-out, result mapping, and prefix filtering. Returns results
 /// incrementally as each provider completes natively concurrently.
-Stream<List<ProviderSearchResult>> searchAllProviders(
+Stream<SearchAggregateState> searchAllProviders(
   String query,
-  ExtensionManager manager,
-) async* {
+  ExtensionManager manager, {
+  required bool Function() isCancelled,
+}) async* {
   final providers = manager.getAllProviders();
 
-  if (query.length < 2 || providers.isEmpty) {
-    yield [];
+  if (query.isEmpty || providers.isEmpty) {
+    yield const SearchAggregateState(results: [], isLoading: false);
     return;
   }
+
+  yield const SearchAggregateState(results: [], isLoading: true);
 
   final results = <ProviderSearchResult>[];
   final queryLower = query.toLowerCase();
   final queryParts = queryLower.split(' ').where((s) => s.isNotEmpty).toList();
 
-  final controller = StreamController<List<ProviderSearchResult>>();
+  final controller = StreamController<SearchAggregateState>();
   int activeFutures = providers.length;
 
   for (final provider in providers) {
     Future(() async {
+      if (isCancelled()) return;
+
       try {
         final rawResults = await provider.search(query);
+        if (isCancelled()) return;
 
         final providerResults = rawResults
             .map(
@@ -86,6 +99,8 @@ Stream<List<ProviderSearchResult>> searchAllProviders(
           ),
         );
       } catch (e) {
+        if (isCancelled()) return;
+
         results.add(
           ProviderSearchResult(
             providerId: provider.id,
@@ -95,10 +110,15 @@ Stream<List<ProviderSearchResult>> searchAllProviders(
           ),
         );
       } finally {
-        if (!controller.isClosed) {
-          controller.add(List.from(results));
-        }
         activeFutures--;
+        if (!controller.isClosed && !isCancelled()) {
+          controller.add(
+            SearchAggregateState(
+              results: List.from(results),
+              isLoading: activeFutures > 0,
+            ),
+          );
+        }
         if (activeFutures == 0 && !controller.isClosed) {
           controller.close();
         }
@@ -122,9 +142,14 @@ final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(
 );
 
 // Incremental search results — delegates to shared searchAllProviders()
-final searchResultsProvider =
-    StreamProvider.autoDispose<List<ProviderSearchResult>>((ref) {
-      final query = ref.watch(searchQueryProvider);
-      final manager = ref.read(extensionManagerProvider.notifier);
-      return searchAllProviders(query, manager);
-    });
+final searchResultsProvider = StreamProvider.autoDispose<SearchAggregateState>((
+  ref,
+) {
+  final query = ref.watch(searchQueryProvider);
+  final manager = ref.read(extensionManagerProvider.notifier);
+
+  var cancelled = false;
+  ref.onDispose(() => cancelled = true);
+
+  return searchAllProviders(query, manager, isCancelled: () => cancelled);
+});

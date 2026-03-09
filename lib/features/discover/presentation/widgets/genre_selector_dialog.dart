@@ -80,8 +80,7 @@ class GenreSelectorDialog extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final genre = genres[index];
                       final isSelected =
-                          selectedGenre != null &&
-                          selectedGenre['id'] == genre['id'];
+                          selectedGenre != null && selectedGenre.id == genre.id;
                       return ListTile(
                         onTap: () {
                           ref
@@ -104,7 +103,7 @@ class GenreSelectorDialog extends ConsumerWidget {
                               : Colors.white24,
                         ),
                         title: Text(
-                          genre['name'],
+                          genre.name,
                           style: TextStyle(
                             color: isSelected ? Colors.white : Colors.white70,
                             fontWeight: isSelected

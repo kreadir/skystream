@@ -20,12 +20,16 @@ class TmdbDetailsState {
 }
 
 class TmdbDetailsController extends Notifier<TmdbDetailsState> {
+  final int movieId;
+
+  TmdbDetailsController(this.movieId);
+
   @override
   TmdbDetailsState build() {
     return const TmdbDetailsState(selectedSeason: 1);
   }
 
-  void fetchEpisodes(int movieId, int season) async {
+  void fetchEpisodes(int season) async {
     final lang = await ref.read(languageProvider.future);
 
     final future = ref
@@ -36,7 +40,7 @@ class TmdbDetailsController extends Notifier<TmdbDetailsState> {
   }
 }
 
-final tmdbDetailsControllerProvider =
-    NotifierProvider<TmdbDetailsController, TmdbDetailsState>(
+final tmdbDetailsControllerProvider = NotifierProvider.autoDispose
+    .family<TmdbDetailsController, TmdbDetailsState, int>(
       TmdbDetailsController.new,
     );

@@ -3,29 +3,37 @@ import 'package:flutter/services.dart';
 
 /// A Slider widget that handles D-pad navigation properly on TV.
 /// Left/Right D-pad adjusts the value, Up/Down D-pad navigates to other focusable elements.
-class TvSlider extends StatefulWidget {
+class CustomSlider extends StatefulWidget {
   final double value;
   final double min;
   final double max;
   final int? divisions;
-  final ValueChanged<double>? onChanged;
   final double step;
+  final ValueChanged<double>? onChanged;
+  final ValueChanged<double>? onChangeStart;
+  final ValueChanged<double>? onChangeEnd;
+  final Color? activeColor;
+  final Color? inactiveColor;
 
-  const TvSlider({
+  const CustomSlider({
     super.key,
     required this.value,
     this.min = 0.0,
     this.max = 1.0,
     this.divisions,
-    this.onChanged,
     this.step = 1.0,
+    this.onChanged,
+    this.onChangeStart,
+    this.onChangeEnd,
+    this.activeColor,
+    this.inactiveColor,
   });
 
   @override
-  State<TvSlider> createState() => _TvSliderState();
+  State<CustomSlider> createState() => _CustomSliderState();
 }
 
-class _TvSliderState extends State<TvSlider> {
+class _CustomSliderState extends State<CustomSlider> {
   final FocusNode _focusNode = FocusNode();
   bool _isFocused = false;
 
@@ -60,7 +68,9 @@ class _TvSliderState extends State<TvSlider> {
             widget.min,
             widget.max,
           );
-          widget.onChanged?.call(newValue);
+          if (newValue != widget.value) {
+            widget.onChanged?.call(newValue);
+          }
           return KeyEventResult.handled;
         }
 
@@ -70,7 +80,9 @@ class _TvSliderState extends State<TvSlider> {
             widget.min,
             widget.max,
           );
-          widget.onChanged?.call(newValue);
+          if (newValue != widget.value) {
+            widget.onChanged?.call(newValue);
+          }
           return KeyEventResult.handled;
         }
 
@@ -101,11 +113,17 @@ class _TvSliderState extends State<TvSlider> {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: ExcludeFocus(
           child: Slider(
-            value: widget.value,
+            value: widget.value.clamp(widget.min, widget.max),
             min: widget.min,
             max: widget.max,
             divisions: widget.divisions,
             onChanged: widget.onChanged,
+            onChangeStart: widget.onChangeStart,
+            onChangeEnd: widget.onChangeEnd,
+            activeColor:
+                widget.activeColor ??
+                (_isFocused ? Theme.of(context).colorScheme.primary : null),
+            inactiveColor: widget.inactiveColor,
           ),
         ),
       ),
@@ -116,7 +134,7 @@ class _TvSliderState extends State<TvSlider> {
 /// A TextField widget that allows D-pad navigation out of the text field.
 /// Up/Down D-pad navigates to other focusable elements instead of being trapped.
 /// When keyboard OK is pressed, focus automatically moves to the next element.
-class TvTextField extends StatefulWidget {
+class CustomTextField extends StatefulWidget {
   final TextEditingController? controller;
   final InputDecoration? decoration;
   final bool autofocus;
@@ -124,7 +142,7 @@ class TvTextField extends StatefulWidget {
   final ValueChanged<String>? onSubmitted;
   final String? hintText;
 
-  const TvTextField({
+  const CustomTextField({
     super.key,
     this.controller,
     this.decoration,
@@ -135,10 +153,10 @@ class TvTextField extends StatefulWidget {
   });
 
   @override
-  State<TvTextField> createState() => _TvTextFieldState();
+  State<CustomTextField> createState() => _CustomTextFieldState();
 }
 
-class _TvTextFieldState extends State<TvTextField> {
+class _CustomTextFieldState extends State<CustomTextField> {
   late final FocusNode _focusNode;
 
   @override
@@ -236,7 +254,7 @@ class _TvTextFieldState extends State<TvTextField> {
 }
 
 /// A styled button for TV that shows focus state clearly with proper Material Design styling.
-class TvButton extends StatefulWidget {
+class CustomButton extends StatefulWidget {
   final Widget child;
   final VoidCallback? onPressed;
   final bool autofocus;
@@ -246,7 +264,7 @@ class TvButton extends StatefulWidget {
   final Color? backgroundColor;
   final bool showFocusHighlight;
 
-  const TvButton({
+  const CustomButton({
     super.key,
     required this.child,
     this.onPressed,
@@ -259,10 +277,10 @@ class TvButton extends StatefulWidget {
   });
 
   @override
-  State<TvButton> createState() => _TvButtonState();
+  State<CustomButton> createState() => _CustomButtonState();
 }
 
-class _TvButtonState extends State<TvButton> {
+class _CustomButtonState extends State<CustomButton> {
   late FocusNode _focusNode;
   bool _isFocused = false;
 

@@ -62,14 +62,14 @@ class DiscoverSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    if (query.length < 2) return const SizedBox.shrink();
+    if (query.isEmpty) return const SizedBox.shrink();
 
     return _SearchResultsGrid(query: query);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    if (query.length < 2) return const SizedBox.shrink();
+    if (query.isEmpty) return const SizedBox.shrink();
 
     return _SearchSuggestionsList(query: query);
   }
@@ -101,9 +101,12 @@ class _SearchSuggestionsListState
   void didUpdateWidget(covariant _SearchSuggestionsList oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.query != widget.query) {
-      ref
-          .read(discoverSearchControllerProvider.notifier)
-          .onQueryChanged(widget.query);
+      Future.microtask(() {
+        if (!mounted) return;
+        ref
+            .read(discoverSearchControllerProvider.notifier)
+            .onQueryChanged(widget.query);
+      });
     }
   }
 
@@ -137,12 +140,10 @@ class _SearchSuggestionsListState
       itemCount: suggestions.length,
       itemBuilder: (context, index) {
         final item = suggestions[index];
-        final title = item['title'] ?? item['name'] ?? 'Unknown';
-        final year = (item['release_date'] ?? item['first_air_date'] ?? '')
-            .split('-')
-            .first;
-        final posterPath = item['poster_path'];
-        final mediaType = item['media_type'] ?? 'movie';
+        final title = item.title;
+        final year = item.releaseDate.split('-').first;
+        final posterPath = item.posterPath;
+        final mediaType = item.mediaType;
 
         return ListTile(
           leading: ClipRRect(
@@ -179,9 +180,9 @@ class _SearchSuggestionsListState
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => TmdbMovieDetailsScreen(
-                  movieId: item['id'],
+                  movieId: item.id,
                   mediaType: mediaType,
-                  heroTag: 'search_${item['id']}',
+                  heroTag: 'search_${item.id}',
                 ),
               ),
             );
@@ -219,9 +220,12 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
   void didUpdateWidget(covariant _SearchResultsGrid oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.query != widget.query) {
-      ref
-          .read(discoverSearchControllerProvider.notifier)
-          .fetchResults(widget.query);
+      Future.microtask(() {
+        if (!mounted) return;
+        ref
+            .read(discoverSearchControllerProvider.notifier)
+            .fetchResults(widget.query);
+      });
     }
   }
 
@@ -319,13 +323,13 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
         }
 
         final item = results[index];
-        final posterPath = item['poster_path'];
+        final posterPath = item.posterPath;
         final imageUrl = posterPath != null
             ? '${TmdbConfig.posterSizeUrl}$posterPath'
             : 'https://via.placeholder.com/150x225';
-        final title = item['title'] ?? item['name'] ?? 'Unknown';
-        final id = item['id'];
-        final mediaType = item['media_type'] ?? 'movie';
+        final title = item.title;
+        final id = item.id;
+        final mediaType = item.mediaType;
         final uniqueTag = 'search_result_${id}_$index';
 
         return GestureDetector(

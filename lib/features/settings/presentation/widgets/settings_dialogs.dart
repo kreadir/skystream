@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../shared/widgets/tv_input_widgets.dart';
+import '../../../../shared/widgets/custom_widgets.dart';
 import '../../../../core/providers/device_info_provider.dart';
 import '../../../../core/services/external_player_service.dart';
 import '../../../../core/network/doh_service.dart';
@@ -167,7 +167,7 @@ void showSubtitleDialog(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text("Size: ${size.toInt()}"),
-              TvSlider(
+              CustomSlider(
                 value: size,
                 min: 10,
                 max: 80,
@@ -184,7 +184,7 @@ void showSubtitleDialog(
             ],
           ),
           actions: [
-            TvButton(
+            CustomButton(
               showFocusHighlight: isTv,
               onPressed: () => Navigator.pop(ctx),
               child: Text(
@@ -195,7 +195,7 @@ void showSubtitleDialog(
               ),
             ),
             const SizedBox(width: 8),
-            TvButton(
+            CustomButton(
               autofocus: true,
               isPrimary: true,
               showFocusHighlight: isTv,
@@ -274,75 +274,96 @@ void showDefaultPlayerDialog(
 
 /// Shows a dialog to pick the DNS-over-HTTPS provider.
 void showDohProviderDialog(BuildContext context, WidgetRef ref) {
+  final initialSettings = ref.read(dohSettingsProvider).asData?.value;
+  var currentProvider = initialSettings?.provider ?? DohProvider.cloudflare;
   final controller = TextEditingController(
-    text: ref.read(dohSettingsProvider).asData?.value.customUrl ?? '',
+    text: initialSettings?.customUrl ?? '',
   );
 
   showDialog(
     context: context,
     builder: (ctx) => StatefulBuilder(
       builder: (context, setState) {
-        final current =
-            ref.read(dohSettingsProvider).asData?.value.provider ??
-            DohProvider.cloudflare;
         return AlertDialog(
           surfaceTintColor: Colors.transparent,
           title: const Text('DoH Provider'),
           content: SingleChildScrollView(
             child: RadioGroup<DohProvider>(
-              groupValue: current,
+              groupValue: currentProvider,
               onChanged: (val) {
                 if (val == null) return;
-                if (val == DohProvider.custom) {
-                  setState(() {
-                    ref
-                        .read(dohSettingsProvider.notifier)
-                        .setProvider(DohProvider.custom);
-                  });
-                } else {
+
+                setState(() {
+                  currentProvider = val;
+                });
+
+                // Auto-save and close if it's a preset provider
+                if (val != DohProvider.custom) {
                   ref.read(dohSettingsProvider.notifier).setProvider(val);
                   ref.read(dohSettingsProvider.notifier).clearCache();
                   Navigator.pop(ctx);
                 }
               },
-              child: const Column(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  RadioListTile<DohProvider>(
+                  const RadioListTile<DohProvider>(
                     title: Text('Cloudflare'),
                     subtitle: Text('1.1.1.1'),
                     value: DohProvider.cloudflare,
                   ),
-                  RadioListTile<DohProvider>(
+                  const RadioListTile<DohProvider>(
                     title: Text('Google'),
                     subtitle: Text('8.8.8.8'),
                     value: DohProvider.google,
                   ),
-                  RadioListTile<DohProvider>(
+                  const RadioListTile<DohProvider>(
                     title: Text('AdGuard'),
                     subtitle: Text('dns.adguard.com'),
                     value: DohProvider.adguard,
                   ),
-                  RadioListTile<DohProvider>(
+                  const RadioListTile<DohProvider>(
                     title: Text('DNS.Watch'),
                     subtitle: Text('resolver2.dns.watch'),
                     value: DohProvider.dnsWatch,
                   ),
-                  RadioListTile<DohProvider>(
+                  const RadioListTile<DohProvider>(
                     title: Text('Quad9'),
                     subtitle: Text('9.9.9.9'),
                     value: DohProvider.quad9,
                   ),
-                  RadioListTile<DohProvider>(
+                  const RadioListTile<DohProvider>(
                     title: Text('DNS.SB'),
                     subtitle: Text('doh.dns.sb'),
                     value: DohProvider.dnsSb,
                   ),
-                  RadioListTile<DohProvider>(
+                  const RadioListTile<DohProvider>(
                     title: Text('Canadian Shield'),
                     subtitle: Text('private.canadianshield.cira.ca'),
                     value: DohProvider.canadianShield,
                   ),
+                  const RadioListTile<DohProvider>(
+                    title: Text('Custom'),
+                    subtitle: Text('Enter your own DoH URL'),
+                    value: DohProvider.custom,
+                  ),
+                  if (currentProvider == DohProvider.custom)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: TextField(
+                        controller: controller,
+                        autofocus: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Custom DoH URL',
+                          hintText: 'https://...',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.url,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -357,11 +378,14 @@ void showDohProviderDialog(BuildContext context, WidgetRef ref) {
                 ),
               ),
             ),
-            if (current == DohProvider.custom)
+            if (currentProvider == DohProvider.custom)
               TextButton(
                 onPressed: () {
                   final url = controller.text.trim();
                   if (url.isNotEmpty) {
+                    ref
+                        .read(dohSettingsProvider.notifier)
+                        .setProvider(DohProvider.custom);
                     ref.read(dohSettingsProvider.notifier).setCustomUrl(url);
                     ref.read(dohSettingsProvider.notifier).clearCache();
                     Navigator.pop(ctx);

@@ -9,13 +9,15 @@ import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import '../../../../core/extensions/base_provider.dart';
 import '../../../../core/models/torrent_status.dart';
+import '../../../../shared/widgets/custom_widgets.dart';
 import '../components/torrent_info_widget.dart';
 import '../../../settings/presentation/player_settings_provider.dart';
 import '../../../../core/providers/device_info_provider.dart';
-import '../../../../shared/widgets/tv_input_widgets.dart'; // Import Tv-specific Button
-import '../../../../core/utils/responsive_breakpoints.dart'; // Responsive context extensionsream_widgets.dart';
+import '../../../../core/utils/responsive_breakpoints.dart';
 import 'player_stream_widgets.dart';
 import 'player_control_components.dart';
+import 'player_bottom_sheets.dart';
+import 'player_osd_overlay.dart';
 import '../player_platform_service.dart';
 import '../player_gesture_handler.dart';
 
@@ -73,90 +75,6 @@ class SkyStreamPlayerControlsState
     _backFocusNode.requestFocus();
   }
 
-  static const Map<String, String> _isoLanguages = {
-    'af': 'Afrikaans',
-    'ar': 'Arabic',
-    'az': 'Azerbaijani',
-    'be': 'Belarusian',
-    'bg': 'Bulgarian',
-    'bn': 'Bengali',
-    'bs': 'Bosnian',
-    'ca': 'Catalan',
-    'cs': 'Czech',
-    'cy': 'Welsh',
-    'da': 'Danish',
-    'de': 'German',
-    'el': 'Greek',
-    'en': 'English',
-    'es': 'Spanish',
-    'et': 'Estonian',
-    'fa': 'Persian',
-    'fi': 'Finnish',
-    'fr': 'French',
-    'gl': 'Galician',
-    'gu': 'Gujarati',
-    'he': 'Hebrew',
-    'hi': 'Hindi',
-    'hr': 'Croatian',
-    'hu': 'Hungarian',
-    'hy': 'Armenian',
-    'id': 'Indonesian',
-    'is': 'Icelandic',
-    'it': 'Italian',
-    'ja': 'Japanese',
-    'ka': 'Georgian',
-    'kk': 'Kazakh',
-    'km': 'Khmer',
-    'kn': 'Kannada',
-    'ko': 'Korean',
-    'ky': 'Kyrgyz',
-    'lt': 'Lithuanian',
-    'lv': 'Latvian',
-    'mk': 'Macedonian',
-    'ml': 'Malayalam',
-    'mn': 'Mongolian',
-    'mr': 'Marathi',
-    'ms': 'Malay',
-    'my': 'Burmese',
-    'ne': 'Nepali',
-    'nl': 'Dutch',
-    'no': 'Norwegian',
-    'pa': 'Punjabi',
-    'pl': 'Polish',
-    'pt': 'Portuguese',
-    'ro': 'Romanian',
-    'ru': 'Russian',
-    'si': 'Sinhala',
-    'sk': 'Slovak',
-    'sl': 'Slovenian',
-    'sq': 'Albanian',
-    'sr': 'Serbian',
-    'sv': 'Swedish',
-    'sw': 'Swahili',
-    'ta': 'Tamil',
-    'te': 'Telugu',
-    'th': 'Thai',
-    'tl': 'Tagalog',
-    'tr': 'Turkish',
-    'uk': 'Ukrainian',
-    'ur': 'Urdu',
-    'uz': 'Uzbek',
-    'vi': 'Vietnamese',
-    'zh': 'Chinese',
-    'zu': 'Zulu',
-    // 3-letter support
-    'eng': 'English',
-    'hin': 'Hindi',
-    'jap': 'Japanese',
-    'spa': 'Spanish',
-    'fra': 'French',
-    'deu': 'German',
-    'ita': 'Italian',
-    'rus': 'Russian',
-    'por': 'Portuguese',
-    'kor': 'Korean',
-  };
-
   bool _showTorrentInfo = false; // Changed from true
   Timer? _hideTimer;
   bool _isLocked = false;
@@ -173,16 +91,6 @@ class SkyStreamPlayerControlsState
   late Duration _duration;
 
   final List<StreamSubscription> _subscriptions = [];
-
-  String _getLanguageName(String code) {
-    final normalized = code.toLowerCase().trim();
-    if (normalized == 'no' || normalized == 'off' || normalized == 'none') {
-      return 'Off';
-    }
-    if (normalized == 'auto') return 'Auto';
-    // Original app logic fallback for unmapped
-    return _isoLanguages[normalized] ?? code;
-  }
 
   late final PlayerPlatformService _platformService;
   late final PlayerGestureHandler _gestureHandler;
@@ -553,351 +461,6 @@ class SkyStreamPlayerControlsState
     });
   }
 
-  void _showSourceSelection() {
-    if (widget.streams == null || widget.streams!.isEmpty) return;
-    final theme = Theme.of(context);
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor:
-          theme.bottomSheetTheme.modalBackgroundColor ??
-          theme.dialogTheme.backgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  "Select Source",
-                  style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Divider(color: theme.dividerColor),
-              Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: widget.streams!.length,
-                  itemBuilder: (ctx, index) {
-                    final s = widget.streams![index];
-                    final isSelected = s == widget.currentStream;
-                    return ListTile(
-                      leading: Icon(
-                        Icons.high_quality,
-                        color: isSelected
-                            ? theme.colorScheme.primary
-                            : theme.iconTheme.color,
-                      ),
-                      title: Text(
-                        s.quality,
-                        style: TextStyle(
-                          color: isSelected
-                              ? theme.colorScheme.primary
-                              : theme.textTheme.bodyMedium?.color,
-                        ),
-                      ),
-                      trailing: isSelected
-                          ? Icon(Icons.check, color: theme.colorScheme.primary)
-                          : null,
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        widget.onStreamSelected?.call(s);
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  String _formatBytes(int bytes) {
-    if (bytes <= 0) return "0 B";
-    const suffixes = ["B", "KB", "MB", "GB", "TB"];
-    var i = 0;
-    double d = bytes.toDouble();
-    while (d >= 1024 && i < suffixes.length - 1) {
-      d /= 1024;
-      i++;
-    }
-    return "${d.toStringAsFixed(1)} ${suffixes[i]}";
-  }
-
-  void _showContentSelection() {
-    if (widget.torrentStatus == null) return;
-    final files = widget.torrentStatus!.data['file_stats'] as List<dynamic>?;
-    if (files == null || files.isEmpty) return;
-
-    final theme = Theme.of(context);
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor:
-          theme.bottomSheetTheme.modalBackgroundColor ??
-          theme.dialogTheme.backgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      isScrollControlled: true,
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.5,
-          minChildSize: 0.3,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    "Torrent Content",
-                    style: TextStyle(
-                      color: theme.textTheme.bodyLarge?.color,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Divider(color: theme.dividerColor, height: 1),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: files.length,
-                    itemBuilder: (ctx, index) {
-                      final file = files[index];
-                      final path = file['path'] as String? ?? "Unknown";
-                      final length = file['length'] as int? ?? 0;
-                      final id =
-                          file['id'] as int? ??
-                          (index + 1); // Fallback if id missing
-
-                      // Simple check if this looks like a video
-                      final isVideo =
-                          path.toLowerCase().endsWith(".mp4") ||
-                          path.toLowerCase().endsWith(".mkv") ||
-                          path.toLowerCase().endsWith(".avi") ||
-                          path.toLowerCase().endsWith(".mov");
-
-                      return ListTile(
-                        leading: Icon(
-                          isVideo
-                              ? Icons.movie_creation_outlined
-                              : Icons.insert_drive_file_outlined,
-                          color: isVideo
-                              ? theme.colorScheme.primary
-                              : theme.iconTheme.color,
-                        ),
-                        title: Text(
-                          path.split('/').last, // Show filename only
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: theme.textTheme.bodyMedium?.color,
-                          ),
-                        ),
-                        subtitle: Text(
-                          _formatBytes(length),
-                          style: TextStyle(
-                            color: theme.textTheme.bodySmall?.color,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(ctx);
-                          // Only allow switching to video files or let user try any file
-                          widget.onTorrentFileSelected?.call(id);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showTracksSelection() {
-    final audioTracks = widget.player.state.tracks.audio;
-    final subTracks = widget.player.state.tracks.subtitle;
-    final theme = Theme.of(context);
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor:
-          theme.bottomSheetTheme.modalBackgroundColor ??
-          theme.dialogTheme.backgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      isScrollControlled: true,
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.5,
-          minChildSize: 0.3,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) {
-            return ListView(
-              controller: scrollController,
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text(
-                  "Audio Tracks",
-                  style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Divider(color: theme.dividerColor),
-                ...audioTracks.map((e) {
-                  final langName = _getLanguageName(e.language ?? e.id);
-                  final label = e.title != null
-                      ? "$langName (${e.title})"
-                      : langName;
-                  final isSelected = e == widget.player.state.track.audio;
-
-                  return ListTile(
-                    title: Text(
-                      label,
-                      style: TextStyle(
-                        color: theme.textTheme.bodyMedium?.color,
-                      ),
-                    ),
-                    onTap: () {
-                      widget.player.setAudioTrack(e);
-                      Navigator.pop(ctx);
-                    },
-                    selected: isSelected,
-                    selectedColor: theme.colorScheme.primary,
-                    trailing: isSelected
-                        ? Icon(Icons.check, color: theme.colorScheme.primary)
-                        : null,
-                  );
-                }),
-                if (audioTracks.isEmpty)
-                  Text(
-                    "No audio tracks found",
-                    style: TextStyle(color: theme.textTheme.bodySmall?.color),
-                  ),
-
-                const SizedBox(height: 24),
-                Text(
-                  "Subtitles",
-                  style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Divider(color: theme.dividerColor),
-                ListTile(
-                  title: Text(
-                    "Off",
-                    style: TextStyle(color: theme.textTheme.bodyMedium?.color),
-                  ),
-                  onTap: () {
-                    widget.player.setSubtitleTrack(SubtitleTrack.no());
-                    Navigator.pop(ctx);
-                  },
-                  selected:
-                      widget.player.state.track.subtitle == SubtitleTrack.no(),
-                  trailing:
-                      widget.player.state.track.subtitle == SubtitleTrack.no()
-                      ? Icon(Icons.check, color: theme.colorScheme.primary)
-                      : null,
-                ),
-                // External Subtitles
-                if (widget.externalSubtitles != null)
-                  ...widget.externalSubtitles!.map((s) {
-                    final uriTrack = SubtitleTrack.uri(
-                      s.url,
-                      title: s.label,
-                      language: s.lang,
-                    );
-                    // Check selection by ID (url) or loose match
-                    final isSelected =
-                        widget.player.state.track.subtitle.id == s.url ||
-                        widget.player.state.track.subtitle.title == s.label;
-
-                    return ListTile(
-                      title: Text(
-                        s.label,
-                        style: TextStyle(
-                          color: theme.textTheme.bodyMedium?.color,
-                        ),
-                      ),
-                      subtitle: s.lang != null
-                          ? Text(
-                              _getLanguageName(s.lang!),
-                              style: TextStyle(
-                                color: theme.textTheme.bodySmall?.color,
-                                fontSize: 10,
-                              ),
-                            )
-                          : null,
-                      onTap: () {
-                        widget.player.setSubtitleTrack(uriTrack);
-                        Navigator.pop(ctx);
-                      },
-                      selected: isSelected,
-                      selectedColor: theme.colorScheme.primary,
-                      trailing: isSelected
-                          ? Icon(Icons.check, color: theme.colorScheme.primary)
-                          : null,
-                    );
-                  }),
-
-                // Embedded Subtitles
-                ...subTracks.map((e) {
-                  final langName = _getLanguageName(e.language ?? e.id);
-                  final label = e.title != null
-                      ? "$langName (${e.title})"
-                      : langName;
-                  final isSelected = e == widget.player.state.track.subtitle;
-
-                  return ListTile(
-                    title: Text(
-                      label,
-                      style: TextStyle(
-                        color: theme.textTheme.bodyMedium?.color,
-                      ),
-                    ),
-                    onTap: () {
-                      widget.player.setSubtitleTrack(e);
-                      Navigator.pop(ctx);
-                    },
-                    selected: isSelected,
-                    selectedColor: theme.colorScheme.primary,
-                    trailing: isSelected
-                        ? Icon(Icons.check, color: theme.colorScheme.primary)
-                        : null,
-                  );
-                }),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // ... (keeping other methods same)
-
   Future<void> _handleDragStart(DragStartDetails details) async {
     await _gestureHandler.handleDragStart(
       details,
@@ -1140,314 +703,15 @@ class SkyStreamPlayerControlsState
                   ),
 
                 // Volume/Brightness OSD
-                if (_gestureHandler.showOSD)
-                  if (Platform.isMacOS ||
-                      Platform.isWindows ||
-                      Platform.isLinux)
-                    _buildDesktopHorizontalOSD()
-                  else
-                    Align(
-                      alignment: _gestureHandler.osdAlignment,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 32,
-                        ),
-                        child: _gestureHandler.osdValue == null
-                            ? Container(
-                                // TOAST MODE
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.8),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      _gestureHandler.osdIcon,
-                                      color:
-                                          ((_gestureHandler.osdValue ?? 0) >
-                                              1.0)
-                                          ? Colors.orange
-                                          : Colors.white,
-                                      size: 24,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      _gestureHandler.osdLabel,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : Container(
-                                // VERTICAL BAR MODE
-                                width: 58,
-                                height: 240,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.6),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      _gestureHandler.osdLabel == "Auto"
-                                          ? "Auto"
-                                          : "${((_gestureHandler.osdValue ?? 0) * 100).toInt()}",
-                                      style: TextStyle(
-                                        color:
-                                            ((_gestureHandler.osdValue ?? 0) >
-                                                1.0)
-                                            ? Colors.orange
-                                            : Colors.white,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Expanded(
-                                      child: SizedBox(
-                                        width: 12,
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                          child: Stack(
-                                            alignment: Alignment.bottomCenter,
-                                            children: [
-                                              // Background
-                                              Container(
-                                                color: Colors.grey.withValues(
-                                                  alpha: 0.5,
-                                                ),
-                                              ),
-                                              // White Bar
-                                              LayoutBuilder(
-                                                builder: (context, constraints) {
-                                                  final bool isBrightness =
-                                                      _gestureHandler
-                                                              .osdLabel ==
-                                                          "Brightness" ||
-                                                      _gestureHandler
-                                                              .osdLabel ==
-                                                          "Auto";
-                                                  // Brightness 0-1 maps to 1.0 height
-                                                  // Volume 0-2 maps to 0.5 * Val height
-                                                  final double val =
-                                                      (_gestureHandler
-                                                                  .osdValue ??
-                                                              0)
-                                                          .clamp(0.0, 1.0);
-                                                  final double scale =
-                                                      isBrightness ? 1.0 : 0.5;
-
-                                                  return Align(
-                                                    alignment:
-                                                        Alignment.bottomCenter,
-                                                    child: FractionallySizedBox(
-                                                      heightFactor: val * scale,
-                                                      child: Container(
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                              // Orange Bar (Volume Boost only)
-                                              if ((_gestureHandler.osdValue ??
-                                                          0) >
-                                                      1.0 &&
-                                                  !(_gestureHandler.osdLabel ==
-                                                          "Brightness" ||
-                                                      _gestureHandler
-                                                              .osdLabel ==
-                                                          "Auto"))
-                                                LayoutBuilder(
-                                                  builder: (ctx, constraints) {
-                                                    final double boost =
-                                                        (_gestureHandler
-                                                                    .osdValue! -
-                                                                1.0)
-                                                            .clamp(0.0, 1.0);
-                                                    // Boost percentage determines height of orange bar (max 50% of total)
-                                                    final double orangeHeight =
-                                                        constraints.maxHeight *
-                                                        (boost * 0.5);
-                                                    final double bottomOffset =
-                                                        constraints.maxHeight *
-                                                        0.5;
-
-                                                    return Align(
-                                                      alignment: Alignment
-                                                          .bottomCenter,
-                                                      child: Container(
-                                                        width: double.infinity,
-                                                        height: orangeHeight,
-                                                        margin: EdgeInsets.only(
-                                                          bottom: bottomOffset,
-                                                        ),
-                                                        color: Colors.orange,
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    AnimatedSwitcher(
-                                      duration: const Duration(
-                                        milliseconds: 200,
-                                      ),
-                                      transitionBuilder: (child, anim) =>
-                                          ScaleTransition(
-                                            scale: anim,
-                                            child: child,
-                                          ),
-                                      child: Icon(
-                                        _gestureHandler.osdIcon,
-                                        key: ValueKey(_gestureHandler.osdIcon),
-                                        color:
-                                            ((_gestureHandler.osdValue ?? 0) >
-                                                1.0)
-                                            ? Colors.orange
-                                            : Colors.white,
-                                        size: 24,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                      ),
-                    ),
+                PlayerOsdOverlay(
+                  showOSD: _gestureHandler.showOSD,
+                  osdValue: _gestureHandler.osdValue,
+                  osdLabel: _gestureHandler.osdLabel,
+                  osdIcon: _gestureHandler.osdIcon,
+                  osdAlignment: _gestureHandler.osdAlignment,
+                ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopHorizontalOSD() {
-    final bool isLevel = _gestureHandler.osdValue != null;
-    return Positioned(
-      top: 80,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Container(
-          width: 300,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                _gestureHandler.osdIcon,
-                color: ((_gestureHandler.osdValue ?? 0) > 1.0)
-                    ? Colors.orange
-                    : Colors.white,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              if (!isLevel)
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      _gestureHandler.osdLabel,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                )
-              else ...[
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: SizedBox(
-                      height: 6,
-                      child: Stack(
-                        children: [
-                          // Background
-                          Container(color: Colors.grey.withValues(alpha: 0.5)),
-                          // White Bar
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final bool isBrightness =
-                                  _gestureHandler.osdLabel == "Brightness" ||
-                                  _gestureHandler.osdLabel == "Auto";
-                              final double val = (_gestureHandler.osdValue ?? 0)
-                                  .clamp(0.0, 1.0);
-                              final double scale = isBrightness ? 1.0 : 0.5;
-                              return FractionallySizedBox(
-                                widthFactor: val * scale,
-                                child: Container(color: Colors.white),
-                              );
-                            },
-                          ),
-                          // Boost indicator
-                          if ((_gestureHandler.osdValue ?? 0) > 1.0)
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                final double boost =
-                                    (_gestureHandler.osdValue! - 1.0).clamp(
-                                      0.0,
-                                      1.0,
-                                    );
-                                // Boost fills remaining space
-                                final double width =
-                                    constraints.maxWidth * (boost * 0.5);
-                                final double leftOffset =
-                                    constraints.maxWidth * 0.5;
-                                return Container(
-                                  margin: EdgeInsets.only(left: leftOffset),
-                                  width: width,
-                                  color: Colors.orange,
-                                );
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 40, // Fixed width for stable layout
-                  child: Text(
-                    "${((_gestureHandler.osdValue! * 100).toInt())}%",
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: ((_gestureHandler.osdValue ?? 0) > 1.0)
-                          ? Colors.orange
-                          : Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ),
-              ],
-            ],
           ),
         ),
       ),
@@ -1461,7 +725,7 @@ class SkyStreamPlayerControlsState
     bool rotate = false,
     bool highlight = false,
   }) {
-    return TvButton(
+    return CustomButton(
       showFocusHighlight: _isTv,
       onPressed: onTap,
       child: Container(
@@ -1622,7 +886,16 @@ class SkyStreamPlayerControlsState
                                       child: _buildActionButton(
                                         icon: Icons.playlist_play,
                                         label: "Source",
-                                        onTap: _showSourceSelection,
+                                        onTap: () =>
+                                            PlayerBottomSheets.showSourceSelection(
+                                              context: context,
+                                              streams: widget.streams,
+                                              currentStream:
+                                                  widget.currentStream,
+                                              onStreamSelected:
+                                                  widget.onStreamSelected ??
+                                                  (_) {},
+                                            ),
                                       ),
                                     ),
                                     if (_hasMultipleVideoFiles())
@@ -1631,7 +904,16 @@ class SkyStreamPlayerControlsState
                                         child: _buildActionButton(
                                           icon: Icons.folder_open,
                                           label: "Content",
-                                          onTap: _showContentSelection,
+                                          onTap: () =>
+                                              PlayerBottomSheets.showContentSelection(
+                                                context: context,
+                                                torrentStatus:
+                                                    widget.torrentStatus,
+                                                onTorrentFileSelected:
+                                                    widget
+                                                        .onTorrentFileSelected ??
+                                                    (_) {},
+                                              ),
                                         ),
                                       ),
                                     FocusTraversalOrder(
@@ -1639,7 +921,13 @@ class SkyStreamPlayerControlsState
                                       child: _buildActionButton(
                                         icon: Icons.subtitles,
                                         label: "Tracks",
-                                        onTap: _showTracksSelection,
+                                        onTap: () =>
+                                            PlayerBottomSheets.showTracksSelection(
+                                              context: context,
+                                              player: widget.player,
+                                              externalSubtitles:
+                                                  widget.externalSubtitles,
+                                            ),
                                       ),
                                     ),
                                     if (Platform.isAndroid &&

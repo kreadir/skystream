@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/config/tmdb_config.dart';
+import '../../../shared/widgets/cards_wrapper.dart';
 import '../../details/presentation/tmdb_movie_details_screen.dart';
-import '../../../../shared/widgets/tv_cards_wrapper.dart';
 import '../../../../shared/widgets/shimmer_placeholder.dart';
 import '../../../../core/utils/responsive_breakpoints.dart';
-import '../data/tmdb_provider.dart';
-import '../data/language_provider.dart';
-import '../data/filter_provider.dart';
+import '../../../../core/models/tmdb_item.dart';
+import 'controllers/view_all_controller.dart';
 
 enum ViewAllCategory {
   popularMovies,
@@ -23,7 +22,7 @@ enum ViewAllCategory {
 
 class ViewAllScreen extends ConsumerStatefulWidget {
   final String title;
-  final List<Map<String, dynamic>> initialMediaList;
+  final List<TmdbItem> initialMediaList;
   final ViewAllCategory category;
 
   const ViewAllScreen({
@@ -39,25 +38,33 @@ class ViewAllScreen extends ConsumerStatefulWidget {
 
 class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
   late final ScrollController _scrollController;
-  late List<Map<String, dynamic>> _mediaList;
-  int _currentPage = 1;
-  bool _isLoading = false;
-  bool _hasMore = true;
 
   @override
   void initState() {
     super.initState();
-    _mediaList = List.from(widget.initialMediaList);
     _scrollController = ScrollController()..addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkInitialFill());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(viewAllControllerProvider.notifier)
+          .init(widget.category, widget.initialMediaList);
+      _checkInitialFill();
+    });
   }
 
   void _checkInitialFill() {
+    if (!mounted) return;
     if (_scrollController.hasClients &&
-        _scrollController.position.maxScrollExtent <= 0 &&
-        _hasMore &&
-        !_isLoading) {
-      _fetchNextPage();
+        _scrollController.position.maxScrollExtent <= 0) {
+      final state = ref.read(viewAllControllerProvider);
+      if (state.hasMore && !state.isLoading) {
+        ref.read(viewAllControllerProvider.notifier).fetchNextPage().then((_) {
+          if (mounted) {
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => _checkInitialFill(),
+            );
+          }
+        });
+      }
     }
   }
 
@@ -70,131 +77,14 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      _fetchNextPage();
-    }
-  }
-
-  Future<void> _fetchNextPage() async {
-    if (_isLoading || !_hasMore) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final tmdbService = ref.read(tmdbServiceProvider);
-      final lang = await ref.read(languageProvider.future);
-      final filters = ref.read(discoverFilterProvider);
-      final nextPage = _currentPage + 1;
-      List<Map<String, dynamic>> newItems = [];
-
-      switch (widget.category) {
-        case ViewAllCategory.popularMovies:
-          newItems = await tmdbService.getPopularMovies(
-            language: lang,
-            genreId: filters.selectedGenre?['id'],
-            year: filters.selectedYear,
-            minRating: filters.minRating,
-            page: nextPage,
-          );
-          break;
-        case ViewAllCategory.popularTV:
-          newItems = await tmdbService.getPopularTV(
-            language: lang,
-            genreId: filters.selectedGenre?['id'],
-            year: filters.selectedYear,
-            minRating: filters.minRating,
-            page: nextPage,
-          );
-          break;
-        case ViewAllCategory.nowPlayingMovies:
-          newItems = await tmdbService.getNowPlayingMovies(
-            language: lang,
-            genreId: filters.selectedGenre?['id'],
-            year: filters.selectedYear,
-            minRating: filters.minRating,
-            page: nextPage,
-          );
-          break;
-        case ViewAllCategory.onTheAirTV:
-          newItems = await tmdbService.getOnTheAirTV(
-            language: lang,
-            genreId: filters.selectedGenre?['id'],
-            year: filters.selectedYear,
-            minRating: filters.minRating,
-            page: nextPage,
-          );
-          break;
-        case ViewAllCategory.topRatedMovies:
-          newItems = await tmdbService.getTopRated(
-            language: lang,
-            genreId: filters.selectedGenre?['id'],
-            year: filters.selectedYear,
-            minRating: filters.minRating,
-            page: nextPage,
-          );
-          break;
-        case ViewAllCategory.topRatedTV:
-          newItems = await tmdbService.getTopRatedTV(
-            language: lang,
-            genreId: filters.selectedGenre?['id'],
-            year: filters.selectedYear,
-            minRating: filters.minRating,
-            page: nextPage,
-          );
-          break;
-        case ViewAllCategory.airingTodayTV:
-          newItems = await tmdbService.getAiringTodayTV(
-            language: lang,
-            genreId: filters.selectedGenre?['id'],
-            year: filters.selectedYear,
-            minRating: filters.minRating,
-            page: nextPage,
-          );
-          break;
-        case ViewAllCategory.trending:
-          newItems = await tmdbService.getTrending(
-            language: lang,
-            genreId: filters.selectedGenre?['id'],
-            year: filters.selectedYear,
-            minRating: filters.minRating,
-            page: nextPage,
-          );
-          break;
-      }
-
-      if (mounted) {
-        setState(() {
-          if (newItems.isEmpty) {
-            _hasMore = false;
-          } else {
-            _mediaList.addAll(newItems);
-            _currentPage = nextPage;
-            // Recursively check if we need more to fill the screen
-            WidgetsBinding.instance.addPostFrameCallback(
-              (_) => _checkInitialFill(),
-            );
-          }
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } finally {
-      if (mounted && _isLoading) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      ref.read(viewAllControllerProvider.notifier).fetchNextPage();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(viewAllControllerProvider);
+
     // Calculate aspect ratio for 2:3 posters
     final isDesktop = context.isDesktop;
     final maxExtent = isDesktop ? 240.0 : 150.0;
@@ -240,29 +130,29 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
           ),
-          itemCount: _mediaList.length + (_isLoading ? crossAxisCount : 0),
+          itemCount:
+              state.items.length + (state.isLoading ? crossAxisCount : 0),
           itemBuilder: (context, index) {
-            if (index >= _mediaList.length) {
+            if (index >= state.items.length) {
               return const ShimmerPlaceholder();
             }
 
-            final item = _mediaList[index];
-            final posterPath = item['poster_path'];
+            final item = state.items[index];
+            final posterPath = item.posterPath;
             final imageUrl = posterPath != null
                 ? '${TmdbConfig.posterSizeUrl}$posterPath'
                 : 'https://via.placeholder.com/150x225';
-            final itemTitle = item['title'] ?? item['name'] ?? 'Unknown';
+            final itemTitle = item.title;
             final uniqueTag =
-                'view_all_${widget.category.name}_${item['id']}_$index';
-            final mediaType =
-                item['media_type'] ?? (item['title'] != null ? 'movie' : 'tv');
+                'view_all_${widget.category.name}_${item.id}_$index';
+            final mediaType = item.mediaType;
 
-            return TvCardsWrapper(
+            return CardsWrapper(
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => TmdbMovieDetailsScreen(
-                      movieId: item['id'],
+                      movieId: item.id,
                       mediaType: mediaType,
                       heroTag: uniqueTag,
                       placeholderPoster: imageUrl,

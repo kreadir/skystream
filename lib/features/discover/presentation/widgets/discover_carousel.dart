@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/config/tmdb_config.dart';
+import '../../../../shared/widgets/cards_wrapper.dart';
 import '../../../details/presentation/tmdb_movie_details_screen.dart';
-import '../../../../shared/widgets/tv_cards_wrapper.dart'; // Import TvCardsWrapper
 import '../../../../shared/widgets/shimmer_placeholder.dart';
+import '../../../../core/models/tmdb_item.dart';
 
 class DiscoverCarousel extends StatefulWidget {
-  final List<Map<String, dynamic>> movies;
+  final List<TmdbItem> movies;
   final ScrollController? scrollController;
-  final void Function(Map<String, dynamic>)? onTap;
+  final void Function(TmdbItem)? onTap;
 
   const DiscoverCarousel({
     super.key,
@@ -153,19 +154,18 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
     );
   }
 
-  void _navigateToDetails(BuildContext context, Map<String, dynamic> movie) {
+  void _navigateToDetails(BuildContext context, TmdbItem movie) {
     // Determine type: 'title' usually implies movie, 'name' implies TV
     // But better to check 'media_type' if available (trending/search provides it),
     // fallback to title check.
-    final String mediaType =
-        movie['media_type'] ?? (movie['title'] != null ? 'movie' : 'tv');
+    final String mediaType = movie.mediaType;
 
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => TmdbMovieDetailsScreen(
-          movieId: movie['id'],
+          movieId: movie.id,
           mediaType: mediaType,
-          heroTag: 'hero_${movie['id']}',
+          heroTag: 'hero_${movie.id}',
         ),
       ),
     );
@@ -173,11 +173,11 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
 
   Widget _buildCarouselItem(
     BuildContext context,
-    Map<String, dynamic> movie,
+    TmdbItem movie,
     double height,
   ) {
-    final posterPath = movie['poster_path'];
-    final backdropPath = movie['backdrop_path'] ?? posterPath;
+    final posterPath = movie.posterPath;
+    final backdropPath = movie.backdropPath ?? posterPath;
     String imageUrl;
     if (backdropPath != null) {
       if (backdropPath.startsWith('http')) {
@@ -189,23 +189,23 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
       imageUrl = 'https://via.placeholder.com/500x750';
     }
 
-    final title = movie['title'] ?? movie['name'] ?? 'Unknown';
-    final logoUrl = movie['logo_url'];
+    final title = movie.title;
+    final logoUrl = movie.logoUrl;
 
     // Metadata parsing
-    final releaseDate = movie['release_date'] ?? movie['first_air_date'] ?? '';
+    final releaseDate = movie.releaseDate;
     final year = releaseDate.isNotEmpty ? releaseDate.split('-')[0] : '';
-    final isMovie = movie['title'] != null;
+    final isMovie = movie.mediaType == 'movie';
 
     String? type;
-    if (movie['media_type'] == 'movie') {
+    if (movie.mediaType == 'movie') {
       type = "Movie";
-    } else if (movie['media_type'] == 'tv') {
+    } else if (movie.mediaType == 'tv') {
       type = "TV Show";
     }
     // If media_type is null or unknown, type remains null
 
-    final genres = movie['genres_str'] as String? ?? '';
+    final genres = movie.genresStr ?? '';
 
     final metadata = [
       ?type,
@@ -227,7 +227,7 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
       );
     }
 
-    return TvCardsWrapper(
+    return CardsWrapper(
       onTap: () {
         if (widget.onTap != null) {
           widget.onTap!(movie);
@@ -431,9 +431,9 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
     bool isMovie,
     String metadata,
     double height,
-    Map<String, dynamic> movie,
+    TmdbItem movie,
   ) {
-    return TvCardsWrapper(
+    return CardsWrapper(
       onTap: () {
         if (widget.onTap != null) {
           // Need to access widget.onTap but this method is in state, so it works.

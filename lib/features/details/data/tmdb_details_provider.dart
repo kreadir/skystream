@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../discover/data/tmdb_provider.dart';
 import '../../discover/data/language_provider.dart';
+import '../../discover/data/tmdb_provider.dart';
+import '../../../core/models/tmdb_details.dart';
+import '../../../core/services/tmdb_service.dart';
 
 class MovieDetailsParams {
   final int id;
@@ -17,7 +19,7 @@ class MovieDetailsParams {
 }
 
 final movieDetailsProvider =
-    FutureProvider.family<Map<String, dynamic>?, MovieDetailsParams>((
+    FutureProvider.family<TmdbDetails?, MovieDetailsParams>((
       ref,
       params,
     ) async {
@@ -27,21 +29,35 @@ final movieDetailsProvider =
       // Wrap in timeout to prevent infinite loading when connection is stale
       // This ensures error UI is shown instead of forever-loading spinner
       try {
+        Map<String, dynamic>? data;
         if (params.type == 'tv') {
-          return await service
+          data = await service
               .getTvDetails(params.id, language: language)
               .timeout(
                 const Duration(seconds: 15),
                 onTimeout: () => throw TimeoutException('Request timed out'),
               );
         } else {
-          return await service
+          data = await service
               .getMovieDetails(params.id, language: language)
               .timeout(
                 const Duration(seconds: 15),
                 onTimeout: () => throw TimeoutException('Request timed out'),
               );
         }
+
+        if (data == null) return null;
+
+        // Ensure logoUrl is processed
+        String? logoUrl;
+        final images = data['images'];
+        if (images != null) {
+          final logos = List<Map<String, dynamic>>.from(images['logos'] ?? []);
+          logoUrl = TmdbService.pickBestLogo(logos, language);
+        }
+        data['logo_url'] = logoUrl;
+
+        return TmdbDetails.fromJson(data, language);
       } on TimeoutException {
         rethrow; // Let error handler show retry UI
       }

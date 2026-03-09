@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class TvCardsWrapper extends StatefulWidget {
+class CardsWrapper extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
   final double scaleFactor;
@@ -8,7 +8,7 @@ class TvCardsWrapper extends StatefulWidget {
   final BorderRadius? borderRadius;
   final FocusNode? focusNode;
 
-  const TvCardsWrapper({
+  const CardsWrapper({
     super.key,
     required this.child,
     required this.onTap,
@@ -19,10 +19,10 @@ class TvCardsWrapper extends StatefulWidget {
   });
 
   @override
-  State<TvCardsWrapper> createState() => _TvCardsWrapperState();
+  State<CardsWrapper> createState() => _CardsWrapperState();
 }
 
-class _TvCardsWrapperState extends State<TvCardsWrapper>
+class _CardsWrapperState extends State<CardsWrapper>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;

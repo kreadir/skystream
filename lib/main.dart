@@ -10,6 +10,7 @@ import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/storage/storage_service.dart';
+import 'core/network/doh_service.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'core/utils/app_utils.dart';
 import 'features/extensions/providers/extensions_controller.dart';
@@ -79,6 +80,9 @@ class _AppRootState extends State<AppRoot> {
           debugPrint("Error setting high refresh rate: $e");
         }
       }
+
+      // Preload DoH settings synchronously
+      await DohService.instance.init();
 
       if (mounted) {
         setState(() {

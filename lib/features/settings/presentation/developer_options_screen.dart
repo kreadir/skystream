@@ -4,11 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:virtual_mouse/virtual_mouse.dart';
 
+import '../../../shared/widgets/custom_widgets.dart';
 import '../../extensions/providers/extensions_controller.dart';
 import '../../../core/storage/storage_service.dart';
 import '../../../core/domain/entity/multimedia_item.dart';
 import '../../../core/providers/device_info_provider.dart';
-import '../../../shared/widgets/tv_input_widgets.dart';
 import 'widgets/settings_widgets.dart';
 
 import 'package:flutter/foundation.dart';
@@ -154,14 +154,14 @@ class _DeveloperOptionsScreenState
       builder: (context) => AlertDialog(
         surfaceTintColor: Colors.transparent,
         title: const Text('Stream URL'),
-        content: TvTextField(
+        content: CustomTextField(
           controller: controller,
           hintText: 'Enter video URL (http, magnet, etc.)',
           autofocus: false, // Start focus on Play button
           textInputAction: TextInputAction.done,
         ),
         actions: [
-          TvButton(
+          CustomButton(
             showFocusHighlight: isTv,
             onPressed: () => Navigator.pop(context),
             child: Text(
@@ -172,7 +172,7 @@ class _DeveloperOptionsScreenState
             ),
           ),
           const SizedBox(width: 8),
-          TvButton(
+          CustomButton(
             autofocus: true,
             isPrimary: true,
             showFocusHighlight: isTv,

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:skystream/core/utils/responsive_breakpoints.dart';
 import 'package:skystream/core/providers/device_info_provider.dart';
 import 'package:skystream/core/extensions/extension_manager.dart';
 import 'package:skystream/core/domain/entity/multimedia_item.dart';
 import 'package:skystream/shared/widgets/desktop_scroll_wrapper.dart';
-import 'package:skystream/shared/widgets/tv_cards_wrapper.dart';
+import '../../../../shared/widgets/cards_wrapper.dart';
 
 class SearchResultSection extends ConsumerStatefulWidget {
   final String providerName;
@@ -39,7 +40,7 @@ class _SearchResultSectionState extends ConsumerState<SearchResultSection> {
     if (widget.results.isEmpty) return const SizedBox.shrink();
 
     final device = ref.watch(deviceProfileProvider).asData?.value;
-    final isLarge = device?.isLargeScreen ?? false;
+    final isLarge = (device?.isLargeScreen ?? false) || context.isDesktop;
     // Matching MediaHorizontalList/ContinueWatchingSection dimensions
     final double width = isLarge ? 200.0 : 130.0;
     final double listHeight = isLarge ? 350.0 : 230.0;
@@ -106,7 +107,7 @@ class _SearchResultSectionState extends ConsumerState<SearchResultSection> {
                 final uniqueTag =
                     'search_${widget.providerId}_${item.url}_$rIndex';
 
-                return TvCardsWrapper(
+                return CardsWrapper(
                   onTap: () => context.push('/details', extra: item),
                   borderRadius: BorderRadius.circular(12),
                   child: SizedBox(

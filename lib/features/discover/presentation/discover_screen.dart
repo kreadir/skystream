@@ -1,15 +1,16 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../shared/widgets/cards_wrapper.dart';
 import '../data/tmdb_provider.dart';
-import 'view_all_screen.dart'; // Import ViewAllScreen/Category
+import 'view_all_screen.dart';
 import 'widgets/discover_carousel.dart';
 import 'widgets/media_horizontal_list.dart';
 import 'widgets/unified_filter_dialog.dart';
-import '../../../shared/widgets/tv_cards_wrapper.dart'; // Import TvCardsWrapper
 import '../data/filter_provider.dart';
 import 'delegates/discover_search_delegate.dart';
 import '../../../../shared/widgets/shimmer_placeholder.dart';
+import '../../../../core/models/tmdb_item.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -109,7 +110,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 8.0),
-                child: TvCardsWrapper(
+                child: CardsWrapper(
                   onTap: () {
                     showDialog(
                       context: context,
@@ -148,7 +149,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
 
               Padding(
                 padding: const EdgeInsets.only(right: 16.0),
-                child: TvCardsWrapper(
+                child: CardsWrapper(
                   onTap: () {
                     showSearch(
                       context: context,
@@ -264,7 +265,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
   }
 
   Widget _buildSection(
-    AsyncValue<List<Map<String, dynamic>>> asyncValue,
+    AsyncValue<List<TmdbItem>> asyncValue,
     String title,
     ViewAllCategory category,
   ) {
