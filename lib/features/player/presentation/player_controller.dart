@@ -63,9 +63,9 @@ class PlayerState {
   }) {
     return PlayerState(
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage, // nullable
+      errorMessage: errorMessage ?? this.errorMessage,
       playerTitle: playerTitle ?? this.playerTitle,
-      streamSubtitle: streamSubtitle, // nullable
+      streamSubtitle: streamSubtitle ?? this.streamSubtitle,
       streams: streams ?? this.streams,
       currentStreamIndex: currentStreamIndex ?? this.currentStreamIndex,
       currentStream: currentStream ?? this.currentStream,

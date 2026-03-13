@@ -65,9 +65,9 @@ class JsBasedProvider extends SkyStreamProvider {
 
     if (script != null) {
       // 1. Ensure manifest is populated BEFORE evaluation
-      if (_initialManifest != null && _initialManifest!.isNotEmpty) {
-        _manifest = Map<String, dynamic>.from(_initialManifest!);
-        if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
+      if (_initialManifest != null && _initialManifest.isNotEmpty) {
+        _manifest = Map<String, dynamic>.from(_initialManifest);
+        if (_customBaseUrl != null && _customBaseUrl.isNotEmpty) {
           _manifest['baseUrl'] = _customBaseUrl;
         }
       }
@@ -76,7 +76,8 @@ class JsBasedProvider extends SkyStreamProvider {
 
       // 2. Enforce IIFE wrapping for namespaced execution (Plugin v2 Standard)
       if (_namespace != null) {
-        script = """
+        script =
+            """
           (function() {
               // Standard v2: Every plugin strictly uses the injected manifest.
               const manifest = $manifestJson;
@@ -105,10 +106,14 @@ class JsBasedProvider extends SkyStreamProvider {
 
       try {
         await _jsEngine.loadScript(script);
-        debugPrint("JsBasedProvider: Loaded namespaced script for $_packageName");
+        debugPrint(
+          "JsBasedProvider: Loaded namespaced script for $_packageName",
+        );
       } catch (e) {
         _error = "Eval: $e";
-        debugPrint("JsBasedProvider: CRITICAL - Eval failed for $_packageName: $e");
+        debugPrint(
+          "JsBasedProvider: CRITICAL - Eval failed for $_packageName: $e",
+        );
       }
     } else {
       _error = "Not found";
@@ -212,8 +217,7 @@ class JsBasedProvider extends SkyStreamProvider {
           if (value is List) {
             map[key.toString()] = value
                 .map(
-                  (e) =>
-                      MultimediaItem.fromJson(Map<String, dynamic>.from(e)),
+                  (e) => MultimediaItem.fromJson(Map<String, dynamic>.from(e)),
                 )
                 .toList();
           }
@@ -270,11 +274,7 @@ class JsBasedProvider extends SkyStreamProvider {
       rethrow;
     } catch (e) {
       if (kDebugMode) debugPrint("Error in getDetails: $e");
-      return MultimediaItem(
-        title: "Error: $e",
-        url: url,
-        posterUrl: "",
-      );
+      return MultimediaItem(title: "Error: $e", url: url, posterUrl: "");
     }
   }
 

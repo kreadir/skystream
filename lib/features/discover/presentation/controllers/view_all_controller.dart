@@ -44,6 +44,8 @@ class ViewAllController extends Notifier<ViewAllState> {
 
   @override
   ViewAllState build() {
+    ref.watch(languageProvider);
+    ref.watch(discoverFilterProvider);
     return ViewAllState(category: categoryArg);
   }
 
@@ -62,7 +64,8 @@ class ViewAllController extends Notifier<ViewAllState> {
       final tmdbService = ref.read(tmdbServiceProvider);
       final lang = ref.read(languageProvider);
       final filters = ref.read(discoverFilterProvider);
-      final nextPage = state.page + 1;
+      final bool isEmpty = state.items.isEmpty;
+      final nextPage = isEmpty ? 1 : state.page + 1;
       List<TmdbItem> newItems = [];
 
       switch (categoryArg) {

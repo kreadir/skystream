@@ -37,8 +37,13 @@ class JsEngineService {
   final CookieJar _cookieJar = CookieJar(); // RAM-based cookie jar
   final ExtensionRepository _storage;
 
+  // Persistent callback registry to prevent memory leaks from dynamic listeners
+  final Map<String, Completer<dynamic>> _pendingCallbacks = {};
+
   JsEngineService(this._storage, this._dio) {
-    final bool hasCookieManager = _dio.interceptors.any((i) => i is CookieManager);
+    final bool hasCookieManager = _dio.interceptors.any(
+      (i) => i is CookieManager,
+    );
     if (!hasCookieManager) {
       _dio.interceptors.add(CookieManager(_cookieJar));
     }
@@ -49,6 +54,54 @@ class JsEngineService {
   }
 
   void _initPolyfills() {
+    // 1. Persistent Callback Dispatcher (Receiver)
+    _runtime.onMessage('js_dispatch_callback', (dynamic args) {
+      try {
+        Map<String, dynamic> data;
+        if (args is Map) {
+          data = Map<String, dynamic>.from(args);
+        } else {
+          data = jsonDecode(args);
+        }
+
+        final String? id = data['callbackId'];
+        final dynamic result = data['result'];
+        final dynamic error = data['error'];
+
+        if (id != null) {
+          final completer = _pendingCallbacks.remove(id);
+          if (completer != null && !completer.isCompleted) {
+            if (error != null) {
+              completer.completeError(error);
+            } else {
+              completer.complete(result);
+            }
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) debugPrint("[JS Dispatch Error] $e");
+      }
+    });
+
+    // 2. Async Timer Bridge (Receiver)
+    _runtime.onMessage('js_set_timeout', (dynamic args) {
+      try {
+        final Map<String, dynamic> data = args is Map
+            ? Map<String, dynamic>.from(args)
+            : jsonDecode(args);
+        final id = data['id'];
+        final delay = data['delay'] ?? 0;
+
+        Future.delayed(Duration(milliseconds: delay), () {
+          _runtime.evaluate(
+            "if (globalThis.timeout_registry['$id']) { globalThis.timeout_registry['$id'](); }",
+          );
+        });
+      } catch (e) {
+        if (kDebugMode) debugPrint("[JS Timer Bridge Error] $e");
+      }
+    });
+
     // Console Polyfill
     _runtime.onMessage('console_log', (dynamic args) {
       if (kDebugMode) debugPrint("[JS] ${_sanitizeLog(args)}");
@@ -67,10 +120,18 @@ class JsEngineService {
       
       // Legacy log function
       function log(msg) { console.log(msg); }
+
+      // 1. Persistent Callback Dispatcher (JS Sender)
+      globalThis.executeCallback = function(id, result, error) {
+        sendMessage('js_dispatch_callback', JSON.stringify({
+          callbackId: id,
+          result: result,
+          error: error
+        }));
+      };
     """);
 
     // HTTP Polyfill (Dio Bridge)
-    // CRITICAL UPDATE: Support both Promise (await http_get) and Callback (http_get(..., cb))
     _runtime.onMessage('http_request', (dynamic args) async {
       return await _handleHttp(args);
     });
@@ -93,7 +154,6 @@ class JsEngineService {
           req = jsonDecode(args);
         }
 
-        // Dart's base64 requires clean, padded strings without whitespaces
         String normalizeB64(String input) {
           String cleaned = input.replaceAll(RegExp(r'\s+'), '');
           while (cleaned.length % 4 != 0) {
@@ -106,7 +166,6 @@ class JsEngineService {
         final String keyB64 = normalizeB64(req['key']);
         final String ivB64 = normalizeB64(req['iv']);
 
-        // Uses the 'encrypt' package
         final key = encrypt_lib.Key.fromBase64(keyB64);
         final iv = encrypt_lib.IV.fromBase64(ivB64);
         final encrypter = encrypt_lib.Encrypter(
@@ -141,10 +200,9 @@ class JsEngineService {
          if (cb && typeof cb === 'function') {
             promise.then(cb).catch(function(err) { cb({status: 0, body: ""}); });
          }
-         return promise; // Returns object {statusCode, body, headers}
+         return promise;
       }
       
-      // Polyfill for _fetch typically used in some plugin (returns body string)
       async function _fetch(url) {
           var res = await http_get(url, {});
           if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -163,21 +221,42 @@ class JsEngineService {
       }
     """);
 
-    // Timer Polyfill
-    // NOTE: True async timers (delay-based scheduling) cannot be implemented
-    // in this synchronous JS runtime. Callbacks execute immediately.
-    // Extensions that depend on real setTimeout delays may behave unexpectedly.
+    // 2. Timer Polyfill (Bridged)
     _runtime.evaluate("""
-      function setTimeout(callback, delay) {
-         if (delay && delay > 0) {
-            console.warn("setTimeout with delay=" + delay + "ms executes immediately in SkyStream runtime");
-         }
-         try { callback(); } catch(e) { console.error(e); }
-         return 1;
-      }
-      function clearTimeout(id) {}
-      function setInterval(cb, d) { return 1; }
-      function clearInterval(id) {}
+      globalThis.timeout_registry = {};
+
+    function setTimeout(callback, delay) {
+      var id = "t_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+      globalThis.timeout_registry[id] = function() {
+        if (!globalThis.timeout_registry[id]) return;
+        delete globalThis.timeout_registry[id];
+        try { callback(); } catch (e) { console.error('Timeout error:', e); }
+      };
+      sendMessage('js_set_timeout', JSON.stringify({ id: id, delay: delay || 0 }));
+      return id;
+    }
+
+    function clearTimeout(id) {
+      if (id) delete globalThis.timeout_registry[id];
+    }
+
+    function setInterval(cb, d) {
+      var id = "i_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+      var wrapper = function() {
+        if (!globalThis.timeout_registry[id]) return;
+        try { cb(); } catch (e) { console.error('Interval error:', e); }
+        if (globalThis.timeout_registry[id]) {
+          sendMessage('js_set_timeout', JSON.stringify({ id: id, delay: d || 0 }));
+        }
+      };
+      globalThis.timeout_registry[id] = wrapper;
+      sendMessage('js_set_timeout', JSON.stringify({ id: id, delay: d || 0 }));
+      return id;
+    }
+
+    function clearInterval(id) {
+      clearTimeout(id);
+    }
 
       // Storage Polyfill
       function setPreference(key, value) {
@@ -276,7 +355,6 @@ class JsEngineService {
 
       debugPrint("[JS HTTP] Back $url ($requestId) -> ${response.statusCode}");
 
-      // --- Cloudflare Bypass ---
       final responseHeaders = response.headers.map.map(
         (k, v) => MapEntry(k, v.join(',')),
       );
@@ -287,20 +365,8 @@ class JsEngineService {
         responseHeaders,
         responseBody,
       )) {
-        if (kDebugMode) {
-          debugPrint(
-            '[JS HTTP] CF challenge detected for $url, solving via WebView...',
-          );
-        }
-        // Solve the challenge AND extract page HTML directly from the WebView.
-        // This avoids TLS fingerprinting issues that cause Dio retries to fail.
         final cfResult = await CloudflareBypass.instance.solveAndFetch(url);
         if (cfResult != null) {
-          if (kDebugMode) {
-            debugPrint(
-              '[JS HTTP] CF solved, got ${cfResult.body.length} chars from WebView',
-            );
-          }
           return {
             'code': cfResult.statusCode,
             'statusCode': cfResult.statusCode,
@@ -312,11 +378,10 @@ class JsEngineService {
         }
       }
 
-      // CloudStream Callback plugin expect 'status' and 'body'.
       return {
         'code': response.statusCode,
         'statusCode': response.statusCode,
-        'status': response.statusCode, // ALIAS for plugins like Ringz
+        'status': response.statusCode,
         'body': responseBody,
         'headers': responseHeaders,
         'finalUrl': response.realUri.toString(),
@@ -363,7 +428,6 @@ class JsEngineService {
     }
   }
 
-  /// Unified Invoke: Handles Sync Return, Promise Return, AND Callback Injection
   Future<dynamic> invokeAsync(
     String functionName, [
     List<dynamic>? args,
@@ -375,76 +439,18 @@ class JsEngineService {
 
     final callbackId = "cb_${DateTime.now().microsecondsSinceEpoch}";
     final completer = Completer<dynamic>();
-
-    // Listen for the result (called via cb or sendMessage)
-    // Use a boolean to ensure we only resolve once (since we might hook both return and cb)
-    bool isResolved = false;
-
-    void resolve(dynamic result) {
-      if (isResolved) return;
-      isResolved = true;
-
-      // Unpack standard v2 PluginResult if present
-      // We skip this check for getManifest which returns metadata directly for speed.
-      bool isManifestRequest = functionName.endsWith("getManifest");
-
-      dynamic unwrapped;
-      if (result is String) {
-        if (result == "__dart_void__") {
-          unwrapped = null;
-        } else {
-          try {
-            unwrapped = jsonDecode(result);
-          } catch (e) {
-            unwrapped = result;
-          }
-        }
-      } else if (result is Map && result.containsKey('__dart_error__')) {
-        completer.completeError(result['__dart_error__']);
-        return;
-      } else {
-        unwrapped = result;
-      }
-
-      if (!isManifestRequest && unwrapped is Map) {
-        final success = unwrapped['success'] ?? false;
-        if (!success) {
-          final code = unwrapped['errorCode'] ?? 'UNKNOWN_ERROR';
-          final message = unwrapped['message'] ?? 'An unexpected plugin error occurred';
-          completer.completeError(JsPluginException(code, message));
-          return;
-        }
-        // Success case: return the nested data
-        completer.complete(unwrapped['data']);
-      } else {
-        completer.complete(unwrapped);
-      }
-    }
-
-    _runtime.onMessage(callbackId, (dynamic result) => resolve(result));
-
-    // The Wrapper:
-    // Defines a callback function `dart_cb` that sends message.
-    // Calls the target function with (...args, dart_cb).
-    // Checks the RETURN value:
-    //    - If Promise: .then(dart_cb)
-    //    - If Value (!= undefined): dart_cb(value)
-    //    - If undefined: Assume the function will call dart_cb() later (Callback pattern).
+    _pendingCallbacks[callbackId] = completer;
 
     final evalWrapper =
         """
        (function() {
           try {
              var dart_cb = function(res) {
-                 sendMessage('$callbackId', res !== undefined ? JSON.stringify(res) : "__dart_void__");
+                 executeCallback('$callbackId', res !== undefined ? res : "__dart_void__", null);
              };
              
-             // Dynamic call with injected callback
-             // We construct the call manually to inject 'dart_cb'
              var fn = globalThis['$functionName'];
              if (typeof fn !== 'function') {
-                 // Try looking in global scope directly if not explicit property (unlikely)
-                 // Or maybe namespaced? user usually passes 'StreamFlix.getHome'
                  var parts = '$functionName'.split('.');
                  var target = globalThis;
                  for(var i=0; i<parts.length; i++) {
@@ -455,38 +461,26 @@ class JsEngineService {
              
              if (typeof fn !== 'function') throw "Function $functionName not found";
 
-             // Prepare args
              var args = [$argsStr];
-             
-             // Append callback to args
              args.push(dart_cb);
              
              var res = fn.apply(null, args);
              
-             // Handle Return Value (Hybrid support)
              if (res && (typeof res.then === 'function' || res instanceof Promise)) {
-                // It returned a Promise (ignore the callback we passed? or support both?)
                 res.then(dart_cb).catch(function(err) {
-                   sendMessage('$callbackId', JSON.stringify({'__dart_error__': err.toString()}));
+                   executeCallback('$callbackId', null, err.toString());
                 });
              } else if (res !== undefined) {
-                // It returned a sync value (e.g. getManifest)
-                // Treat as immediate result
                 dart_cb(res);
              }
-             // If res is undefined, we assume it used the 'dart_cb' we passed.
-             
           } catch(e) {
-             sendMessage('$callbackId', JSON.stringify({'__dart_error__': e.toString()}));
+             executeCallback('$callbackId', null, e.toString());
           }
        })();
      """;
 
     _runtime.evaluate(evalWrapper);
 
-    // Complete only via the onMessage callback above. The JS runtime may require
-    // pumping to run promise callbacks; use a timer to pump periodically
-    // instead of a blocking loop so the UI stays responsive.
     Timer? pumpTimer;
     pumpTimer = Timer.periodic(const Duration(milliseconds: 50), (_) {
       if (completer.isCompleted) {
@@ -497,12 +491,44 @@ class JsEngineService {
     });
 
     try {
-      return await completer.future.timeout(
+      final result = await completer.future.timeout(
         const Duration(seconds: 30),
         onTimeout: () {
+          _pendingCallbacks.remove(callbackId);
           throw TimeoutException('Timeout executing $functionName');
         },
       );
+
+      // --- Post-processing (Success) ---
+      final bool isManifestRequest = functionName.endsWith("getManifest");
+      dynamic unwrapped;
+
+      if (result is String) {
+        if (result == "__dart_void__") {
+          unwrapped = null;
+        } else {
+          try {
+            unwrapped = jsonDecode(result);
+          } catch (e) {
+            unwrapped = result;
+          }
+        }
+      } else {
+        unwrapped = result;
+      }
+
+      if (!isManifestRequest && unwrapped is Map) {
+        final success = unwrapped['success'] ?? false;
+        if (!success) {
+          final code = unwrapped['errorCode'] ?? 'UNKNOWN_ERROR';
+          final message =
+              unwrapped['message'] ?? 'An unexpected plugin error occurred';
+          throw JsPluginException(code, message);
+        }
+        return unwrapped['data'];
+      } else {
+        return unwrapped;
+      }
     } finally {
       pumpTimer.cancel();
     }
@@ -514,18 +540,17 @@ class JsEngineService {
 
   void dispose() {
     _runtime.dispose();
+    _pendingCallbacks.clear();
   }
 
   String _sanitizeLog(dynamic args) {
     final String msg = args.toString();
-    // Detect HTML-like content (checking for common tags/doctypes)
     if (msg.length > 500 &&
         (msg.toLowerCase().contains("<!doctype html>") ||
             msg.toLowerCase().contains("<html") ||
             msg.contains("</div>"))) {
       return "[HTML Content Omitted - Length: ${msg.length}]";
     }
-    // Truncate very long logs
     if (msg.length > 3000) {
       return "${msg.substring(0, 3000)}... [Truncated]";
     }

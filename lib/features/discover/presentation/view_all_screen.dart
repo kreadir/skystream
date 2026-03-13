@@ -92,6 +92,12 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
     final crossAxisCount = (screenWidth / maxExtent).ceil();
     const childAspectRatio = 0.55;
 
+    ref.listen(viewAllControllerProvider(widget.category), (previous, next) {
+      if (next.items.isEmpty && !next.isLoading && next.page == 1) {
+        _checkInitialFill();
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text(

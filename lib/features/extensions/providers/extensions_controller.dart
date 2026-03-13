@@ -73,7 +73,7 @@ class ExtensionsController extends Notifier<ExtensionsState> {
     state = state.copyWith(isLoading: true);
     try {
       // 1. Load Installed Plugins
-      var plugins = await _storageService.listInstalledPlugins();
+      final plugins = await _storageService.listInstalledPlugins();
       if (ref.read(settingsRepositoryProvider).getDevLoadAssets()) {
         final assetPlugins = await _loadAssetPlugins();
         plugins.addAll(assetPlugins);
@@ -82,7 +82,7 @@ class ExtensionsController extends Notifier<ExtensionsState> {
       // 2. Load Repositories
       final prefs = await SharedPreferences.getInstance();
       final urls = prefs.getStringList('extension_repo_urls') ?? [];
-      
+
       final repos = <ExtensionRepository>[];
       final available = <String, List<ExtensionPlugin>>{};
 
@@ -150,7 +150,7 @@ class ExtensionsController extends Notifier<ExtensionsState> {
         final content = await rootBundle.loadString(configFile);
         // The .js file is expected to have the same name as the .json file
         final jsFile = configFile.replaceFirst('.json', '.js');
-        
+
         final plugin = _parseJsonManifest(content, jsFile);
         if (plugin != null) {
           plugins.add(plugin);
@@ -174,7 +174,8 @@ class ExtensionsController extends Notifier<ExtensionsState> {
 
       // Apply .debug suffix for asset plugins for identification
       if (jsFilePath.startsWith('assets/')) {
-        final String currentPkg = (json['packageName'] ?? json['id']).toString();
+        final String currentPkg = (json['packageName'] ?? json['id'])
+            .toString();
         if (!currentPkg.endsWith('.debug')) {
           json['packageName'] = "$currentPkg.debug";
         }
@@ -360,7 +361,9 @@ class ExtensionsController extends Notifier<ExtensionsState> {
 
       // Final State Update to remove deleted plugin from 'installed' list
       final newInstalled = state.installedPlugins
-          .where((p) => !pluginsToDelete.any((d) => d.packageName == p.packageName))
+          .where(
+            (p) => !pluginsToDelete.any((d) => d.packageName == p.packageName),
+          )
           .toList();
       state = state.copyWith(installedPlugins: newInstalled);
     } catch (e) {
@@ -384,8 +387,9 @@ class ExtensionsController extends Notifier<ExtensionsState> {
         await loadInstalledPlugins();
 
         // Clear this plugin from availableUpdates so the green Update button disappears
-        final newUpdates = Map<String, ExtensionPlugin>.from(state.availableUpdates)
-          ..remove(plugin.packageName);
+        final newUpdates = Map<String, ExtensionPlugin>.from(
+          state.availableUpdates,
+        )..remove(plugin.packageName);
         state = state.copyWith(availableUpdates: newUpdates);
 
         if (await savedFile.exists()) {

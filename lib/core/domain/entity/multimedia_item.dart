@@ -64,6 +64,7 @@ class MultimediaItem {
       case 'movie':
         return MultimediaContentType.movie;
       case 'series':
+      case 'tvseries':
       case 'tv':
         return MultimediaContentType.series;
       case 'anime':
@@ -127,7 +128,10 @@ class MultimediaItem {
 
   @override
   int get hashCode =>
-      url.hashCode ^ title.hashCode ^ posterUrl.hashCode ^ (provider?.hashCode ?? 0);
+      url.hashCode ^
+      title.hashCode ^
+      posterUrl.hashCode ^
+      (provider?.hashCode ?? 0);
 }
 
 class Episode {
