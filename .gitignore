@@ -83,3 +83,4 @@ packages/flutter_torrent_server/go_src/.gradle/
 plugins/
 keystore/
 skystream-plugins/
+skystream-tools/
