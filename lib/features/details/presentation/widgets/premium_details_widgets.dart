@@ -32,8 +32,8 @@ class MetadataBar extends StatelessWidget {
               _buildInfoText(context, item.score!.toStringAsFixed(1)),
             ],
           ),
-        if (item.vpnStatus != VpnStatus.none)
-           _buildVpnBadge(context, item.vpnStatus),
+        if (item.playbackPolicy != null && item.playbackPolicy != "none")
+           _buildPlaybackBadge(context, item.playbackPolicy!),
          if (item.isAdult)
            _buildBorderedInfo(context, "18+", color: Colors.redAccent),
       ],
@@ -67,9 +67,35 @@ class MetadataBar extends StatelessWidget {
     );
   }
 
-  Widget _buildVpnBadge(BuildContext context, VpnStatus status) {
-    final color = status == VpnStatus.mightBeNeeded ? Colors.orange : Colors.blue;
-    final label = status == VpnStatus.mightBeNeeded ? "VPN Possible" : "Torrent (VPN Rec)";
+  Widget _buildPlaybackBadge(BuildContext context, String policy) {
+    Color color = Theme.of(context).colorScheme.secondary;
+    String label = policy;
+    IconData icon = Icons.play_circle_outline_rounded;
+
+    final lowerPolicy = policy.toLowerCase();
+
+    if (lowerPolicy.contains('needed') || lowerPolicy.contains('might')) {
+      color = Colors.orange;
+      label = "VPN Possible";
+      icon = Icons.vpn_lock_rounded;
+    } else if (lowerPolicy.contains('torrent')) {
+      color = Colors.blue;
+      label = "Torrent (VPN Rec)";
+      icon = Icons.vpn_lock_rounded;
+    } else if (lowerPolicy.contains('external')) {
+      color = Colors.purpleAccent;
+      label = "External Only";
+      icon = Icons.launch_rounded;
+    } else if (lowerPolicy.contains('internal')) {
+      color = Colors.teal;
+      label = "Internal Only";
+      icon = Icons.verified_user_rounded;
+    } else {
+      // Fallback for custom strings: use a neutral color and basic play icon
+      color = Theme.of(context).colorScheme.primary;
+      // label is already 'policy'
+      icon = Icons.info_outline_rounded;
+    }
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -81,7 +107,7 @@ class MetadataBar extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.vpn_lock_rounded, size: 12, color: color),
+          Icon(icon, size: 12, color: color),
           const SizedBox(width: 4),
           Text(
             label,

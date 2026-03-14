@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
-import '../../../../core/extensions/base_provider.dart';
+import '../../../../core/domain/entity/multimedia_item.dart';
 import '../../../../core/models/torrent_status.dart';
 import '../../../../core/utils/layout_constants.dart';
 import 'player_utils.dart';

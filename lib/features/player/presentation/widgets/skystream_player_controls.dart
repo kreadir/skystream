@@ -7,7 +7,7 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import '../../../../core/extensions/base_provider.dart';
+import '../../../../core/domain/entity/multimedia_item.dart';
 import '../../../../core/models/torrent_status.dart';
 import '../components/torrent_info_widget.dart';
 import '../../../settings/presentation/player_settings_provider.dart';

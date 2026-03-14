@@ -2,7 +2,6 @@ import 'package:html_unescape/html_unescape.dart';
 
 enum MultimediaContentType { movie, series, anime, livestream, other }
 
-enum VpnStatus { none, mightBeNeeded, torrent }
 
 enum ShowStatus { completed, ongoing, upcoming }
 
@@ -101,9 +100,10 @@ class MultimediaItem {
   final List<Trailer>? trailers;
   final List<MultimediaItem>? recommendations;
   final Map<String, String>? syncData;
-  final VpnStatus vpnStatus;
+  final String? playbackPolicy;
   final bool isAdult;
   final NextAiring? nextAiring;
+  final List<StreamResult>? streams;
 
   MultimediaItem({
     required this.title,
@@ -126,9 +126,10 @@ class MultimediaItem {
     this.trailers,
     this.recommendations,
     this.syncData,
-    this.vpnStatus = VpnStatus.none,
+    this.playbackPolicy,
     this.isAdult = false,
     this.nextAiring,
+    this.streams,
   });
 
   factory MultimediaItem.fromJson(Map<String, dynamic> json) {
@@ -151,6 +152,13 @@ class MultimediaItem {
           ? (json['episodes'] as List)
                 .map<Episode>(
                   (e) => Episode.fromJson(Map<String, dynamic>.from(e)),
+                )
+                .toList()
+          : null,
+      streams: json['streams'] != null
+          ? (json['streams'] as List)
+                .map<StreamResult>(
+                  (s) => StreamResult.fromJson(Map<String, dynamic>.from(s)),
                 )
                 .toList()
           : null,
@@ -186,7 +194,7 @@ class MultimediaItem {
       syncData: json['syncData'] != null
           ? Map<String, String>.from(json['syncData'])
           : null,
-      vpnStatus: _parseVpnStatus(json['vpnStatus']),
+      playbackPolicy: json['playbackPolicy'] ?? json['vpnStatus'],
       isAdult: json['isAdult'] ?? false,
       nextAiring: json['nextAiring'] != null
           ? NextAiring.fromJson(Map<String, dynamic>.from(json['nextAiring']))
@@ -203,14 +211,6 @@ class MultimediaItem {
     return ShowStatus.ongoing;
   }
 
-  static VpnStatus _parseVpnStatus(dynamic raw) {
-    if (raw == null) return VpnStatus.none;
-    final str = raw.toString().toLowerCase();
-    if (str.contains('needed') || str.contains('might'))
-      return VpnStatus.mightBeNeeded;
-    if (str.contains('torrent')) return VpnStatus.torrent;
-    return VpnStatus.none;
-  }
 
   static MultimediaContentType parseContentType(String? raw) {
     if (raw == null) return MultimediaContentType.movie;
@@ -253,7 +253,7 @@ class MultimediaItem {
     List<Trailer>? trailers,
     List<MultimediaItem>? recommendations,
     Map<String, String>? syncData,
-    VpnStatus? vpnStatus,
+    String? playbackPolicy,
     bool? isAdult,
     NextAiring? nextAiring,
   }) {
@@ -278,9 +278,10 @@ class MultimediaItem {
       trailers: trailers ?? this.trailers,
       recommendations: recommendations ?? this.recommendations,
       syncData: syncData ?? this.syncData,
-      vpnStatus: vpnStatus ?? this.vpnStatus,
+      playbackPolicy: playbackPolicy ?? this.playbackPolicy,
       isAdult: isAdult ?? this.isAdult,
       nextAiring: nextAiring ?? this.nextAiring,
+      streams: streams ?? this.streams,
     );
   }
 
@@ -306,9 +307,10 @@ class MultimediaItem {
       'trailers': trailers?.map((t) => t.toJson()).toList(),
       'recommendations': recommendations?.map((r) => r.toJson()).toList(),
       'syncData': syncData,
-      'vpnStatus': vpnStatus.name,
+      'playbackPolicy': playbackPolicy,
       'isAdult': isAdult,
       'nextAiring': nextAiring?.toJson(),
+      'streams': streams?.map((s) => s.toJson()).toList(),
     };
   }
 
@@ -345,6 +347,8 @@ class Episode {
   final int? runtime;
   final String? airDate;
   final DubStatus dubStatus;
+  final String? playbackPolicy;
+  final List<StreamResult>? streams;
 
   Episode({
     required this.name,
@@ -358,6 +362,8 @@ class Episode {
     this.runtime,
     this.airDate,
     this.dubStatus = DubStatus.none,
+    this.playbackPolicy,
+    this.streams,
   });
 
   factory Episode.fromJson(Map<String, dynamic> json) {
@@ -378,6 +384,14 @@ class Episode {
       runtime: json['runtime'] ?? json['duration'],
       airDate: json['airDate'],
       dubStatus: _parseDubStatus(json['dubStatus']),
+      playbackPolicy: json['playbackPolicy'] ?? json['vpnStatus'],
+      streams: json['streams'] != null
+          ? (json['streams'] as List)
+                .map<StreamResult>(
+                  (s) => StreamResult.fromJson(Map<String, dynamic>.from(s)),
+                )
+                .toList()
+          : null,
     );
   }
 
@@ -402,6 +416,8 @@ class Episode {
       'runtime': runtime,
       'airDate': airDate,
       'dubStatus': dubStatus.name,
+      'playbackPolicy': playbackPolicy,
+      'streams': streams?.map((s) => s.toJson()).toList(),
     };
   }
 
@@ -416,4 +432,78 @@ class Episode {
 
   @override
   int get hashCode => url.hashCode ^ season.hashCode ^ episode.hashCode;
+}
+
+class StreamResult {
+  final String url;
+  final String source;
+  final Map<String, String>? headers;
+  final List<SubtitleFile>? subtitles;
+  final String? drmKid;
+  final String? drmKey;
+  final String? licenseUrl;
+
+  const StreamResult({
+    required this.url,
+    required this.source,
+    this.headers,
+    this.subtitles,
+    this.drmKid,
+    this.drmKey,
+    this.licenseUrl,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'source': source,
+        'headers': headers,
+        'subtitles': subtitles?.map((x) => x.toJson()).toList(),
+        'drmKid': drmKid,
+        'drmKey': drmKey,
+        'licenseUrl': licenseUrl,
+      };
+
+  factory StreamResult.fromJson(Map<String, dynamic> json) {
+    return StreamResult(
+      url: json['url'] ?? '',
+      source: json['source'] ?? 'Unknown',
+      headers: json['headers'] != null
+          ? Map<String, String>.from(json['headers'])
+          : null,
+      subtitles: json['subtitles'] != null
+          ? (json['subtitles'] as List)
+              .map((x) => SubtitleFile.fromJson(Map<String, dynamic>.from(x)))
+              .toList()
+          : null,
+      drmKid: json['drmKid'],
+      drmKey: json['drmKey'],
+      licenseUrl: json['licenseUrl'],
+    );
+  }
+}
+
+class SubtitleFile {
+  final String url;
+  final String label;
+  final String? lang;
+
+  SubtitleFile({
+    required this.url,
+    required this.label,
+    this.lang,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'label': label,
+        'lang': lang,
+      };
+
+  factory SubtitleFile.fromJson(Map<String, dynamic> json) {
+    return SubtitleFile(
+      url: json['url'] ?? '',
+      label: json['label'] ?? 'Unknown',
+      lang: json['lang'],
+    );
+  }
 }

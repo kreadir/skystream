@@ -414,8 +414,10 @@ class JsEngineService {
           Object.assign(this, {
             type: 'movie',
             status: 'ongoing',
-            vpnStatus: 'none',
+            playbackPolicy: 'none', // 'none' | 'mightBeNeeded' | 'torrent' | 'externalOnly' | 'internalOnly'
             isAdult: false,
+            streams: [], // Optional: for Instant Load
+            syncData: {}, // Optional: for external sync data
             ...params
           });
         }
@@ -427,15 +429,17 @@ class JsEngineService {
             season: 0,
             episode: 0,
             dubStatus: 'none',
+            playbackPolicy: 'none',
+            streams: [], // Optional: for Instant Load
             ...params
           });
         }
       }
 
       class StreamResult {
-        constructor({ url, source, quality, headers, subtitles, drmKid, drmKey, licenseUrl }) {
+        constructor({ url, source, headers, subtitles, drmKid, drmKey, licenseUrl }) {
           this.url = url;
-          this.source = source || quality || 'Auto';
+          this.source = source || 'Auto';
           this.headers = headers;
           this.subtitles = subtitles;
           this.drmKid = drmKid;
