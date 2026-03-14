@@ -200,22 +200,19 @@ class JsBasedProvider extends SkyStreamProvider {
     switch (raw.toLowerCase()) {
       case 'movie':
       case 'movies':
-      case 'tvtype.movie':
         return ProviderType.movie;
       case 'tv':
       case 'series':
       case 'tvseries':
       case 'tvshow':
       case 'tvshows':
-      case 'tvtype.tvseries':
         return ProviderType.series;
       case 'anime':
-      case 'tvtype.anime':
         return ProviderType.anime;
       case 'livetv':
       case 'iptv':
-      case 'tvtype.livetv':
-        return ProviderType.iptv;
+      case 'livestream':
+        return ProviderType.livestream;
       default:
         return ProviderType.other;
     }
