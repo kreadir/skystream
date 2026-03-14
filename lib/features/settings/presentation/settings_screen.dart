@@ -147,6 +147,22 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   SettingsTile(
+                    icon: Icons.high_quality_rounded,
+                    title: 'Hardware Decoding',
+                    subtitle: playerSettings.hardwareDecoding
+                        ? 'Enabled (Recommended)'
+                        : 'Disabled',
+                    trailing: Switch(
+                      value: playerSettings.hardwareDecoding,
+                      onChanged: (val) => ref
+                          .read(playerSettingsProvider.notifier)
+                          .setHardwareDecoding(val),
+                    ),
+                    onTap: () => ref
+                        .read(playerSettingsProvider.notifier)
+                        .setHardwareDecoding(!playerSettings.hardwareDecoding),
+                  ),
+                  SettingsTile(
                     icon: Icons.subtitles_rounded,
                     title: 'Subtitles',
                     subtitle: 'Customize appearance',

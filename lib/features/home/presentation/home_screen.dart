@@ -411,7 +411,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     final scrollController = ScrollController();
     final chipsScrollController = ScrollController();
-    final filterNotifier = ValueNotifier<ProviderType?>(null);
 
     showDialog(
       context: context,
@@ -425,9 +424,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Filter Chips
-                ValueListenableBuilder<ProviderType?>(
-                  valueListenable: filterNotifier,
-                  builder: (context, currentFilter, _) {
+                Consumer(
+                  builder: (context, ref, _) {
+                    final currentFilter = ref.watch(homeFilterProvider);
                     return DesktopScrollWrapper(
                       controller: chipsScrollController,
                       isCompact: true,
@@ -443,7 +442,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   MaterialTapTargetSize.shrinkWrap,
                               label: const Text('All'),
                               selected: currentFilter == null,
-                              onSelected: (_) => filterNotifier.value = null,
+                              onSelected: (_) => ref
+                                  .read(homeFilterProvider.notifier)
+                                  .setFilter(null),
                             ),
                             const SizedBox(width: 8),
                             ...ProviderType.values
@@ -460,8 +461,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                             type.name.substring(1),
                                       ),
                                       selected: currentFilter == type,
-                                      onSelected: (_) =>
-                                          filterNotifier.value = type,
+                                      onSelected: (_) => ref
+                                          .read(homeFilterProvider.notifier)
+                                          .setFilter(type),
                                     ),
                                   );
                                 }),
@@ -473,9 +475,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
                 const Divider(),
                 Flexible(
-                  child: ValueListenableBuilder<ProviderType?>(
-                    valueListenable: filterNotifier,
-                    builder: (context, filter, _) {
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final filter = ref.watch(homeFilterProvider);
                       final filteredProviders = filter == null
                           ? providers
                           : providers
@@ -565,7 +567,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       },
     ).then((_) {
       scrollController.dispose();
-      filterNotifier.dispose();
     });
   }
 }

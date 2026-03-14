@@ -130,6 +130,16 @@ class StorageService {
     return id;
   }
 
+  // --- Home Category Persistence ---
+
+  Future<void> setHomeCategory(String? category) async {
+    await _settingsBox.put('home_category_filter', category);
+  }
+
+  String? getHomeCategory() {
+    return _settingsBox.get('home_category_filter') as String?;
+  }
+
   // --- Extension Persistence ---
 
   Future<void> setExtensionData(String key, String? value) async {

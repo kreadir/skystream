@@ -14,6 +14,7 @@ import '../../../../core/extensions/extension_manager.dart';
 import '../../../../core/extensions/providers.dart';
 import '../../../../core/models/torrent_status.dart';
 import '../../library/presentation/history_provider.dart';
+import '../../settings/presentation/player_settings_provider.dart';
 
 class PlayerState {
   final bool isLoading;
@@ -690,17 +691,18 @@ class PlayerController extends Notifier<PlayerState> {
         await native.setProperty('referrer', lowerHeaders['referer']!);
       }
 
-      // 1. Performance tuning for network streams
-      // Fixes 1-2s stuttering by buffering ahead, but relies on default readahead logic
-      // so we don't accidentally stall HLS live streams that have short playlists.
+      // 0. Hardware decoding preference
+      final settings = ref.read(playerSettingsProvider).asData?.value;
+      if (settings?.hardwareDecoding ?? true) {
+        await native.setProperty('hwdec', 'auto');
+      } else {
+        await native.setProperty('hwdec', 'no');
+      }
+
+      // 1. Performance tuning & Anti-Looping
       await native.setProperty('cache', 'yes');
       await native.setProperty('demuxer-max-bytes', '500MiB');
       await native.setProperty('demuxer-max-back-bytes', '50MiB');
-
-      // Target a safe 15 seconds of read-ahead buffer.
-      // This is large enough to absorb 4K chunk download latency, but
-      // strictly smaller than the typical 30-second HLS live edge so it doesn't stall.
-      await native.setProperty('demuxer-readahead-secs', '15');
 
       // 2. Resolve ClearKey Hex Keys
       String? keyHex = stream.drmKey;

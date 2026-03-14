@@ -13,6 +13,7 @@ class PlayerSettings {
   final double subtitleSize;
   final int subtitleColor;
   final int subtitleBackgroundColor;
+  final bool hardwareDecoding;
   final String?
       preferredPlayer; // null = internal, 'vlc' / 'mpv' etc. = external
 
@@ -26,6 +27,7 @@ class PlayerSettings {
     this.subtitleSize = 22.0,
     this.subtitleColor = 0xFFFFFFFF, // White
     this.subtitleBackgroundColor = 0x00000000, // Transparent
+    this.hardwareDecoding = true,
     this.preferredPlayer,
   });
 
@@ -39,6 +41,7 @@ class PlayerSettings {
     double? subtitleSize,
     int? subtitleColor,
     int? subtitleBackgroundColor,
+    bool? hardwareDecoding,
     String? preferredPlayer,
     bool clearPreferredPlayer = false,
   }) {
@@ -53,6 +56,7 @@ class PlayerSettings {
       subtitleColor: subtitleColor ?? this.subtitleColor,
       subtitleBackgroundColor:
           subtitleBackgroundColor ?? this.subtitleBackgroundColor,
+      hardwareDecoding: hardwareDecoding ?? this.hardwareDecoding,
       preferredPlayer: clearPreferredPlayer
           ? null
           : (preferredPlayer ?? this.preferredPlayer),
@@ -76,6 +80,7 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
     final subBg = storage.getPlayerSetting<int>('player_sub_bg', defaultValue: 0x00000000) ?? 0x00000000;
     final prefPlayer = storage.getPlayerSetting<String>('player_preferred');
     final swipeSeek = storage.getPlayerSetting<bool>('player_swipe_seek', defaultValue: true) ?? true;
+    final hwDec = storage.getPlayerSetting<bool>('player_hw_dec', defaultValue: true) ?? true;
 
     return PlayerSettings(
       leftGesture: _parse(l),
@@ -87,6 +92,7 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
       subtitleSize: subSize,
       subtitleColor: subColor,
       subtitleBackgroundColor: subBg,
+      hardwareDecoding: hwDec,
       preferredPlayer: prefPlayer,
     );
   }
@@ -125,6 +131,12 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
     await _repository.setPlayerSetting('player_default_resize', mode);
     final current = state.asData?.value ?? const PlayerSettings();
     state = AsyncData(current.copyWith(defaultResizeMode: mode));
+  }
+
+  Future<void> setHardwareDecoding(bool val) async {
+    await _repository.setPlayerSetting('player_hw_dec', val);
+    final current = state.asData?.value ?? const PlayerSettings();
+    state = AsyncData(current.copyWith(hardwareDecoding: val));
   }
 
   Future<void> setSubtitleSettings(double size, int color, int bg) async {
