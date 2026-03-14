@@ -141,9 +141,23 @@ class JsEngineService {
       };
     """);
 
-    // HTTP Polyfill (Dio Bridge)
-    _runtime.onMessage('http_request', (dynamic args) async {
-      return await _handleHttp(args);
+    _runtime.onMessage('http_request', (dynamic args) {
+      // We don't await here to let the bridge continue immediately
+      _handleHttp(args).then((result) {
+        final Map<String, dynamic> data = args is Map ? Map<String, dynamic>.from(args) : jsonDecode(args.toString());
+        final String? callbackId = data['id'];
+        if (callbackId != null) {
+          final String jsonResult = jsonEncode(result);
+          _runtime.evaluate("_resolveDartAsync('$callbackId', $jsonResult, false)");
+        }
+      }).catchError((e) {
+        final Map<String, dynamic> data = args is Map ? Map<String, dynamic>.from(args) : jsonDecode(args.toString());
+        final String? callbackId = data['id'];
+        if (callbackId != null) {
+          _runtime.evaluate("_resolveDartAsync('$callbackId', ${jsonEncode(e.toString())}, true)");
+        }
+      });
+      return null;
     });
 
     // Storage Bridge
@@ -151,7 +165,14 @@ class JsEngineService {
       return await _handleStorage(args, true);
     });
     _runtime.onMessage('get_storage', (dynamic args) {
-      return _handleStorage(args, false);
+      _handleStorage(args, false).then((value) {
+        final Map<String, dynamic> data = args is Map ? Map<String, dynamic>.from(args) : jsonDecode(args.toString());
+        final String? callbackId = data['id'];
+        if (callbackId != null) {
+          _runtime.evaluate("_resolveDartAsync('$callbackId', ${jsonEncode(value)}, false)");
+        }
+      });
+      return null;
     });
 
     _runtime.onMessage('get_preference', (dynamic args) {
@@ -201,12 +222,13 @@ class JsEngineService {
         final Map<String, dynamic> data = args is Map
             ? Map<String, dynamic>.from(args)
             : jsonDecode(args);
-        final String html = data['html'];
+        final String? html = data['html'];
         final String id = "doc_${DateTime.now().microsecondsSinceEpoch}";
-        final doc = html_parser.parse(html);
+        final doc = html_parser.parse(html ?? "");
         _domRegistry[id] = doc;
         return id;
       } catch (e) {
+        if (kDebugMode) debugPrint("[JS DOM ERROR] Parse failed: $e");
         return null;
       }
     });
@@ -263,22 +285,22 @@ class JsEngineService {
       }
     });
 
-    _runtime.onMessage('solve_captcha', (dynamic args) async {
+    _runtime.onMessage('solve_captcha', (dynamic args) {
       if (kDebugMode) debugPrint("[JS SDK] Captcha Solve Requested: $args");
-      // Placeholder: In a real implementation, this would trigger a WebView dialog
-      return "mock_captcha_token";
+      final Map<String, dynamic> data = args is Map ? Map<String, dynamic>.from(args) : jsonDecode(args.toString());
+      final String? callbackId = data['id'];
+      if (callbackId != null) {
+        _runtime.evaluate("_resolveDartAsync('$callbackId', 'mock_captcha_token', false)");
+      }
+      return null;
     });
 
     // Crypto Bridge
-    _runtime.onMessage('crypto_decrypt_aes', (dynamic args) async {
+    _runtime.onMessage('crypto_decrypt_aes', (dynamic args) {
+      final Map<String, dynamic> data = args is Map ? Map<String, dynamic>.from(args) : jsonDecode(args.toString());
+      final String? callbackId = data['id'];
+      
       try {
-        Map<String, dynamic> req;
-        if (args is Map) {
-          req = Map<String, dynamic>.from(args);
-        } else {
-          req = jsonDecode(args);
-        }
-
         String normalizeB64(String input) {
           String cleaned = input.replaceAll(RegExp(r'\s+'), '');
           while (cleaned.length % 4 != 0) {
@@ -287,59 +309,81 @@ class JsEngineService {
           return cleaned;
         }
 
-        final String encryptedB64 = normalizeB64(req['data']);
-        final String keyB64 = normalizeB64(req['key']);
-        final String ivB64 = normalizeB64(req['iv']);
+        final String encryptedB64 = normalizeB64(data['data']);
+        final String keyB64 = normalizeB64(data['key']);
+        final String ivB64 = normalizeB64(data['iv']);
 
-        final key = encrypt_lib.Key.fromBase64(keyB64);
-        final iv = encrypt_lib.IV.fromBase64(ivB64);
+        final keyToken = encrypt_lib.Key.fromBase64(keyB64);
+        final ivToken = encrypt_lib.IV.fromBase64(ivB64);
         final encrypter = encrypt_lib.Encrypter(
-          encrypt_lib.AES(key, mode: encrypt_lib.AESMode.cbc),
+          encrypt_lib.AES(keyToken, mode: encrypt_lib.AESMode.cbc),
         );
-        final decrypted = encrypter.decrypt64(encryptedB64, iv: iv);
+        final decrypted = encrypter.decrypt64(encryptedB64, iv: ivToken);
 
-        return decrypted;
+        if (callbackId != null) {
+          _runtime.evaluate("_resolveDartAsync('$callbackId', ${jsonEncode(decrypted)}, false)");
+        }
       } catch (e) {
-        if (kDebugMode) debugPrint("[JS Crypto Error] ${e.toString()}");
-        return "";
+        if (callbackId != null) {
+          _runtime.evaluate("_resolveDartAsync('$callbackId', ${jsonEncode(e.toString())}, true)");
+        }
       }
+      return null;
     });
 
     _runtime.evaluate("""
-      async function _dartHttp(method, url, headers, body) {
-         try {
-            var res = await sendMessage('http_request', JSON.stringify({
-              method: method,
-              url: url,
-              headers: headers,
-              body: body
-            }));
-            if (typeof res === 'string') res = JSON.parse(res);
-            return res;
-         } catch(e) {
-            console.error("HTTP Bridge Error: " + e);
-            return { status: 0, statusCode: 0, body: "", error: e.toString() };
-         }
+      const _dartAsyncRegistry = {};
+      globalThis._resolveDartAsync = function(id, result, isError) {
+        const cb = _dartAsyncRegistry[id];
+        if (cb) {
+          delete _dartAsyncRegistry[id];
+          if (isError) cb.reject(result);
+          else cb.resolve(result);
+        }
+      };
+
+      function _dartAsyncCall(messageId, params) {
+        return new Promise((resolve, reject) => {
+          const id = "async_" + Math.random().toString(36).substr(2, 9);
+          _dartAsyncRegistry[id] = { resolve, reject };
+          sendMessage(messageId, JSON.stringify({ 
+            id: id,
+            ...params
+          }));
+        });
       }
 
-      function http_get(url, headers, cb) {
-         var promise = _dartHttp('GET', url, headers, null).then(function(res) {
+      function _dartHttp(method, url, headers, body) {
+         // Support for http_post(url, {headers, body})
+         if (method === 'POST' && typeof headers === 'object' && headers !== null && !body && (headers.body || headers.headers)) {
+            body = headers.body;
+            headers = headers.headers;
+         }
+         
+         return _dartAsyncCall('http_request', {
+            method: method,
+            url: url,
+            headers: headers || {},
+            body: body
+         });
+      }
+
+      globalThis.http_get = function(url, headers, cb) {
+         return _dartHttp('GET', url, headers, null).then(function(res) {
             if (cb && typeof cb === 'function') cb(res);
             return res.body;
          });
-         return promise;
-      }
+      };
       
+      globalThis.http_post = function(url, headers, body, cb) {
+         return _dartHttp('POST', url, headers, body).then(function(res) {
+            if (cb && typeof cb === 'function') cb(res);
+            return res.body;
+         });
+      };
+
       async function _fetch(url) {
           return await http_get(url, {});
-      }
-      
-      function http_post(url, headers, body, cb) {
-         var promise = _dartHttp('POST', url, headers, body).then(function(res) {
-            if (cb && typeof cb === 'function') cb(res);
-            return res.body;
-         });
-         return promise;
       }
     """);
 
@@ -384,8 +428,8 @@ class JsEngineService {
       function setPreference(key, value) {
           sendMessage('set_storage', JSON.stringify({ key: key, value: value }));
       }
-      async function getPreference(key) {
-          return await sendMessage('get_storage', JSON.stringify({ key: key }));
+      function getPreference(key) {
+          return _dartAsyncCall('get_storage', { key: key });
       }
     """);
 
@@ -465,13 +509,13 @@ class JsEngineService {
          sendMessage('register_settings', JSON.stringify(schema));
       };
 
-      globalThis.solveCaptcha = async function(siteKey, url) {
-         return await sendMessage('solve_captcha', JSON.stringify({ siteKey: siteKey, url: url || "" }));
+      globalThis.solveCaptcha = function(siteKey, url) {
+         return _dartAsyncCall('solve_captcha', { siteKey: siteKey, url: url || "" });
       };
 
       globalThis.crypto = {
-         decryptAES: async function(data, key, iv) {
-            return await sendMessage('crypto_decrypt_aes', JSON.stringify({ data: data, key: key, iv: iv }));
+         decryptAES: function(data, key, iv) {
+            return _dartAsyncCall('crypto_decrypt_aes', { data: data, key: key, iv: iv });
          }
       };
 
