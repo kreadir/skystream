@@ -368,17 +368,27 @@ class JsEngineService {
          });
       }
 
+      function _createHybridResponse(res) {
+         if (typeof res !== 'object' || res === null) return res;
+         var hybrid = new String(res.body || "");
+         Object.defineProperty(hybrid, 'status', { value: res.status, enumerable: false });
+         Object.defineProperty(hybrid, 'statusCode', { value: res.status, enumerable: false });
+         Object.defineProperty(hybrid, 'body', { value: res.body, enumerable: false });
+         Object.defineProperty(hybrid, 'headers', { value: res.headers, enumerable: false });
+         return hybrid;
+      }
+
       globalThis.http_get = function(url, headers, cb) {
          return _dartHttp('GET', url, headers, null).then(function(res) {
             if (cb && typeof cb === 'function') cb(res);
-            return res.body;
+            return res;
          });
       };
       
       globalThis.http_post = function(url, headers, body, cb) {
          return _dartHttp('POST', url, headers, body).then(function(res) {
             if (cb && typeof cb === 'function') cb(res);
-            return res.body;
+            return res;
          });
       };
 
