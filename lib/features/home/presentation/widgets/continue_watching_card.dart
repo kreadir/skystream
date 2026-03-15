@@ -139,29 +139,52 @@ class ContinueWatchingCard extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        if (item.provider != null && item.provider!.isNotEmpty)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              providerName!,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.w500,
+                        Row(
+                          children: [
+                            if (item.provider != null && item.provider!.isNotEmpty)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  providerName!,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                item.contentType.name.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
+                        ),
                         const Spacer(),
                         if (item.contentType == MultimediaContentType.livestream) ...[
                           Container(
@@ -202,6 +225,23 @@ class ContinueWatchingCard extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                         ] else ...[
+                          if (item.contentType == MultimediaContentType.series && 
+                              historyItem.season != null && 
+                              historyItem.episode != null &&
+                              (historyItem.season! > 0 || historyItem.episode! > 0))
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4.0),
+                              child: Text(
+                                "S${historyItem.season} E${historyItem.episode}${historyItem.episodeTitle != null && historyItem.episodeTitle!.isNotEmpty && !historyItem.episodeTitle!.startsWith("Episode") ? " - ${historyItem.episodeTitle}" : ""}",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
@@ -211,7 +251,7 @@ class ContinueWatchingCard extends ConsumerWidget {
                                   .colorScheme
                                   .surfaceContainerHighest,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                Theme.of(context).colorScheme.outline,
+                                Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ),

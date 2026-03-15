@@ -211,6 +211,9 @@ class StorageService {
     int durationMillis, {
     String? lastStreamUrl,
     String? lastEpisodeUrl,
+    int? season,
+    int? episode,
+    String? episodeTitle,
   }) async {
     await _historyBox.put(_getKey(item.url), {
       'title': item.title,
@@ -224,6 +227,9 @@ class StorageService {
       'duration': durationMillis,
       'lastStreamUrl': lastStreamUrl,
       'lastEpisodeUrl': lastEpisodeUrl,
+      'season': season,
+      'episode': episode,
+      'episodeTitle': episodeTitle,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
   }

@@ -235,7 +235,10 @@ class DetailsController extends Notifier<DetailsState> {
 
       final lastIndex = allEpisodes.indexWhere((e) => e.url == lastEpisodeUrl);
       if (lastIndex != -1) {
-        if (progress > 95) {
+        // We rely on PlayerController having already advanced the history to the next 
+        // episode if the previous one was completed. But as a safety fallback, 
+        // we check progress here too.
+        if (progress >= 98) {
           if (lastIndex + 1 < allEpisodes.length) {
             ref
                 .read(playbackLauncherProvider)

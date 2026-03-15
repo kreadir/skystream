@@ -38,6 +38,9 @@ class WatchHistoryNotifier extends Notifier<List<HistoryItem>> {
     int duration, {
     String? lastStreamUrl,
     String? lastEpisodeUrl,
+    int? season,
+    int? episode,
+    String? episodeTitle,
   }) async {
     final enabled = ref.read(generalSettingsProvider).watchHistoryEnabled;
     if (!enabled) return;
@@ -53,6 +56,9 @@ class WatchHistoryNotifier extends Notifier<List<HistoryItem>> {
       finalDuration,
       lastStreamUrl: lastStreamUrl,
       lastEpisodeUrl: lastEpisodeUrl,
+      season: season,
+      episode: episode,
+      episodeTitle: episodeTitle,
     );
     refresh();
   }

@@ -524,27 +524,63 @@ class PlayerController extends Notifier<PlayerState> {
       if (dur < 30000) return;
 
       final double progress = (pos / dur) * 100;
-      final bool isSeries =
-          _item.episodes != null && _item.episodes!.length > 1;
+      final bool isSeries = _item.contentType == MultimediaContentType.series;
       final historyNotifier = ref.read(watchHistoryProvider.notifier);
 
-      if (progress >= 95 && !isSeries) {
-        historyNotifier.removeFromHistory(_item.url);
-        return;
+      final pId = _item.provider ??
+          ref.read(activeProviderStateProvider)?.packageName ??
+          'Unknown';
+      final itemToSave = _item.copyWith(provider: pId);
+
+      // Identify current episode if series
+      Episode? currentEpisode;
+      if (isSeries) {
+        try {
+          currentEpisode = _item.episodes!.firstWhere((e) => e.url == _videoUrl);
+        } catch (_) {}
       }
 
-      if (progress > 1 || isSeries) {
-        final pId =
-            _item.provider ??
-            ref.read(activeProviderStateProvider)?.packageName ??
-            'Unknown';
-        final itemToSave = _item.copyWith(provider: pId);
+      // Handle Completion / Next Episode Logic
+      if (progress >= 98) {
+        if (!isSeries) {
+          historyNotifier.removeFromHistory(_item.url);
+          return;
+        } else if (currentEpisode != null) {
+          // Find next episode
+          final currentIndex = _item.episodes!.indexOf(currentEpisode);
+          if (currentIndex != -1 && currentIndex < _item.episodes!.length - 1) {
+            final nextEpisode = _item.episodes![currentIndex + 1];
+            // Save NEXT episode as current progress (reset to 0)
+            historyNotifier.saveProgress(
+              itemToSave,
+              0,
+              0,
+              lastStreamUrl: null,
+              lastEpisodeUrl: nextEpisode.url,
+              season: nextEpisode.season,
+              episode: nextEpisode.episode,
+              episodeTitle: nextEpisode.name,
+            );
+            return;
+          } else {
+             // Last episode of the series completed
+             historyNotifier.removeFromHistory(_item.url);
+             return;
+          }
+        }
+      }
+
+      // Normal Progress Saving
+      if (progress > 2 || isSeries) {
         historyNotifier.saveProgress(
           itemToSave,
           pos,
           dur,
           lastStreamUrl: state.currentStream?.url,
           lastEpisodeUrl: _videoUrl,
+          season: currentEpisode?.season,
+          episode: currentEpisode?.episode,
+          episodeTitle: currentEpisode?.name,
         );
       }
     } catch (e) {
