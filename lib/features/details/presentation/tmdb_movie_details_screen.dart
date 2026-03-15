@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'widgets/provider_search_section.dart';
 import '../../../../core/utils/responsive_breakpoints.dart';
 import '../data/tmdb_details_provider.dart';
-import 'tmdb_details_controller.dart';
 import 'widgets/movie_cast_list.dart';
 import 'widgets/movie_trailers_carousel.dart';
 import 'widgets/movie_production_companies.dart';
@@ -16,6 +15,7 @@ import 'widgets/movie_seasons_list.dart';
 import 'widgets/tmdb_details_stats_section.dart';
 import 'widgets/tmdb_details_desktop_hero.dart';
 import '../../../../shared/widgets/thumbnail_error_placeholder.dart';
+import '../../../../shared/widgets/shimmer_placeholder.dart';
 
 class TmdbMovieDetailsScreen extends ConsumerStatefulWidget {
   final int movieId;
@@ -59,13 +59,6 @@ class _TmdbMovieDetailsScreenState
 
     _episodeScrollController = ScrollController();
     _scrollController.addListener(_onScroll);
-    if (widget.mediaType == 'tv') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref
-            .read(tmdbDetailsControllerProvider(widget.movieId).notifier)
-            .fetchEpisodes(1);
-      });
-    }
   }
 
   @override
@@ -129,15 +122,38 @@ class _TmdbMovieDetailsScreenState
           }
           return _buildMobileLayout(data);
         },
-        loading: () => Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: const BackButton(),
-          ),
-          body: const Center(child: CircularProgressIndicator()),
-        ),
+        loading: () {
+          final isMovie = widget.mediaType == 'movie';
+          return Scaffold(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: const BackButton(),
+            ),
+            body: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ShimmerPlaceholder.rectangular(height: 200, width: double.infinity, borderRadius: 12),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      _buildTmdbLogo(),
+                      const SizedBox(width: 12),
+                      _buildTopBadge(context, isMovie ? "MOVIE" : "TV SHOW"),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ShimmerPlaceholder.rectangular(height: 30, width: 250, borderRadius: 6),
+                  const SizedBox(height: 16),
+                  ShimmerPlaceholder.rectangular(height: 100, width: double.infinity, borderRadius: 12),
+                ],
+              ),
+            ),
+          );
+        },
         error: (e, st) => Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
@@ -435,7 +451,10 @@ class _TmdbMovieDetailsScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Source Search (Provider Integration)
-                ProviderSearchSection(query: title),
+                ProviderSearchSection(
+                  query: title,
+                  parentMediaType: isMovie ? 'movie' : 'tv',
+                ),
                 const SizedBox(height: 24),
 
                 // Metadata Row: [TMDB] MOVIE/TV  2026  1H 56M  [PG-13]

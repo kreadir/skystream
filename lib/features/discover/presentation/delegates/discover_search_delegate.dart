@@ -153,7 +153,7 @@ class _SearchSuggestionsListState
               width: 40,
               height: 60,
               fit: BoxFit.cover,
-              placeholder: (_, _) => const ShimmerPlaceholder(),
+              placeholder: (_, _) => ShimmerPlaceholder(borderRadius: 4),
             ),
           ),
           title: Text(
@@ -256,12 +256,12 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
         ),
         itemCount: 10,
         itemBuilder: (context, index) {
-          return const Column(
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: ShimmerPlaceholder()),
-              SizedBox(height: 8),
-              ShimmerPlaceholder.rectangular(height: 14),
+              Expanded(child: ShimmerPlaceholder(borderRadius: 12)),
+              const SizedBox(height: 8),
+              ShimmerPlaceholder.rectangular(height: 14, borderRadius: 4),
             ],
           );
         },
@@ -312,7 +312,7 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
       itemCount: results.length + (isLoading ? 1 : 0),
       itemBuilder: (context, index) {
         if (index >= results.length) {
-          return const ShimmerPlaceholder();
+          return ShimmerPlaceholder(borderRadius: 12);
         }
 
         final item = results[index];
@@ -347,7 +347,7 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      placeholder: (_, _) => const ShimmerPlaceholder(),
+                      placeholder: (_, _) => ShimmerPlaceholder(borderRadius: 4),
                       errorWidget: (_, _, _) =>
                           const ThumbnailErrorPlaceholder(),
                     ),

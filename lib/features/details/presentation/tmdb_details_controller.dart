@@ -26,7 +26,15 @@ class TmdbDetailsController extends Notifier<TmdbDetailsState> {
 
   @override
   TmdbDetailsState build() {
-    return const TmdbDetailsState(selectedSeason: 1);
+    // Watch language so we re-fetch if it changes
+    final lang = ref.watch(languageProvider);
+    
+    // Start fetching season 1 by default
+    final future = ref
+        .read(tmdbServiceProvider)
+        .getTvSeasonDetails(movieId, 1, language: lang);
+        
+    return TmdbDetailsState(selectedSeason: 1, episodesFuture: future);
   }
 
   void fetchEpisodes(int season) async {

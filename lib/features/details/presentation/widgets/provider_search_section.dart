@@ -33,11 +33,13 @@ final _providerSearchProvider = FutureProvider.family
 class ProviderSearchSection extends ConsumerStatefulWidget {
   final String query;
   final bool compact;
+  final String? parentMediaType; // 'movie' or 'tv'
 
   const ProviderSearchSection({
     super.key,
     required this.query,
     this.compact = false,
+    this.parentMediaType,
   });
 
   @override
@@ -131,9 +133,16 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
 
                   return CardsWrapper(
                     onTap: () {
+                      // Enrich item with provider and content type before navigation
+                      final enrichedItem = item.copyWith(
+                        provider: providerName,
+                        contentType: widget.parentMediaType != null 
+                            ? MultimediaItem.parseContentType(widget.parentMediaType)
+                            : item.contentType,
+                      );
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => DetailsScreen(item: item),
+                          builder: (context) => DetailsScreen(item: enrichedItem),
                         ),
                       );
                     },
@@ -164,7 +173,7 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
                                 ),
                                 fit: BoxFit.cover,
                                 placeholder: (_, _) =>
-                                    const ShimmerPlaceholder(),
+                                    ShimmerPlaceholder(borderRadius: 8),
                                 errorWidget: (_, _, _) =>
                                     const ThumbnailErrorPlaceholder(),
                               ),

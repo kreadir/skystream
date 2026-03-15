@@ -140,7 +140,7 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
               state.items.length + (state.isLoading ? crossAxisCount : 0),
           itemBuilder: (context, index) {
             if (index >= state.items.length) {
-              return const ShimmerPlaceholder();
+              return ShimmerPlaceholder(borderRadius: 12);
             }
 
             final item = state.items[index];
@@ -177,8 +177,7 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
                           memCacheWidth: 350,
                           fit: BoxFit.cover,
                           width: double.infinity,
-                          placeholder: (context, url) =>
-                              const ShimmerPlaceholder(),
+                            placeholder: (_, _) => ShimmerPlaceholder(borderRadius: 12),
                           errorWidget: (_, _, _) =>
                               const ThumbnailErrorPlaceholder(),
                         ),

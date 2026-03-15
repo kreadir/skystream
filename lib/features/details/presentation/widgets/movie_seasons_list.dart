@@ -322,8 +322,8 @@ class _MovieSeasonsListState extends ConsumerState<MovieSeasonsList> {
                                 imageUrl: imageUrl,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                placeholder: (_, _) =>
-                                    const Center(child: ShimmerPlaceholder()),
+                                placeholder: (context, url) =>
+                                    ShimmerPlaceholder.rectangular(borderRadius: 8),
                                 errorWidget: (_, _, _) =>
                                     const ThumbnailErrorPlaceholder(),
                               ),

@@ -188,12 +188,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                           scrollController: _scrollController,
                         );
                       },
-                      loading: () => const Padding(
-                        padding: EdgeInsets.only(bottom: LayoutConstants.spacingLg),
+                      loading: () => Padding(
+                        padding: const EdgeInsets.only(bottom: LayoutConstants.spacingLg),
                         child: SizedBox(
                           height: 500,
                           width: double.infinity,
-                          child: ShimmerPlaceholder(),
+                          child: ShimmerPlaceholder(borderRadius: 12),
                         ),
                       ),
                       error: (err, stack) => SizedBox(
@@ -287,47 +287,42 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
           heroTagPrefix: 'discover',
         );
       },
-      loading: () => Padding(
-        padding: const EdgeInsets.symmetric(vertical: LayoutConstants.spacingMd),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title Placeholder
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: LayoutConstants.spacingMd),
-              child: ShimmerPlaceholder.rectangular(width: 150, height: 24),
-            ),
-            const SizedBox(height: LayoutConstants.spacingMd),
-            // List Placeholder
-            SizedBox(
-              height: 250,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: 5,
-                separatorBuilder: (_, _) => const SizedBox(width: LayoutConstants.spacingSm),
-                itemBuilder: (_, _) => Column(
+    loading: () => Padding(
+      padding: const EdgeInsets.symmetric(vertical: LayoutConstants.spacingMd),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title Placeholder
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: LayoutConstants.spacingMd),
+            child: ShimmerPlaceholder.rectangular(width: 150, height: 24, borderRadius: 4),
+          ),
+          const SizedBox(height: LayoutConstants.spacingMd),
+          // List Placeholder
+          SizedBox(
+            height: 250,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              itemCount: 5,
+              separatorBuilder: (_, _) => const SizedBox(width: LayoutConstants.spacingSm),
+              itemBuilder: (context, index) {
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: const ShimmerPlaceholder.rectangular(
-                        width: 130, // mobile width
-                        height: 195,
-                      ),
-                    ),
-                    const SizedBox(height: LayoutConstants.spacingXs),
-                    const ShimmerPlaceholder.rectangular(
-                      width: 100,
-                      height: 14,
+                    ShimmerPlaceholder.rectangular(
+                      width: 130, // mobile width
+                      height: 195,
+                      borderRadius: 12,
                     ),
                   ],
-                ),
-              ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    ),
       error: (e, _) => const SizedBox.shrink(),
         );
       },

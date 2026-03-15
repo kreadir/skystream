@@ -228,7 +228,10 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                 ),
               const SizedBox(height: 16),
               const SizedBox(height: 16),
-              MetadataBar(item: item),
+              MetadataBar(
+                item: item,
+                isLoading: state.details is AsyncLoading,
+              ),
               const SizedBox(height: 24),
               if (item.nextAiring != null) ...[
                 NextAiringWidget(nextAiring: item.nextAiring!),
@@ -350,7 +353,10 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                     ),
                   const SizedBox(height: 8),
                   const SizedBox(height: 8),
-                  MetadataBar(item: item),
+                  MetadataBar(
+                    item: item,
+                    isLoading: state.details is AsyncLoading,
+                  ),
                 ],
               ),
             ),

@@ -3,15 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:skystream/core/domain/entity/multimedia_item.dart';
 import 'package:skystream/core/utils/image_fallbacks.dart';
 import 'package:intl/intl.dart';
+import 'package:skystream/shared/widgets/shimmer_placeholder.dart';
 import 'details_layout_widgets.dart';
 
 class MetadataBar extends StatelessWidget {
   final MultimediaItem item;
-  const MetadataBar({super.key, required this.item});
+  final bool isLoading;
+  const MetadataBar({super.key, required this.item, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
     // theme and context used in helper methods
+    final contentType = item.contentType;
+    final showTypeBadge = !isLoading || (contentType != MultimediaContentType.movie);
 
     return Wrap(
       spacing: 12,
@@ -20,25 +24,41 @@ class MetadataBar extends StatelessWidget {
       children: [
         if (item.provider != null && item.provider!.isNotEmpty)
           DetailsProviderChip(providerName: item.provider!),
-        _buildBorderedInfo(
-          context,
-          item.contentType.name.toUpperCase(),
-          color: Theme.of(context).colorScheme.primary,
-          isFilled: true,
-        ),
+        if (showTypeBadge)
+          _buildBorderedInfo(
+            context,
+            contentType.name.toUpperCase(),
+            color: Theme.of(context).colorScheme.primary,
+            isFilled: true,
+          )
+        else
+          ShimmerPlaceholder.rectangular(width: 60, height: 20, borderRadius: 6),
+        
         if (item.year != null)
-          _buildIconInfo(context, Icons.calendar_today_rounded, item.year.toString()),
+          _buildIconInfo(context, Icons.calendar_today_rounded, item.year.toString())
+        else if (isLoading)
+          ShimmerPlaceholder.rectangular(width: 40, height: 16, borderRadius: 4),
+
         if (item.contentRating != null)
-          _buildBorderedInfo(context, item.contentRating!),
+          _buildBorderedInfo(context, item.contentRating!)
+        else if (isLoading)
+          ShimmerPlaceholder.rectangular(width: 30, height: 16, borderRadius: 4),
+
         if (item.duration != null)
-          _buildIconInfo(context, Icons.timer_outlined, "${item.duration}m"),
+          _buildIconInfo(context, Icons.timer_outlined, "${item.duration}m")
+        else if (isLoading)
+          ShimmerPlaceholder.rectangular(width: 50, height: 16, borderRadius: 4),
+
         if (item.score != null)
           _buildIconInfo(
             context,
             Icons.star_rounded,
             item.score!.toStringAsFixed(1),
             iconColor: const Color(0xFF01B4E4),
-          ),
+          )
+        else if (isLoading)
+          ShimmerPlaceholder.rectangular(width: 40, height: 16, borderRadius: 4),
+
         if (item.playbackPolicy != null && item.playbackPolicy != "none")
           _buildPlaybackBadge(context, item.playbackPolicy!),
         if (item.isAdult)
