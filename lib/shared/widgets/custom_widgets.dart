@@ -111,7 +111,10 @@ class _CustomSliderState extends State<CustomSlider> {
                 )
               : Border.all(color: Colors.transparent, width: 2),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: LayoutConstants.spacingXs, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: LayoutConstants.spacingXs,
+          vertical: 4,
+        ),
         child: ExcludeFocus(
           child: Slider(
             value: widget.value.clamp(widget.min, widget.max),
@@ -315,14 +318,21 @@ class _CustomButtonState extends State<CustomButton> {
         onPressed: widget.onPressed,
         style: FilledButton.styleFrom(
           backgroundColor: showHighlight
-              ? primaryColor.withValues(alpha: 0.8)
+              ? primaryColor.withValues(alpha: 0.9)
               : (widget.backgroundColor ?? primaryColor),
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          disabledBackgroundColor: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.12),
+          disabledForegroundColor: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.38),
           side: showHighlight
               ? const BorderSide(color: Colors.white, width: 3)
               : BorderSide.none,
-          elevation: showHighlight ? 8 : 2,
-          shadowColor: primaryColor.withValues(alpha: 0.5),
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          padding: EdgeInsets.zero,
         ),
         child: widget.child,
       );
@@ -337,8 +347,14 @@ class _CustomButtonState extends State<CustomButton> {
         backgroundColor: showHighlight
             ? primaryColor.withValues(alpha: 0.15)
             : null,
+        foregroundColor: _isFocused
+            ? primaryColor
+            : Theme.of(context).colorScheme.onSurfaceVariant,
+        disabledForegroundColor: Theme.of(
+          context,
+        ).colorScheme.onSurface.withValues(alpha: 0.38),
         side: showHighlight
-            ? BorderSide(color: primaryColor, width: 2)
+            ? const BorderSide(color: Colors.white, width: 2)
             : (widget.isOutlined
                   ? BorderSide(color: Theme.of(context).colorScheme.outline)
                   : BorderSide.none),

@@ -28,8 +28,39 @@ class EpisodeCard extends ConsumerStatefulWidget {
   ConsumerState<EpisodeCard> createState() => _EpisodeCardState();
 }
 
-class _EpisodeCardState extends ConsumerState<EpisodeCard> {
+class _EpisodeCardState extends ConsumerState<EpisodeCard> with SingleTickerProviderStateMixin {
   bool _isFocused = false;
+  late final AnimationController _scaleController;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange(bool focused) {
+    setState(() {
+      _isFocused = focused;
+    });
+    if (focused) {
+      _scaleController.forward();
+    } else {
+      _scaleController.reverse();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,38 +112,32 @@ class _EpisodeCardState extends ConsumerState<EpisodeCard> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Focus(
-      onFocusChange: (focused) => setState(() => _isFocused = focused),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: widget.width ?? (widget.isHorizontal ? 300 : double.infinity),
-        decoration: BoxDecoration(
-          color: _isFocused 
-              ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-              : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: _isFocused ? colorScheme.primary : Colors.transparent,
-            width: 2,
+      onFocusChange: _onFocusChange,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: widget.width ?? (widget.isHorizontal ? 300 : double.infinity),
+          decoration: BoxDecoration(
+            color: _isFocused 
+                ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _isFocused ? colorScheme.primary : Colors.transparent,
+              width: 2,
+            ),
           ),
-          boxShadow: _isFocused
-              ? [
-                  BoxShadow(
-                    color: colorScheme.primary.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  )
-                ]
-              : null,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => ref
-              .read(detailsControllerProvider(widget.parentItem.url).notifier)
-              .handlePlayPress(context, widget.parentItem, specificEpisode: widget.episode),
-          borderRadius: BorderRadius.circular(10),
-          child: widget.isHorizontal 
-              ? _buildHorizontalLayout(context, imageUrl, progress, statusBadge) 
-              : _buildVerticalLayout(context, imageUrl, progress, statusBadge),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => ref
+                .read(detailsControllerProvider(widget.parentItem.url).notifier)
+                .handlePlayPress(context, widget.parentItem, specificEpisode: widget.episode),
+            borderRadius: BorderRadius.circular(10),
+            child: widget.isHorizontal 
+                ? _buildHorizontalLayout(context, imageUrl, progress, statusBadge) 
+                : _buildVerticalLayout(context, imageUrl, progress, statusBadge),
+          ),
         ),
       ),
     );

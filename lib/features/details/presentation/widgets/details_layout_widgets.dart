@@ -412,41 +412,52 @@ class DetailsEpisodeFilterBar extends ConsumerWidget {
             const SizedBox(width: 8),
           ],
           if (filteredEpisodes.length > batchSize) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: DropdownButton<int>(
-                  value: selectedIndex,
-                  dropdownColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  underline: const SizedBox(),
-                  elevation: 4,
-                  borderRadius: BorderRadius.circular(12),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+            Focus(
+              child: Builder(
+                builder: (context) {
+                  final isFocused = Focus.of(context).hasFocus;
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isFocused ? Colors.white : Colors.transparent,
+                        width: 2,
                       ),
-                  icon: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  items: List.generate(batchCount, (index) {
-                    final start = index * batchSize + 1;
-                    final end = ((index + 1) * batchSize).clamp(1, filteredEpisodes.length);
-                    return DropdownMenuItem(
-                      value: index,
-                      child: Text("$start-$end"),
-                    );
-                  }),
-                  onChanged: (val) {
-                    if (val != null) {
-                      ref.read(detailsControllerProvider(itemUrl).notifier).setRangeIndex(val);
-                    }
-                  },
-                ),
+                    ),
+                    child: Center(
+                      child: DropdownButton<int>(
+                        value: selectedIndex,
+                        dropdownColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                        underline: const SizedBox(),
+                        elevation: 4,
+                        borderRadius: BorderRadius.circular(12),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                        icon: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        items: List.generate(batchCount, (index) {
+                          final start = index * batchSize + 1;
+                          final end = ((index + 1) * batchSize).clamp(1, filteredEpisodes.length);
+                          return DropdownMenuItem(
+                            value: index,
+                            child: Text("$start-$end"),
+                          );
+                        }),
+                        onChanged: (val) {
+                          if (val != null) {
+                            ref.read(detailsControllerProvider(itemUrl).notifier).setRangeIndex(val);
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(width: 8),
@@ -506,7 +517,7 @@ class DetailsEpisodeFilterBar extends ConsumerWidget {
   }
 }
 
-class _LanguageButton extends StatelessWidget {
+class _LanguageButton extends StatefulWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
@@ -518,33 +529,45 @@ class _LanguageButton extends StatelessWidget {
   });
 
   @override
+  State<_LanguageButton> createState() => _LanguageButtonState();
+}
+
+class _LanguageButtonState extends State<_LanguageButton> {
+  bool _isFocused = false;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primary.withAlpha(40)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: isSelected
-              ? Border.all(
-                  color: Theme.of(context).colorScheme.primary.withAlpha(80),
-                  width: 1,
-                )
-              : Border.all(color: Colors.transparent, width: 1),
-        ),
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
+    return Focus(
+      onFocusChange: (hasFocus) => setState(() => _isFocused = hasFocus),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? Theme.of(context).colorScheme.primary.withAlpha(40)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: _isFocused
+                  ? Colors.white
+                  : (widget.isSelected
+                      ? Theme.of(context).colorScheme.primary.withAlpha(80)
+                      : Colors.transparent),
+              width: _isFocused ? 2 : 1,
+            ),
+          ),
+          child: Text(
+            widget.label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: widget.isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+          ),
         ),
       ),
     );
