@@ -17,6 +17,9 @@ class DetailsState {
   final MultimediaItem? item;
   final bool isLaunching;
   final Episode? targetEpisode;
+  final bool isAscending;
+  final int selectedRangeIndex;
+  final DubStatus selectedDubStatus;
 
   const DetailsState({
     this.details = const AsyncLoading(),
@@ -26,6 +29,9 @@ class DetailsState {
     this.item,
     this.isLaunching = false,
     this.targetEpisode,
+    this.isAscending = true,
+    this.selectedRangeIndex = 0,
+    this.selectedDubStatus = DubStatus.none,
   });
 
   DetailsState copyWith({
@@ -36,6 +42,9 @@ class DetailsState {
     MultimediaItem? item,
     bool? isLaunching,
     Episode? targetEpisode,
+    bool? isAscending,
+    int? selectedRangeIndex,
+    DubStatus? selectedDubStatus,
   }) {
     return DetailsState(
       details: details ?? this.details,
@@ -45,6 +54,9 @@ class DetailsState {
       item: item ?? this.item,
       isLaunching: isLaunching ?? this.isLaunching,
       targetEpisode: targetEpisode ?? this.targetEpisode,
+      isAscending: isAscending ?? this.isAscending,
+      selectedRangeIndex: selectedRangeIndex ?? this.selectedRangeIndex,
+      selectedDubStatus: selectedDubStatus ?? this.selectedDubStatus,
     );
   }
 }
@@ -72,8 +84,26 @@ class DetailsController extends Notifier<DetailsState> {
 
   void setSeason(int season) {
     if (state.seasonMap.containsKey(season)) {
-      state = state.copyWith(selectedSeason: season);
+      state = state.copyWith(
+        selectedSeason: season,
+        selectedRangeIndex: 0,
+      );
     }
+  }
+
+  void toggleSort() {
+    state = state.copyWith(isAscending: !state.isAscending);
+  }
+
+  void setRangeIndex(int index) {
+    state = state.copyWith(selectedRangeIndex: index);
+  }
+
+  void setDubStatus(DubStatus status) {
+    state = state.copyWith(
+      selectedDubStatus: status,
+      selectedRangeIndex: 0,
+    );
   }
 
   void setLaunching(bool value) {
@@ -149,15 +179,20 @@ class DetailsController extends Notifier<DetailsState> {
     MultimediaItem contextItem, {
     bool isInitial = false,
   }) {
+    if (episodes == null || episodes.isEmpty) {
+      state = state.copyWith(isMovie: contextItem.contentType == MultimediaContentType.movie, seasonMap: {});
+      return;
+    }
+
+    // Sort episodes ascending by episode number to ensure batching logic works
+    final sortedEpisodes = List<Episode>.from(episodes)
+      ..sort((a, b) => a.episode.compareTo(b.episode));
+    episodes = sortedEpisodes;
+
     // Determine isMovie based on contentType if available
     bool isMovie =
         contextItem.contentType == MultimediaContentType.movie ||
         contextItem.contentType == MultimediaContentType.livestream;
-
-    if (episodes == null || episodes.isEmpty) {
-      state = state.copyWith(isMovie: isMovie, seasonMap: {});
-      return;
-    }
 
     // Fallback: If not explicitly movie/livestream, check episode count for legacy support
     if (!isMovie && episodes.length == 1) {
@@ -218,11 +253,22 @@ class DetailsController extends Notifier<DetailsState> {
       selectedSeason = state.selectedSeason;
     }
 
+    // Default DubStatus for mixed series (No "All" anymore)
+    DubStatus selectedDubStatus = state.selectedDubStatus;
+    if (isInitial) {
+      final hasSub = episodes.any((e) => e.dubStatus == DubStatus.subbed);
+      final hasDub = episodes.any((e) => e.dubStatus == DubStatus.dubbed);
+      if (hasSub && hasDub) {
+        selectedDubStatus = DubStatus.subbed;
+      }
+    }
+
     state = state.copyWith(
       isMovie: false,
       seasonMap: seasonMap,
       selectedSeason: selectedSeason,
       targetEpisode: targetEpisode,
+      selectedDubStatus: selectedDubStatus,
     );
   }
 

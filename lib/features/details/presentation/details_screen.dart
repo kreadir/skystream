@@ -151,112 +151,119 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
               const SizedBox(width: 8),
             ],
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: isLarge ? 32.0 : 16.0,
-                vertical: 16.0,
-              ),
-              child: isLarge
-                  ? _buildDesktopLayout(context, item, details, detailsAsync, isMovie)
-                  : _buildMobileLayout(context, item, details, detailsAsync, isMovie),
-            ),
-          ),
+          if (isLarge)
+            ..._buildDesktopSlivers(context, item, details, detailsAsync, isMovie)
+          else
+            ..._buildMobileSlivers(context, item, details, detailsAsync, isMovie),
         ],
       ),
     );
   }
 
-  Widget _buildDesktopLayout(
+  List<Widget> _buildDesktopSlivers(
     BuildContext context,
     MultimediaItem item,
     MultimediaItem? details,
     AsyncValue<MultimediaItem?> detailsState,
     bool isMovie,
   ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Left side: Poster and actions
-        SizedBox(
-          width: 250,
-          child: Column(
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(32, 16, 32, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Hero(
-                tag: 'poster_${item.url}',
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl: AppImageFallbacks.poster(item.posterUrl, label: item.title),
-                    width: 250,
-                    height: 375,
-                    fit: BoxFit.cover,
-                    memCacheWidth: 250, // P19: Optimize memory
-                    errorWidget: (_, _, _) => ThumbnailErrorPlaceholder(label: item.title),
-                  ),
+              // Left side: Poster and actions
+              SizedBox(
+                width: 250,
+                child: Column(
+                  children: [
+                    Hero(
+                      tag: 'poster_${item.url}',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedNetworkImage(
+                          imageUrl: AppImageFallbacks.poster(item.posterUrl, label: item.title),
+                          width: 250,
+                          height: 375,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 250, // P19: Optimize memory
+                          errorWidget: (_, _, _) => ThumbnailErrorPlaceholder(label: item.title),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    DetailsActionButtons(
+                      item: widget.item,
+                      details: details,
+                      itemUrl: widget.item.url,
+                      vertical: true,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
-              DetailsActionButtons(
-                item: widget.item,
-                details: details,
-                itemUrl: widget.item.url,
-                vertical: true,
+              const SizedBox(width: 32),
+              // Right side: Metadata and Synopsis
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (item.logoUrl != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: CachedNetworkImage(
+                          imageUrl: item.logoUrl!,
+                          height: 80,
+                          fit: BoxFit.contain,
+                          alignment: Alignment.centerLeft,
+                        ),
+                      )
+                    else
+                      Text(
+                        item.title,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    const SizedBox(height: 16),
+                    MetadataBar(
+                      item: item,
+                      isLoading: detailsState is AsyncLoading,
+                    ),
+                    const SizedBox(height: 24),
+                    if (item.nextAiring != null) ...[
+                      NextAiringWidget(nextAiring: item.nextAiring!),
+                      const SizedBox(height: 24),
+                    ],
+                    Text(
+                      'Synopsis',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      item.description ?? 'No description available.',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontSize: 16,
+                        height: 1.5,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(width: 32),
-        // Right side: Metadata and episodes
-        Expanded(
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(32, 32, 32, 0),
+        sliver: SliverToBoxAdapter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (item.logoUrl != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: CachedNetworkImage(
-                    imageUrl: item.logoUrl!,
-                    height: 80,
-                    fit: BoxFit.contain,
-                    alignment: Alignment.centerLeft,
-                  ),
-                )
-              else
-                Text(
-                  item.title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              const SizedBox(height: 16),
-              const SizedBox(height: 16),
-              MetadataBar(
-                item: item,
-                isLoading: detailsState is AsyncLoading,
-              ),
-              const SizedBox(height: 24),
-              if (item.nextAiring != null) ...[
-                NextAiringWidget(nextAiring: item.nextAiring!),
-                const SizedBox(height: 24),
-              ],
-              const SizedBox(height: 24),
-              Text(
-                'Synopsis',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                item.description ?? 'No description available.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontSize: 16,
-                  height: 1.5,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 32),
               if (detailsState is AsyncLoading)
                 const Center(child: CircularProgressIndicator())
               else if (detailsState is AsyncError)
@@ -264,29 +271,178 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                   "Error: ${detailsState.error}",
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 )
-              else if (isMovie)
-                const SizedBox.shrink() // Movies don't need an episode list
-              else if (details?.episodes != null) ...[
-                DetailsSeasonListWrapper(itemUrl: widget.item.url), 
-                const SizedBox(height: 16),
-                DetailsDesktopEpisodeGrid(
-                  parentItem: item,
-                  itemUrl: widget.item.url,
-                  isMovie: isMovie,
-                ),
-              ] else
-                const Text("No episodes found."),
-              
+              else if (!isMovie && details?.episodes != null)
+                DetailsSeasonListWrapper(itemUrl: widget.item.url),
+            ],
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(32, 16, 32, 0),
+        sliver: SliverDetailsDesktopEpisodeGrid(
+          parentItem: item,
+          itemUrl: widget.item.url,
+          isMovie: isMovie,
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(32, 32, 32, 50),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               if (item.cast != null && item.cast!.isNotEmpty) ...[
-                const SizedBox(height: 32),
                 CastCarousel(cast: item.cast!),
               ],
-              
               if (item.trailers != null && item.trailers!.isNotEmpty) ...[
                 const SizedBox(height: 32),
                 TrailersSection(trailers: item.trailers!),
               ],
-              
+              if (item.recommendations != null && item.recommendations!.isNotEmpty) ...[
+                const SizedBox(height: 32),
+                RecommendationsCarousel(
+                  items: item.recommendations!,
+                  onItemTap: (rec) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailsScreen(item: rec),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _buildMobileSlivers(
+    BuildContext context,
+    MultimediaItem item,
+    MultimediaItem? details,
+    AsyncValue<MultimediaItem?> detailsState,
+    bool isMovie,
+  ) {
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Hero(
+                    tag: 'poster_${item.url}',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: CachedNetworkImage(
+                        imageUrl: AppImageFallbacks.poster(item.posterUrl, label: item.title),
+                        width: 100,
+                        height: 150,
+                        fit: BoxFit.cover,
+                        memCacheWidth: 200, // P19: Optimize memory (2x for retina)
+                        errorWidget: (_, _, _) => ThumbnailErrorPlaceholder(label: item.title),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (item.logoUrl != null)
+                          CachedNetworkImage(
+                            imageUrl: item.logoUrl!,
+                            height: 50,
+                            fit: BoxFit.contain,
+                            alignment: Alignment.centerLeft,
+                            errorWidget: (_, _, _) => Text(
+                              item.title,
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          )
+                        else
+                          Text(
+                            item.title,
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        const SizedBox(height: 8),
+                        MetadataBar(
+                          item: item,
+                          isLoading: detailsState is AsyncLoading,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              DetailsActionButtons(item: widget.item, details: details, itemUrl: widget.item.url),
+              if (item.nextAiring != null) ...[
+                const SizedBox(height: 16),
+                NextAiringWidget(nextAiring: item.nextAiring!),
+              ],
+              const SizedBox(height: 24),
+              Text(
+                'Synopsis',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                item.description ?? 'No description available.',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+              if (detailsState is AsyncLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (detailsState is AsyncError)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                  child: Text("Error: ${detailsState.error}"),
+                )
+              else if (!isMovie && details?.episodes != null)
+                DetailsSeasonListWrapper(itemUrl: widget.item.url),
+            ],
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        sliver: SliverDetailsEpisodeList(
+          parentItem: item,
+          itemUrl: widget.item.url,
+          isMovie: isMovie,
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (item.cast != null && item.cast!.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                CastCarousel(cast: item.cast!),
+              ],
+              if (item.trailers != null && item.trailers!.isNotEmpty) ...[
+                const SizedBox(height: 32),
+                TrailersSection(trailers: item.trailers!),
+              ],
               if (item.recommendations != null && item.recommendations!.isNotEmpty) ...[
                 const SizedBox(height: 32),
                 RecommendationsCarousel(
@@ -305,146 +461,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout(
-    BuildContext context,
-    MultimediaItem item,
-    MultimediaItem? details,
-    AsyncValue<MultimediaItem?> detailsState,
-    bool isMovie,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Hero(
-              tag: 'poster_${item.url}',
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
-                  imageUrl: AppImageFallbacks.poster(item.posterUrl, label: item.title),
-                  width: 100,
-                  height: 150,
-                  fit: BoxFit.cover,
-                  memCacheWidth: 200, // P19: Optimize memory (2x for retina)
-                  errorWidget: (_, _, _) => ThumbnailErrorPlaceholder(label: item.title),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (item.logoUrl != null)
-                    CachedNetworkImage(
-                      imageUrl: item.logoUrl!,
-                      height: 50,
-                      fit: BoxFit.contain,
-                      alignment: Alignment.centerLeft,
-                      errorWidget: (_, _, _) => Text(
-                        item.title,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    )
-                  else
-                    Text(
-                      item.title,
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  const SizedBox(height: 8),
-                  MetadataBar(
-                    item: item,
-                    isLoading: detailsState is AsyncLoading,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        DetailsActionButtons(item: widget.item, details: details, itemUrl: widget.item.url),
-        if (item.nextAiring != null) ...[
-          const SizedBox(height: 16),
-          NextAiringWidget(nextAiring: item.nextAiring!),
-        ],
-        const SizedBox(height: 24),
-        Text(
-          'Synopsis',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          item.description ?? 'No description available.',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 32),
-        if (detailsState is AsyncLoading)
-          Container(
-            height: 100,
-            alignment: Alignment.center,
-            child: const CircularProgressIndicator(),
-          )
-        else if (detailsState is AsyncError)
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
-            child: Text("Error: ${detailsState.error}"),
-          )
-        else if (isMovie)
-          const SizedBox.shrink()
-        else if (details?.episodes != null) ...[
-          DetailsSeasonListWrapper(itemUrl: widget.item.url),
-          const SizedBox(height: 16),
-          DetailsEpisodeList(
-            parentItem: item,
-            itemUrl: widget.item.url,
-            isMovie: isMovie,
-          ),
-        ] else
-          const Text("No episodes found."),
-        
-        if (item.cast != null && item.cast!.isNotEmpty) ...[
-          const SizedBox(height: 32),
-          CastCarousel(cast: item.cast!),
-        ],
-        
-        if (item.trailers != null && item.trailers!.isNotEmpty) ...[
-          const SizedBox(height: 32),
-          TrailersSection(trailers: item.trailers!),
-        ],
-        
-        if (item.recommendations != null && item.recommendations!.isNotEmpty) ...[
-          const SizedBox(height: 32),
-          RecommendationsCarousel(
-            items: item.recommendations!,
-            onItemTap: (rec) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DetailsScreen(item: rec),
-                ),
-              );
-            },
-          ),
-        ],
-        const SizedBox(height: 50),
-      ],
-    );
+      ),
+    ];
   }
 }

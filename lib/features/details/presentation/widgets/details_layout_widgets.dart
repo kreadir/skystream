@@ -202,12 +202,12 @@ class DetailsActionButtons extends ConsumerWidget {
   }
 }
 
-class DetailsDesktopEpisodeGrid extends ConsumerWidget {
+class SliverDetailsDesktopEpisodeGrid extends ConsumerWidget {
   final MultimediaItem parentItem;
   final String itemUrl;
   final bool isMovie;
 
-  const DetailsDesktopEpisodeGrid({
+  const SliverDetailsDesktopEpisodeGrid({
     super.key,
     required this.parentItem,
     required this.itemUrl,
@@ -216,33 +216,67 @@ class DetailsDesktopEpisodeGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final episodes = ref.watch(detailsControllerProvider(itemUrl).select((s) {
-      return s.seasonMap[s.selectedSeason] ?? [];
-    }));
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (!isMovie) ...[
-          Text(
-            "Episodes",
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+    if (isMovie) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    final detailsState = ref.watch(detailsControllerProvider(itemUrl));
+    var episodes = detailsState.seasonMap[detailsState.selectedSeason] ?? [];
+
+    if (episodes.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    // Apply Language Filter
+    if (detailsState.selectedDubStatus != DubStatus.none) {
+      episodes = episodes
+          .where((e) => e.dubStatus == detailsState.selectedDubStatus)
+          .toList();
+    }
+
+    // Apply Batching (FIRST)
+    const int batchSize = 20;
+    final int start = detailsState.selectedRangeIndex * batchSize;
+    final int end = (start + batchSize).clamp(0, episodes.length);
+    List<Episode> displayedEpisodes = episodes.sublist(start, end);
+
+    // Apply Sorting (SECOND - only on the batch)
+    if (!detailsState.isAscending) {
+      displayedEpisodes = displayedEpisodes.reversed.toList();
+    }
+
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: LayoutConstants.spacingMd),
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 12,
+              children: [
+                Text(
+                  "Episodes",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                DetailsEpisodeFilterBar(
+                  itemUrl: itemUrl,
+                  totalEpisodes: episodes.length,
+                  batchSize: batchSize,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: LayoutConstants.spacingMd),
-        ],
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+        ),
+        SliverGrid.builder(
           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent: 320,
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
             childAspectRatio: 1.0,
           ),
-          itemCount: episodes.length,
+          itemCount: displayedEpisodes.length,
           itemBuilder: (context, index) {
-            final ep = episodes[index];
+            final ep = displayedEpisodes[index];
             return EpisodeCard(
               episode: ep,
               parentItem: parentItem,
@@ -255,12 +289,12 @@ class DetailsDesktopEpisodeGrid extends ConsumerWidget {
   }
 }
 
-class DetailsEpisodeList extends ConsumerWidget {
+class SliverDetailsEpisodeList extends ConsumerWidget {
   final MultimediaItem parentItem;
   final String itemUrl;
   final bool isMovie;
 
-  const DetailsEpisodeList({
+  const SliverDetailsEpisodeList({
     super.key,
     required this.parentItem,
     required this.itemUrl,
@@ -269,28 +303,62 @@ class DetailsEpisodeList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final episodes = ref.watch(detailsControllerProvider(itemUrl).select((s) {
-      return s.seasonMap[s.selectedSeason] ?? [];
-    }));
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (!isMovie) ...[
-          Text(
-            "Episodes",
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+    if (isMovie) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    final detailsState = ref.watch(detailsControllerProvider(itemUrl));
+    var episodes = detailsState.seasonMap[detailsState.selectedSeason] ?? [];
+
+    if (episodes.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    // Apply Language Filter
+    if (detailsState.selectedDubStatus != DubStatus.none) {
+      episodes = episodes
+          .where((e) => e.dubStatus == detailsState.selectedDubStatus)
+          .toList();
+    }
+
+    // Apply Batching (FIRST)
+    const int batchSize = 20;
+    final int start = detailsState.selectedRangeIndex * batchSize;
+    final int end = (start + batchSize).clamp(0, episodes.length);
+    List<Episode> displayedEpisodes = episodes.sublist(start, end);
+
+    // Apply Sorting (SECOND - only on the batch)
+    if (!detailsState.isAscending) {
+      displayedEpisodes = displayedEpisodes.reversed.toList();
+    }
+
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: LayoutConstants.spacingMd),
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 12,
+              children: [
+                Text(
+                  "Episodes",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                DetailsEpisodeFilterBar(
+                  itemUrl: itemUrl,
+                  totalEpisodes: episodes.length,
+                  batchSize: batchSize,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: LayoutConstants.spacingMd),
-        ],
-        ListView.builder(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: episodes.length,
+        ),
+        SliverList.separated(
+          itemCount: displayedEpisodes.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
-            final ep = episodes[index];
+            final ep = displayedEpisodes[index];
             return EpisodeCard(
               episode: ep,
               parentItem: parentItem,
@@ -299,6 +367,186 @@ class DetailsEpisodeList extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+class DetailsEpisodeFilterBar extends ConsumerWidget {
+  final String itemUrl;
+  final int totalEpisodes;
+  final int batchSize;
+
+  const DetailsEpisodeFilterBar({
+    super.key,
+    required this.itemUrl,
+    required this.totalEpisodes,
+    required this.batchSize,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final detailsState = ref.watch(detailsControllerProvider(itemUrl));
+    final int selectedIndex = detailsState.selectedRangeIndex;
+    final bool isAscending = detailsState.isAscending;
+    final DubStatus selectedDub = detailsState.selectedDubStatus;
+
+    final allEpisodes = detailsState.seasonMap[detailsState.selectedSeason] ?? [];
+    final filteredEpisodes = selectedDub == DubStatus.none
+        ? allEpisodes
+        : allEpisodes.where((e) => e.dubStatus == selectedDub).toList();
+
+    final int batchCount = (filteredEpisodes.length / batchSize).ceil();
+
+    final hasDub = allEpisodes.any((e) => e.dubStatus == DubStatus.dubbed);
+    final hasSub = allEpisodes.any((e) => e.dubStatus == DubStatus.subbed);
+    final isMixed = hasDub && hasSub;
+
+    return SizedBox(
+      height: 40,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (isMixed) ...[
+            _buildLanguageToggle(context, ref, selectedDub),
+            const SizedBox(width: 8),
+          ],
+          if (filteredEpisodes.length > batchSize) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: DropdownButton<int>(
+                  value: selectedIndex,
+                  dropdownColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  underline: const SizedBox(),
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(12),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  items: List.generate(batchCount, (index) {
+                    final start = index * batchSize + 1;
+                    final end = ((index + 1) * batchSize).clamp(1, filteredEpisodes.length);
+                    return DropdownMenuItem(
+                      value: index,
+                      child: Text("$start-$end"),
+                    );
+                  }),
+                  onChanged: (val) {
+                    if (val != null) {
+                      ref.read(detailsControllerProvider(itemUrl).notifier).setRangeIndex(val);
+                    }
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Material(
+            color: Colors.transparent,
+            child: Ink(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => ref.read(detailsControllerProvider(itemUrl).notifier).toggleSort(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Icon(
+                    Icons.swap_vert_rounded,
+                    size: 22,
+                    color: isAscending
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageToggle(BuildContext context, WidgetRef ref, DubStatus selected) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _LanguageButton(
+            label: "Sub",
+            isSelected: selected == DubStatus.subbed,
+            onTap: () => ref.read(detailsControllerProvider(itemUrl).notifier).setDubStatus(DubStatus.subbed),
+          ),
+          const SizedBox(width: 4),
+          _LanguageButton(
+            label: "Dub",
+            isSelected: selected == DubStatus.dubbed,
+            onTap: () => ref.read(detailsControllerProvider(itemUrl).notifier).setDubStatus(DubStatus.dubbed),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageButton extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _LanguageButton({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary.withAlpha(40)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: isSelected
+              ? Border.all(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(80),
+                  width: 1,
+                )
+              : Border.all(color: Colors.transparent, width: 1),
+        ),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+        ),
+      ),
     );
   }
 }

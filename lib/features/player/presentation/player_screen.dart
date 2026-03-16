@@ -353,7 +353,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                           forceShowControls: forceShow,
                           player: _player,
                           title: widget.item.title,
-                          subtitle: ref.read(playerControllerProvider).streamSubtitle,
+                          subtitle: ref
+                              .read(playerControllerProvider)
+                              .streamSubtitle,
                           // Most properties are now watched internally by controls
                           // to further narrow rebuild scope.
                           onResize: _updateResizeMode,
@@ -424,7 +426,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                               const Icon(Icons.skip_next),
                               const SizedBox(width: 8),
                               Text(
-                                "Skip to manual source selection (${currentIndex + 1}/${streams.length})",
+                                "Skip to manual source selection ${streams.isNotEmpty ? "(${currentIndex + 1}/${streams.length})" : ""}",
                               ),
                             ],
                           ),
