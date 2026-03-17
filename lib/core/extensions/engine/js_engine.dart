@@ -672,12 +672,32 @@ class JsEngineService {
         }
       }
 
-      // atob/btoa polyfills using bridge
+      // 3. atob/btoa polyfills (Pure JS for robustness and sync access)
       globalThis.atob = function(str) {
-        return sendMessage('base64_decode', str);
+        if (!str) return "";
+        try {
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+            var output = '';
+            str = String(str).replace(/=+\$/, '');
+            for (var bc = 0, bs, buffer, idx = 0; buffer = str.charAt(idx++); ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer, bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0) {
+                buffer = chars.indexOf(buffer);
+            }
+            return output;
+        } catch(e) { return ""; }
       };
+
       globalThis.btoa = function(str) {
-        return sendMessage('base64_encode', str);
+        if (!str) return "";
+        try {
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+            var output = '';
+            for (var block, charCode, bc = 0, idx = 0, map = chars; str.charAt(idx | 0) || (map = '=', idx % 1); output += map.charAt(63 & block >> 8 - idx % 1 * 8)) {
+                charCode = str.charCodeAt(idx += 3 / 4);
+                if (charCode > 0xFF) throw new Error("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
+                block = block << 8 | charCode;
+            }
+            return output;
+        } catch(e) { return ""; }
       };
 
       // URL Polyfill

@@ -321,15 +321,50 @@ class JsBasedProvider extends SkyStreamProvider {
               }
             }
             // DIRECT PROXY URL HANDLING
-            else if (finalUrl.startsWith("MAGIC_PROXY_v1")) {
+            // If the URL starts with MAGIC_PROXY_v1/v2, it means we need to use a local proxy
+            // to inject necessary headers into HLS segments.
+            else if (finalUrl.startsWith("MAGIC_PROXY_v1") || finalUrl.startsWith("MAGIC_PROXY:")) {
               try {
-                final b64Url = finalUrl.substring("MAGIC_PROXY_v1".length);
+                final bool isV1 = finalUrl.startsWith("MAGIC_PROXY_v1");
+                final b64Url = finalUrl.substring(isV1 ? "MAGIC_PROXY_v1".length : "MAGIC_PROXY:".length);
                 final realUrlBytes = base64Decode(b64Url);
                 final realUrl = utf8.decode(realUrlBytes);
-                finalUrl = LocalProxyService.instance.getProxyUrl(realUrl);
+                finalUrl = LocalProxyService.instance.getProxyUrl(
+                  realUrl,
+                  headers: map['headers'] != null
+                      ? Map<String, String>.from(map['headers'])
+                      : null,
+                );
               } catch (e) {
                 if (kDebugMode) {
                   debugPrint("Error decoding MAGIC_PROXY_v1 url: $e");
+                }
+              }
+            } else if (finalUrl.startsWith("MAGIC_PROXY_v2")) {
+              try {
+                final b64Json = finalUrl.substring("MAGIC_PROXY_v2".length);
+                final jsonBytes = base64Decode(b64Json);
+                final decodedJson = utf8.decode(jsonBytes);
+                final Map<String, dynamic> config = jsonDecode(decodedJson);
+                
+                final String realUrl = config['url'];
+                final Map<String, String>? sticky = config['headers'] != null 
+                    ? Map<String, String>.from(config['headers']) 
+                    : (map['headers'] != null ? Map<String, String>.from(map['headers']) : null);
+                
+                ProxyOptions? options;
+                if (config['options'] != null) {
+                   options = ProxyOptions.fromJson(config['options']);
+                }
+
+                finalUrl = LocalProxyService.instance.getProxyUrl(
+                  realUrl,
+                  headers: sticky,
+                  options: options,
+                );
+              } catch (e) {
+                if (kDebugMode) {
+                  debugPrint("Error decoding MAGIC_PROXY_v2 url: $e");
                 }
               }
             }
