@@ -324,14 +324,13 @@ class JsEngineService {
         if (node == null) return null;
 
         if (multi) {
-          final List<html_dom.Element> elements = (node is html_dom.Document)
-              ? node.querySelectorAll(query)
-              : (node as html_dom.Element).querySelectorAll(query);
+          final List<html_dom.Element> elements =
+              _querySelectorAllWithContains(node, query);
           return elements.map((e) => _serializeElement(e)).toList();
         } else {
-          final html_dom.Element? element = (node is html_dom.Document)
-              ? node.querySelector(query)
-              : (node as html_dom.Element).querySelector(query);
+          final elements = _querySelectorAllWithContains(node, query);
+          final html_dom.Element? element =
+              elements.isNotEmpty ? elements.first : null;
           return _serializeElement(element);
         }
       } catch (e) {
@@ -972,6 +971,61 @@ class JsEngineService {
       return "${msg.substring(0, 3000)}... [Truncated]";
     }
     return msg;
+  }
+
+  /// Custom implementation to support :contains() selector which is
+  /// currently unimplemented in the 'html' package's selector engine.
+  List<html_dom.Element> _querySelectorAllWithContains(
+    dynamic node,
+    String query,
+  ) {
+    if (!query.contains(':contains(')) {
+      return (node is html_dom.Document)
+          ? node.querySelectorAll(query)
+          : (node as html_dom.Element).querySelectorAll(query);
+    }
+
+    // Split selector into base part and contains part
+    // Example: div.item:contains(text) -> base="div.item", text="text"
+    final regex = RegExp(r'(.*):contains\((.*)\)(.*)');
+    final match = regex.firstMatch(query);
+
+    if (match == null) {
+      // Fallback for malformed :contains
+      return (node is html_dom.Document)
+          ? node.querySelectorAll(query)
+          : (node as html_dom.Element).querySelectorAll(query);
+    }
+
+    final baseSelector = match.group(1) ?? "";
+    final containsText = match.group(2) ?? "";
+    final remainingSelector = match.group(3) ?? "";
+
+    List<html_dom.Element> baseElements;
+    if (baseSelector.trim().isEmpty) {
+      // Support for :contains(text) without a leading selector
+      baseElements = (node is html_dom.Document)
+          ? node.querySelectorAll('*')
+          : (node as html_dom.Element).querySelectorAll('*');
+    } else {
+      baseElements = (node is html_dom.Document)
+          ? node.querySelectorAll(baseSelector)
+          : (node as html_dom.Element).querySelectorAll(baseSelector);
+    }
+
+    final filtered = baseElements.where((e) {
+      return e.text.contains(containsText);
+    }).toList();
+
+    if (remainingSelector.isNotEmpty) {
+      // Recursively handle any remaining parts of the selector
+      // This is a simple implementation that filters further
+      return filtered.expand((e) {
+        return _querySelectorAllWithContains(e, remainingSelector);
+      }).toList();
+    }
+
+    return filtered;
   }
 
   Map<String, dynamic>? _serializeElement(html_dom.Element? element) {

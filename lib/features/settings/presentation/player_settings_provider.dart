@@ -15,7 +15,7 @@ class PlayerSettings {
   final int subtitleBackgroundColor;
   final bool hardwareDecoding;
   final String?
-      preferredPlayer; // null = internal, 'vlc' / 'mpv' etc. = external
+  preferredPlayer; // null = internal, 'vlc' / 'mpv' etc. = external
   final int readaheadSeconds;
 
   const PlayerSettings({
@@ -74,18 +74,67 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
   @override
   Future<PlayerSettings> build() async {
     final storage = _repository;
-    final l = storage.getPlayerSetting<String>('player_gesture_left', defaultValue: 'brightness') ?? 'brightness';
-    final r = storage.getPlayerSetting<String>('player_gesture_right', defaultValue: 'volume') ?? 'volume';
-    final dt = storage.getPlayerSetting<bool>('player_double_tap', defaultValue: true) ?? true;
-    final dur = storage.getPlayerSetting<int>('player_seek_duration', defaultValue: 10) ?? 10;
-    final resize = storage.getPlayerSetting<String>('player_default_resize', defaultValue: 'Fit') ?? 'Fit';
-    final subSize = storage.getPlayerSetting<double>('player_sub_size', defaultValue: 22.0) ?? 22.0;
-    final subColor = storage.getPlayerSetting<int>('player_sub_color', defaultValue: 0xFFFFFFFF) ?? 0xFFFFFFFF;
-    final subBg = storage.getPlayerSetting<int>('player_sub_bg', defaultValue: 0x00000000) ?? 0x00000000;
+    final l =
+        storage.getPlayerSetting<String>(
+          'player_gesture_left',
+          defaultValue: 'brightness',
+        ) ??
+        'brightness';
+    final r =
+        storage.getPlayerSetting<String>(
+          'player_gesture_right',
+          defaultValue: 'volume',
+        ) ??
+        'volume';
+    final dt =
+        storage.getPlayerSetting<bool>(
+          'player_double_tap',
+          defaultValue: true,
+        ) ??
+        true;
+    final dur =
+        storage.getPlayerSetting<int>(
+          'player_seek_duration',
+          defaultValue: 10,
+        ) ??
+        10;
+    final resize =
+        storage.getPlayerSetting<String>(
+          'player_default_resize',
+          defaultValue: 'Fit',
+        ) ??
+        'Fit';
+    final subSize =
+        storage.getPlayerSetting<double>(
+          'player_sub_size',
+          defaultValue: 22.0,
+        ) ??
+        22.0;
+    final subColor =
+        storage.getPlayerSetting<int>(
+          'player_sub_color',
+          defaultValue: 0xFFFFFFFF,
+        ) ??
+        0xFFFFFFFF;
+    final subBg =
+        storage.getPlayerSetting<int>(
+          'player_sub_bg',
+          defaultValue: 0x00000000,
+        ) ??
+        0x00000000;
     final prefPlayer = storage.getPlayerSetting<String>('player_preferred');
-    final swipeSeek = storage.getPlayerSetting<bool>('player_swipe_seek', defaultValue: true) ?? true;
-    final hwDec = storage.getPlayerSetting<bool>('player_hw_dec', defaultValue: true) ?? true;
-    final rSecons = storage.getPlayerSetting<int>('player_readahead', defaultValue: 300) ?? 300;
+    final swipeSeek =
+        storage.getPlayerSetting<bool>(
+          'player_swipe_seek',
+          defaultValue: true,
+        ) ??
+        true;
+    final hwDec =
+        storage.getPlayerSetting<bool>('player_hw_dec', defaultValue: true) ??
+        true;
+    final rSecons =
+        storage.getPlayerSetting<int>('player_readahead', defaultValue: 300) ??
+        300;
 
     return PlayerSettings(
       leftGesture: _parse(l),

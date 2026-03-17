@@ -578,17 +578,35 @@ class SkyStreamPlayerControlsState
   @override
   Widget build(BuildContext context) {
     // Watch relevant player state selectively, falling back to props for initial frame
-    final controllerTitle = ref.watch(playerControllerProvider.select((s) => s.playerTitle));
-    final title = controllerTitle.isEmpty ? (widget.title ?? "") : controllerTitle;
-    
-    final controllerSubtitle = ref.watch(playerControllerProvider.select((s) => s.streamSubtitle));
+    final controllerTitle = ref.watch(
+      playerControllerProvider.select((s) => s.playerTitle),
+    );
+    final title = controllerTitle.isEmpty
+        ? (widget.title ?? "")
+        : controllerTitle;
+
+    final controllerSubtitle = ref.watch(
+      playerControllerProvider.select((s) => s.streamSubtitle),
+    );
     final subtitle = controllerSubtitle ?? widget.subtitle;
-    final streams = ref.watch(playerControllerProvider.select((s) => s.streams));
-    final currentStream = ref.watch(playerControllerProvider.select((s) => s.currentStream));
-    final externalSubtitles = ref.watch(playerControllerProvider.select((s) => s.externalSubtitles));
-    final torrentStatus = ref.watch(playerControllerProvider.select((s) => s.torrentStatus));
-    final showNextEpOverlay = ref.watch(playerControllerProvider.select((s) => s.showNextEpisodeOverlay));
-    final nextEpTitle = ref.watch(playerControllerProvider.select((s) => s.nextEpisodeTitle));
+    final streams = ref.watch(
+      playerControllerProvider.select((s) => s.streams),
+    );
+    final currentStream = ref.watch(
+      playerControllerProvider.select((s) => s.currentStream),
+    );
+    final externalSubtitles = ref.watch(
+      playerControllerProvider.select((s) => s.externalSubtitles),
+    );
+    final torrentStatus = ref.watch(
+      playerControllerProvider.select((s) => s.torrentStatus),
+    );
+    final showNextEpOverlay = ref.watch(
+      playerControllerProvider.select((s) => s.showNextEpisodeOverlay),
+    );
+    final nextEpTitle = ref.watch(
+      playerControllerProvider.select((s) => s.nextEpisodeTitle),
+    );
 
     // Guard against PiP or small window size
     final size = MediaQuery.sizeOf(context);
@@ -652,12 +670,12 @@ class SkyStreamPlayerControlsState
             child: Stack(
               children: [
                 // Locked state UI
-                if (_isLocked) 
-                  _buildLockedUI() 
-                else 
+                if (_isLocked)
+                  _buildLockedUI()
+                else
                   _buildUnlockedUI(
-                    title: title, 
-                    subtitle: subtitle, 
+                    title: title,
+                    subtitle: subtitle,
                     torrentStatus: torrentStatus,
                     streams: streams,
                     currentStream: currentStream,
@@ -716,8 +734,12 @@ class SkyStreamPlayerControlsState
                 if (showNextEpOverlay && nextEpTitle != null)
                   NextEpisodeOverlay(
                     nextEpisodeTitle: nextEpTitle,
-                    onPlayNext: () => ref.read(playerControllerProvider.notifier).playNextEpisode(),
-                    onDismiss: () => ref.read(playerControllerProvider.notifier).dismissNextEpisodeOverlay(),
+                    onPlayNext: () => ref
+                        .read(playerControllerProvider.notifier)
+                        .playNextEpisode(),
+                    onDismiss: () => ref
+                        .read(playerControllerProvider.notifier)
+                        .dismissNextEpisodeOverlay(),
                   ),
               ],
             ),
@@ -826,7 +848,10 @@ class SkyStreamPlayerControlsState
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Progress bar with StreamBuilder
-                      PlayerProgressBar(player: widget.player, onSeekStart: _cancelHideTimer),
+                      PlayerProgressBar(
+                        player: widget.player,
+                        onSeekStart: _cancelHideTimer,
+                      ),
                       const SizedBox(height: 16),
                       // Actions Row
                       FocusTraversalGroup(
@@ -840,12 +865,15 @@ class SkyStreamPlayerControlsState
                                   minWidth: constraints.maxWidth,
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
                                     FocusTraversalOrder(
                                       order: const NumericFocusOrder(0),
                                       child: _buildActionButton(
-                                        icon: _isLocked ? Icons.lock : Icons.lock_open,
+                                        icon: _isLocked
+                                            ? Icons.lock
+                                            : Icons.lock_open,
                                         label: _isLocked ? "Unlock" : "Lock",
                                         onTap: _toggleLock,
                                         highlight: _isLocked,
@@ -854,14 +882,20 @@ class SkyStreamPlayerControlsState
                                     FocusTraversalOrder(
                                       order: const NumericFocusOrder(1),
                                       child: _buildActionButton(
-                                        icon: Icons.high_quality,
+                                        icon: Icons.source,
                                         label: "Sources",
-                                        onTap: () => PlayerBottomSheets.showSourceSelection(
-                                          context: context,
-                                          streams: streams,
-                                          currentStream: currentStream,
-                                          onStreamSelected: (s) => ref.read(playerControllerProvider.notifier).changeStream(s),
-                                        ),
+                                        onTap: () =>
+                                            PlayerBottomSheets.showSourceSelection(
+                                              context: context,
+                                              streams: streams,
+                                              currentStream: currentStream,
+                                              onStreamSelected: (s) => ref
+                                                  .read(
+                                                    playerControllerProvider
+                                                        .notifier,
+                                                  )
+                                                  .changeStream(s),
+                                            ),
                                       ),
                                     ),
                                     FocusTraversalOrder(
@@ -869,11 +903,13 @@ class SkyStreamPlayerControlsState
                                       child: _buildActionButton(
                                         icon: Icons.subtitles,
                                         label: "Tracks",
-                                        onTap: () => PlayerBottomSheets.showTracksSelection(
-                                          context: context,
-                                          player: widget.player,
-                                          externalSubtitles: externalSubtitles,
-                                        ),
+                                        onTap: () =>
+                                            PlayerBottomSheets.showTracksSelection(
+                                              context: context,
+                                              player: widget.player,
+                                              externalSubtitles:
+                                                  externalSubtitles,
+                                            ),
                                       ),
                                     ),
                                     if (torrentStatus != null)
@@ -882,11 +918,20 @@ class SkyStreamPlayerControlsState
                                         child: _buildActionButton(
                                           icon: Icons.folder,
                                           label: "Content",
-                                          onTap: () => PlayerBottomSheets.showContentSelection(
-                                            context: context,
-                                            torrentStatus: torrentStatus,
-                                            onTorrentFileSelected: (idx) => ref.read(playerControllerProvider.notifier).onTorrentFileSelected(idx),
-                                          ),
+                                          onTap: () =>
+                                              PlayerBottomSheets.showContentSelection(
+                                                context: context,
+                                                torrentStatus: torrentStatus,
+                                                onTorrentFileSelected: (idx) =>
+                                                    ref
+                                                        .read(
+                                                          playerControllerProvider
+                                                              .notifier,
+                                                        )
+                                                        .onTorrentFileSelected(
+                                                          idx,
+                                                        ),
+                                              ),
                                         ),
                                       ),
                                     if (torrentStatus != null)
@@ -896,7 +941,10 @@ class SkyStreamPlayerControlsState
                                           icon: Icons.info_outline,
                                           label: "Stats",
                                           onTap: () {
-                                            setState(() => _showTorrentInfo = !_showTorrentInfo);
+                                            setState(
+                                              () => _showTorrentInfo =
+                                                  !_showTorrentInfo,
+                                            );
                                           },
                                           highlight: _showTorrentInfo,
                                         ),
@@ -909,14 +957,19 @@ class SkyStreamPlayerControlsState
                                         onTap: cycleResize,
                                       ),
                                     ),
-                                    if (ref.read(playerControllerProvider.notifier).isSeries)
+                                    if (ref
+                                        .read(playerControllerProvider.notifier)
+                                        .isSeries)
                                       FocusTraversalOrder(
                                         order: const NumericFocusOrder(6),
                                         child: _buildActionButton(
                                           icon: Icons.skip_next,
                                           label: "Next",
                                           onTap: () => ref
-                                              .read(playerControllerProvider.notifier)
+                                              .read(
+                                                playerControllerProvider
+                                                    .notifier,
+                                              )
                                               .playNextEpisode(),
                                         ),
                                       ),
@@ -985,7 +1038,6 @@ class SkyStreamPlayerControlsState
       ),
     );
   }
-
 
   Widget _buildLoadingUI({String? title, String? subtitle}) {
     return PlayerLoadingOverlay(

@@ -219,7 +219,7 @@ class PlayerBottomSheets {
                 Divider(color: theme.dividerColor),
                 ...audioTracks.map((e) {
                   final langName = getLanguageName(e.language ?? e.id);
-                  final label = e.title != null
+                  final label = (e.title != null && e.title!.trim().isNotEmpty)
                       ? "$langName (${e.title})"
                       : langName;
                   final isSelected = e == player.state.track.audio;
@@ -316,7 +316,7 @@ class PlayerBottomSheets {
                 // Embedded Subtitles
                 ...subTracks.map((e) {
                   final langName = getLanguageName(e.language ?? e.id);
-                  final label = e.title != null
+                  final label = (e.title != null && e.title!.trim().isNotEmpty)
                       ? "$langName (${e.title})"
                       : langName;
                   final isSelected = e == player.state.track.subtitle;

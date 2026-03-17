@@ -2,7 +2,6 @@ import 'package:html_unescape/html_unescape.dart';
 
 enum MultimediaContentType { movie, series, anime, livestream, other }
 
-
 enum ShowStatus { completed, ongoing, upcoming }
 
 enum DubStatus { none, dubbed, subbed }
@@ -136,7 +135,9 @@ class MultimediaItem {
   });
 
   factory MultimediaItem.fromJson(Map<String, dynamic> json) {
-    if (json.containsKey('media_type') && json.containsKey('vote_average') && !json.containsKey('posterUrl')) {
+    if (json.containsKey('media_type') &&
+        json.containsKey('vote_average') &&
+        !json.containsKey('posterUrl')) {
       return MultimediaItem.fromTmdbJson(json);
     }
     final title = json['title'] != null ? _unescape.convert(json['title']) : '';
@@ -209,16 +210,21 @@ class MultimediaItem {
   }
 
   factory MultimediaItem.fromTmdbJson(Map<String, dynamic> json) {
-    final String mTypeStr = json['media_type'] ?? (json['title'] != null ? 'movie' : 'tv');
+    final String mTypeStr =
+        json['media_type'] ?? (json['title'] != null ? 'movie' : 'tv');
     final title = _unescape.convert(json['title'] ?? json['name'] ?? 'Unknown');
     final date = json['release_date'] ?? json['first_air_date'] ?? '';
     final year = int.tryParse(date.split('-').first);
     final posterPath = json['poster_path'];
     final backdropPath = json['backdrop_path'];
-    
+
     // Using simple logic for now, we'll eventually use AppImageFallbacks once we unify more
-    final posterUrl = posterPath != null ? 'https://image.tmdb.org/t/p/w500$posterPath' : '';
-    final bannerUrl = backdropPath != null ? 'https://image.tmdb.org/t/p/original$backdropPath' : posterUrl;
+    final posterUrl = posterPath != null
+        ? 'https://image.tmdb.org/t/p/w500$posterPath'
+        : '';
+    final bannerUrl = backdropPath != null
+        ? 'https://image.tmdb.org/t/p/original$backdropPath'
+        : posterUrl;
 
     return MultimediaItem(
       title: title,
@@ -243,7 +249,6 @@ class MultimediaItem {
     return ShowStatus.ongoing;
   }
 
-
   static MultimediaContentType parseContentType(String? raw) {
     if (raw == null) return MultimediaContentType.movie;
     switch (raw.toLowerCase()) {
@@ -266,7 +271,8 @@ class MultimediaItem {
 
   // Compatibility getters for TmdbItem migration
   int get id => tmdbId ?? 0;
-  String get mediaType => contentType == MultimediaContentType.series ? 'tv' : 'movie';
+  String get mediaType =>
+      contentType == MultimediaContentType.series ? 'tv' : 'movie';
   String get backdropImageUrl => bannerUrl ?? posterUrl;
   String get posterImageUrl => posterUrl;
   String get thumbnailImageUrl => posterUrl;
@@ -507,14 +513,14 @@ class StreamResult {
   });
 
   Map<String, dynamic> toJson() => {
-        'url': url,
-        'source': source,
-        'headers': headers,
-        'subtitles': subtitles?.map((x) => x.toJson()).toList(),
-        'drmKid': drmKid,
-        'drmKey': drmKey,
-        'licenseUrl': licenseUrl,
-      };
+    'url': url,
+    'source': source,
+    'headers': headers,
+    'subtitles': subtitles?.map((x) => x.toJson()).toList(),
+    'drmKid': drmKid,
+    'drmKey': drmKey,
+    'licenseUrl': licenseUrl,
+  };
 
   factory StreamResult.fromJson(Map<String, dynamic> json) {
     return StreamResult(
@@ -525,8 +531,8 @@ class StreamResult {
           : null,
       subtitles: json['subtitles'] != null
           ? (json['subtitles'] as List)
-              .map((x) => SubtitleFile.fromJson(Map<String, dynamic>.from(x)))
-              .toList()
+                .map((x) => SubtitleFile.fromJson(Map<String, dynamic>.from(x)))
+                .toList()
           : null,
       drmKid: json['drmKid'],
       drmKey: json['drmKey'],
@@ -540,17 +546,9 @@ class SubtitleFile {
   final String label;
   final String? lang;
 
-  SubtitleFile({
-    required this.url,
-    required this.label,
-    this.lang,
-  });
+  SubtitleFile({required this.url, required this.label, this.lang});
 
-  Map<String, dynamic> toJson() => {
-        'url': url,
-        'label': label,
-        'lang': lang,
-      };
+  Map<String, dynamic> toJson() => {'url': url, 'label': label, 'lang': lang};
 
   factory SubtitleFile.fromJson(Map<String, dynamic> json) {
     return SubtitleFile(
