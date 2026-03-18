@@ -117,7 +117,6 @@ class PlayerController extends Notifier<PlayerState> {
   StreamSubscription? _playingSub;
   StreamSubscription? _positionSub;
   StreamSubscription? _bufferingSub;
-  StreamSubscription? _progressSub;
 
   final List<DateTime> _bufferDepletionTimes = [];
   Timer? _retryTimer;
@@ -125,6 +124,17 @@ class PlayerController extends Notifier<PlayerState> {
   @override
   PlayerState build() {
     ref.keepAlive();
+    // Safety net: if the provider is somehow disposed without
+    // disposeController() being called, clean up subscriptions.
+    ref.onDispose(() {
+      _torrentPollTimer?.cancel();
+      _retryTimer?.cancel();
+      _videoParamsSub?.cancel();
+      _errorSub?.cancel();
+      _playingSub?.cancel();
+      _positionSub?.cancel();
+      _bufferingSub?.cancel();
+    });
     return const PlayerState();
   }
 
@@ -168,7 +178,7 @@ class PlayerController extends Notifier<PlayerState> {
             }
           }
         } catch (e) {
-          debugPrint('PlayerController.init: $e');
+          if (kDebugMode) debugPrint('PlayerController.init: $e');
         }
       }
     }
@@ -182,7 +192,6 @@ class PlayerController extends Notifier<PlayerState> {
     _setupErrorListener();
     _setupVideoParamsListener();
     _setupBufferingMonitor();
-    _setupProgressMonitor();
 
     await _initStream();
   }
@@ -206,14 +215,6 @@ class PlayerController extends Notifier<PlayerState> {
     });
   }
 
-  void _setupProgressMonitor() {
-    _progressSub?.cancel();
-    // Progress monitor now only handles logic, UI uses StreamBuilder natively
-    _progressSub = _player.stream.buffer.listen((buffer) {
-      // Logic-only monitoring can go here if needed in future
-    });
-  }
-
   void _handleBufferStall() {
     if (_isLiveStream(_videoUrl)) return;
 
@@ -226,9 +227,11 @@ class PlayerController extends Notifier<PlayerState> {
     );
 
     if (_bufferDepletionTimes.length >= 2 && !state.isAdaptiveBufferingActive) {
-      debugPrint(
-        "Multiple buffer stalls detected. Activating adaptive buffering.",
-      );
+      if (kDebugMode) {
+        debugPrint(
+          "Multiple buffer stalls detected. Activating adaptive buffering.",
+        );
+      }
       state = state.copyWith(isAdaptiveBufferingActive: true);
 
       // Re-apply properties with aggressive buffering
@@ -247,7 +250,7 @@ class PlayerController extends Notifier<PlayerState> {
 
   void _setupErrorListener() {
     _errorSub = _player.stream.error.listen((error) {
-      debugPrint("Player Error: $error");
+      if (kDebugMode) debugPrint("Player Error: $error");
       if (state.isOpeningStream) return;
       if (error.toString().toLowerCase().contains("abort")) return;
 
@@ -373,7 +376,7 @@ class PlayerController extends Notifier<PlayerState> {
         }
       }
     } catch (e) {
-      debugPrint("Error loading streams: $e");
+      if (kDebugMode) debugPrint("Error loading streams: $e");
     }
 
     state = state.copyWith(errorMessage: "No streams found.", isLoading: false);
@@ -426,7 +429,7 @@ class PlayerController extends Notifier<PlayerState> {
           (p) => p.packageName == val || p.name == val,
         );
       } catch (e) {
-        debugPrint('PlayerController._resolveProvider: $e');
+        if (kDebugMode) debugPrint('PlayerController._resolveProvider: $e');
       }
     }
     return activeState;
@@ -461,7 +464,7 @@ class PlayerController extends Notifier<PlayerState> {
         if (foundIndex != -1) return foundIndex;
       }
     } catch (e) {
-      debugPrint("Error checking saved stream quality: $e");
+      if (kDebugMode) debugPrint("Error checking saved stream quality: $e");
     }
     return 0;
   }
@@ -517,7 +520,7 @@ class PlayerController extends Notifier<PlayerState> {
         await _safeSeekTo(savedPos);
       }
     } catch (e) {
-      debugPrint("Stream $index failed: $e");
+      if (kDebugMode) debugPrint("Stream $index failed: $e");
       retryNextStream();
     }
   }
@@ -579,7 +582,7 @@ class PlayerController extends Notifier<PlayerState> {
         isManualSwitch: isRevert ? false : false,
       );
     } catch (e) {
-      debugPrint("Change stream failed: $e");
+      if (kDebugMode) debugPrint("Change stream failed: $e");
       if (isRevert) {
         state = state.copyWith(
           errorMessage: "Revert failed: $e",
@@ -642,7 +645,8 @@ class PlayerController extends Notifier<PlayerState> {
             state = state.copyWith(playerTitle: fileLabel);
           }
         } catch (e) {
-          debugPrint('PlayerController.onTorrentFileSelected: $e');
+          if (kDebugMode)
+            debugPrint('PlayerController.onTorrentFileSelected: $e');
         }
 
         final newStream = StreamResult(
@@ -655,7 +659,7 @@ class PlayerController extends Notifier<PlayerState> {
         state = state.copyWith(isLoading: false);
       }
     } catch (e) {
-      debugPrint("Failed to switch file: $e");
+      if (kDebugMode) debugPrint("Failed to switch file: $e");
       state = state.copyWith(isLoading: false);
     }
   }
@@ -688,7 +692,8 @@ class PlayerController extends Notifier<PlayerState> {
     try {
       final pos = _player.state.position.inMilliseconds;
       final dur = _player.state.duration.inMilliseconds;
-      final isLivestream = _item.contentType == MultimediaContentType.livestream;
+      final isLivestream =
+          _item.contentType == MultimediaContentType.livestream;
 
       // Livestreams: save to history without progress (position=0, duration=0)
       if (isLivestream) {
@@ -697,13 +702,15 @@ class PlayerController extends Notifier<PlayerState> {
             ref.read(activeProviderStateProvider)?.packageName ??
             'Unknown';
         final itemToSave = _item.copyWith(provider: pId);
-        ref.read(watchHistoryProvider.notifier).saveProgress(
-          itemToSave,
-          0,
-          0,
-          lastStreamUrl: state.currentStream?.url,
-          lastEpisodeUrl: _videoUrl,
-        );
+        ref
+            .read(watchHistoryProvider.notifier)
+            .saveProgress(
+              itemToSave,
+              0,
+              0,
+              lastStreamUrl: state.currentStream?.url,
+              lastEpisodeUrl: _videoUrl,
+            );
         return;
       }
 
@@ -773,7 +780,7 @@ class PlayerController extends Notifier<PlayerState> {
         );
       }
     } catch (e) {
-      debugPrint("History save failed: $e");
+      if (kDebugMode) debugPrint("History save failed: $e");
     }
   }
 
@@ -808,7 +815,8 @@ class PlayerController extends Notifier<PlayerState> {
                 }
               }
             } catch (e) {
-              debugPrint('PlayerController.startTorrentPolling: $e');
+              if (kDebugMode)
+                debugPrint('PlayerController.startTorrentPolling: $e');
             }
           }
           state = state.copyWith(torrentStatus: status);
@@ -820,7 +828,7 @@ class PlayerController extends Notifier<PlayerState> {
 
     poll();
     _torrentPollTimer = Timer.periodic(
-      const Duration(seconds: 1),
+      const Duration(seconds: 3),
       (_) => poll(),
     );
   }
@@ -858,7 +866,6 @@ class PlayerController extends Notifier<PlayerState> {
     _playingSub?.cancel();
     _positionSub?.cancel();
     _bufferingSub?.cancel();
-    _progressSub?.cancel();
 
     saveProgress();
     ref.read(torrentServiceProvider).stop();
@@ -887,9 +894,11 @@ class PlayerController extends Notifier<PlayerState> {
     if (candidates.length <= 1) return start;
 
     try {
-      debugPrint(
-        "Starting parallel health check for ${candidates.length} streams",
-      );
+      if (kDebugMode) {
+        debugPrint(
+          "Starting parallel health check for ${candidates.length} streams",
+        );
+      }
       final results = await Future.wait(
         candidates.map((idx) async {
           final s = streams[idx];
@@ -916,12 +925,12 @@ class PlayerController extends Notifier<PlayerState> {
       // Return first one that responded positively in the original order of preference
       for (final entry in results) {
         if (entry.value) {
-          debugPrint("Stream ${entry.key} is healthy");
+          if (kDebugMode) debugPrint("Stream ${entry.key} is healthy");
           return entry.key;
         }
       }
     } catch (e) {
-      debugPrint("Parallel check failed: $e");
+      if (kDebugMode) debugPrint("Parallel check failed: $e");
     }
 
     return start; // Fallback to initial
@@ -936,7 +945,8 @@ class PlayerController extends Notifier<PlayerState> {
       if (p.isDebug) return "${p.name} [DEBUG]";
       return p.name;
     } catch (e) {
-      debugPrint('PlayerController._getProviderDisplayName: $e');
+      if (kDebugMode)
+        debugPrint('PlayerController._getProviderDisplayName: $e');
     }
     return providerName;
   }
@@ -962,11 +972,13 @@ class PlayerController extends Notifier<PlayerState> {
     StreamResult stream,
   ) async {
     // Debug: log what DRM fields the stream has so failures are traceable.
-    debugPrint(
-      '[DRM] stream drmKid=${stream.drmKid} '
-      'drmKey=${stream.drmKey} '
-      'licenseUrl=${stream.licenseUrl}',
-    );
+    if (kDebugMode) {
+      debugPrint(
+        '[DRM] stream drmKid=${stream.drmKid} '
+        'drmKey=${stream.drmKey} '
+        'licenseUrl=${stream.licenseUrl}',
+      );
+    }
 
     if (_player.platform is NativePlayer) {
       final native = _player.platform as NativePlayer;
@@ -985,7 +997,8 @@ class PlayerController extends Notifier<PlayerState> {
         if (headerFields.isNotEmpty) {
           // Join with \r\n and ensure it ends with \r\n
           final fields = '${headerFields.join('\r\n')}\r\n';
-          debugPrint('Player: Setting http-header-fields: $fields');
+          if (kDebugMode)
+            debugPrint('Player: Setting http-header-fields: $fields');
           await native.setProperty('http-header-fields', fields);
         }
       }
@@ -1012,13 +1025,18 @@ class PlayerController extends Notifier<PlayerState> {
       final isLivePattern =
           _isLiveStream(stream.url) ||
           _item.contentType == MultimediaContentType.livestream;
-      debugPrint(
-        'Stream Type (isLivePattern): $isLivePattern, URL: ${stream.url}',
-      );
+      if (kDebugMode) {
+        debugPrint(
+          'Stream Type (isLivePattern): $isLivePattern, URL: ${stream.url}',
+        );
+      }
       if (isLivePattern) {
-        await native.setProperty('demuxer-readahead-secs', '5');
-        await native.setProperty('cache-secs', '0');
-        await native.setProperty('cache', 'no');
+        // Live TV: small buffer to absorb network jitter, not the large VOD buffer
+        await native.setProperty('demuxer-readahead-secs', '8');
+        await native.setProperty('cache-secs', '8');
+        await native.setProperty('cache', 'yes');
+        await native.setProperty('cache-pause-initial', 'yes');
+        await native.setProperty('cache-pause-wait', '2');
       } else {
         final settings = ref.read(playerSettingsProvider).asData?.value;
         final readahead = settings?.readaheadSeconds ?? 300;
@@ -1039,7 +1057,13 @@ class PlayerController extends Notifier<PlayerState> {
       }
 
       await native.setProperty('demuxer-max-bytes', cacheSize);
-      await native.setProperty('demuxer-max-back-bytes', '32MiB');
+      // Allow seeking back without re-fetching — proportional to device RAM
+      final backCacheSize = profile?.isTv == true
+          ? '64MiB'
+          : (profile?.isDesktopOS == true || profile?.isTablet == true)
+          ? '256MiB'
+          : '128MiB';
+      await native.setProperty('demuxer-max-back-bytes', backCacheSize);
 
       // 2. Resolve ClearKey Hex Keys
       String? keyHex = stream.drmKey;
@@ -1057,9 +1081,11 @@ class PlayerController extends Notifier<PlayerState> {
       if (keyHex != null) {
         // FFmpeg's DASH demuxer natively expects cenc_decryption_key.
         // It's usually the 32-character hex KEY.
-        debugPrint(
-          '[DRM] Injecting cenc_decryption_key via setProperty: $keyHex',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            '[DRM] Injecting cenc_decryption_key via setProperty: $keyHex',
+          );
+        }
         await native.setProperty(
           'demuxer-lavf-o',
           'cenc_decryption_key=$keyHex',
@@ -1075,7 +1101,7 @@ class PlayerController extends Notifier<PlayerState> {
         await native.setProperty('cookies-file', cookieFile.path);
         await native.setProperty('cookies-file-access', 'read+write');
       } catch (e) {
-        debugPrint('Failed to set cookies-file: $e');
+        if (kDebugMode) debugPrint('Failed to set cookies-file: $e');
       }
     }
   }
@@ -1088,18 +1114,20 @@ class PlayerController extends Notifier<PlayerState> {
     Map<String, String>? headers,
   }) async {
     try {
-      debugPrint('[DRM] Fetching ClearKey license from $licenseUrl');
+      if (kDebugMode)
+        debugPrint('[DRM] Fetching ClearKey license from $licenseUrl');
       final response = await http.get(Uri.parse(licenseUrl), headers: headers);
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        debugPrint('[DRM] License server returned ${response.statusCode}');
+        if (kDebugMode)
+          debugPrint('[DRM] License server returned ${response.statusCode}');
         return null;
       }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       final keys = body['keys'] as List<dynamic>?;
       if (keys == null || keys.isEmpty) {
-        debugPrint('[DRM] No keys array in license response');
+        if (kDebugMode) debugPrint('[DRM] No keys array in license response');
         return null;
       }
 
@@ -1119,7 +1147,7 @@ class PlayerController extends Notifier<PlayerState> {
 
       return null;
     } catch (e) {
-      debugPrint('[DRM] Error fetching/parsing license: $e');
+      if (kDebugMode) debugPrint('[DRM] Error fetching/parsing license: $e');
       return null;
     }
   }
@@ -1135,13 +1163,18 @@ class PlayerController extends Notifier<PlayerState> {
       final bytes = base64Url.decode(padded);
       return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
     } catch (e) {
-      debugPrint('[DRM] base64url decode failed for "$base64url": $e');
+      if (kDebugMode)
+        debugPrint('[DRM] base64url decode failed for "$base64url": $e');
       return null;
     }
   }
 
   bool _isLiveStream(String url) {
     if (url.isEmpty) return false;
+
+    // Items explicitly marked as livestream in provider metadata
+    if (_item.contentType == MultimediaContentType.livestream) return true;
+
     final lower = url.toLowerCase();
 
     // Torrents and local files are definitely VOD
@@ -1168,7 +1201,12 @@ class PlayerController extends Notifier<PlayerState> {
       return true;
     }
 
-    // Default to VOD for bandwidth protection (listener will catch false negatives)
+    // Xtream Codes API patterns
+    if (lower.contains('type=m3u8') || lower.contains('output=m3u8')) {
+      return true;
+    }
+
+    // Default to VOD for bandwidth protection
     return false;
   }
 
@@ -1183,7 +1221,8 @@ class PlayerController extends Notifier<PlayerState> {
         await _player.seek(Duration(milliseconds: position));
       }
     } catch (e) {
-      debugPrint("Timeout waiting for duration or seek failed: $e");
+      if (kDebugMode)
+        debugPrint("Timeout waiting for duration or seek failed: $e");
     }
   }
 }
