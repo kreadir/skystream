@@ -645,8 +645,9 @@ class PlayerController extends Notifier<PlayerState> {
             state = state.copyWith(playerTitle: fileLabel);
           }
         } catch (e) {
-          if (kDebugMode)
+          if (kDebugMode) {
             debugPrint('PlayerController.onTorrentFileSelected: $e');
+          }
         }
 
         final newStream = StreamResult(
@@ -815,8 +816,9 @@ class PlayerController extends Notifier<PlayerState> {
                 }
               }
             } catch (e) {
-              if (kDebugMode)
+              if (kDebugMode) {
                 debugPrint('PlayerController.startTorrentPolling: $e');
+              }
             }
           }
           state = state.copyWith(torrentStatus: status);
@@ -945,8 +947,9 @@ class PlayerController extends Notifier<PlayerState> {
       if (p.isDebug) return "${p.name} [DEBUG]";
       return p.name;
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('PlayerController._getProviderDisplayName: $e');
+      }
     }
     return providerName;
   }
@@ -997,8 +1000,9 @@ class PlayerController extends Notifier<PlayerState> {
         if (headerFields.isNotEmpty) {
           // Join with \r\n and ensure it ends with \r\n
           final fields = '${headerFields.join('\r\n')}\r\n';
-          if (kDebugMode)
+          if (kDebugMode) {
             debugPrint('Player: Setting http-header-fields: $fields');
+          }
           await native.setProperty('http-header-fields', fields);
         }
       }
@@ -1114,13 +1118,15 @@ class PlayerController extends Notifier<PlayerState> {
     Map<String, String>? headers,
   }) async {
     try {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('[DRM] Fetching ClearKey license from $licenseUrl');
+      }
       final response = await http.get(Uri.parse(licenseUrl), headers: headers);
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint('[DRM] License server returned ${response.statusCode}');
+        }
         return null;
       }
 
@@ -1163,8 +1169,9 @@ class PlayerController extends Notifier<PlayerState> {
       final bytes = base64Url.decode(padded);
       return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('[DRM] base64url decode failed for "$base64url": $e');
+      }
       return null;
     }
   }
@@ -1221,8 +1228,9 @@ class PlayerController extends Notifier<PlayerState> {
         await _player.seek(Duration(milliseconds: position));
       }
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("Timeout waiting for duration or seek failed: $e");
+      }
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Represents an external video player that can be launched from Skystream.
@@ -185,7 +186,9 @@ class ExternalPlayerService {
     return false;
   }
 
-  // -- Android: Intent-based launch via url_launcher --
+  // -- Android: Native Intent via platform channel --
+
+  static const _playerChannel = MethodChannel('dev.akash.skystream/external_player');
 
   Future<bool> _launchAndroid(
     String videoUrl,
@@ -193,29 +196,34 @@ class ExternalPlayerService {
     Map<String, String>? headers,
     String? title,
   }) async {
-    // Try intent URI for maximum compatibility
-    if (player.androidPackage != null) {
-      final intentUri = Uri.parse(
-        'intent:$videoUrl#Intent;'
-        'action=android.intent.action.VIEW;'
-        'category=android.intent.category.DEFAULT;'
-        'type=video/*;'
-        'package=${player.androidPackage};'
-        '${title != null ? "S.title=${Uri.encodeComponent(title)};" : ""}'
-        'end',
+    try {
+      // Use the native Kotlin channel which constructs a proper Android Intent.
+      // This avoids url_launcher's Uri.parse() which breaks on video URLs
+      // containing query parameters (?key=value&...).
+      final result = await _playerChannel.invokeMethod<bool>(
+        'launchVideoInPlayer',
+        {
+          'url': videoUrl,
+          'package': player.androidPackage,
+          'mimeType': 'video/*',
+          'title': ?title,
+        },
       );
-      try {
-        // Don't use canLaunchUrl for intent URIs — it doesn't work reliably
-        // on Android. Just attempt the launch directly.
-        return await launchUrl(intentUri);
-      } catch (e) {
-        if (kDebugMode) debugPrint('Android intent launch failed: $e');
-      }
+      return result ?? false;
+    } on PlatformException catch (e) {
+      if (kDebugMode) debugPrint('Android external player error: ${e.message}');
+    } catch (e) {
+      if (kDebugMode) debugPrint('Android intent launch failed: $e');
     }
 
-    // Fallback: ACTION_VIEW with video MIME type
-    final uri = Uri.parse(videoUrl);
-    return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    // Fallback: plain ACTION_VIEW without a package target
+    try {
+      final uri = Uri.parse(videoUrl);
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (kDebugMode) debugPrint('Android fallback launch failed: $e');
+      return false;
+    }
   }
 
   // -- iOS: Custom URL scheme --

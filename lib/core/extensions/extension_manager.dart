@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart'; // Contains ChangeNotifier
+// Contains ChangeNotifier
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'base_provider.dart';
 
@@ -34,8 +34,9 @@ class ExtensionManager extends Notifier<List<SkyStreamProvider>> {
   }
 
   Future<void> _syncPlugins(List<ExtensionPlugin> installed) async {
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("ExtensionManager: Syncing ${installed.length} plugin");
+    }
     if (_engine == null || _storageService == null) return;
 
     final activePackageName = ref
@@ -105,14 +106,16 @@ class ExtensionManager extends Notifier<List<SkyStreamProvider>> {
     }
 
     if (providersToRemove.isNotEmpty) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
           "ExtensionManager: Unloading ${providersToRemove.length} providers",
         );
+      }
       final newState = List<SkyStreamProvider>.from(state);
       for (final p in providersToRemove) {
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint("ExtensionManager: Removing ${p.packageName} (${p.name})");
+        }
         newState.remove(p);
         // Also cleanup JS resources if needed
         if (p is JsBasedProvider) {
@@ -133,10 +136,11 @@ class ExtensionManager extends Notifier<List<SkyStreamProvider>> {
     // Reload the provider to apply changes
     final currentProvider = getProvider(packageName);
     if (currentProvider != null) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
           "ExtensionManager: Custom base URL updated for $packageName. Reload recommended.",
         );
+      }
     }
   }
 
@@ -151,8 +155,9 @@ class ExtensionManager extends Notifier<List<SkyStreamProvider>> {
 
       if (!path.startsWith('assets/')) {
         if (!await File(path).exists()) {
-          if (kDebugMode)
+          if (kDebugMode) {
             debugPrint("ExtensionManager: JS File does NOT exist at $path");
+          }
           return null;
         }
       }
@@ -175,11 +180,13 @@ class ExtensionManager extends Notifier<List<SkyStreamProvider>> {
         customBaseUrl: customBaseUrl,
       );
 
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("ExtensionManager: Waiting for init of $namespace");
+      }
       await provider.waitForInit;
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("ExtensionManager: Init complete for ${plugin.packageName}");
+      }
 
       if (addToState) {
         _addProvider(provider);
@@ -194,16 +201,18 @@ class ExtensionManager extends Notifier<List<SkyStreamProvider>> {
   void _addProvider(SkyStreamProvider provider) {
     // Deduplicate by Package Name
     if (!state.any((p) => p.packageName == provider.packageName)) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
           "ExtensionManager: Adding provider to state: ${provider.name} (${provider.packageName})",
         );
+      }
       state = [...state, provider];
     } else {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
           "ExtensionManager: Provider ${provider.packageName} already in state.",
         );
+      }
     }
   }
 
@@ -281,10 +290,11 @@ class ActiveProviderNotifier extends Notifier<SkyStreamProvider?> {
           // Plugins have loaded (or sync completed with zero plugins)
           // but the target provider is missing (removed/uninstalled).
           // Clear the stale setting.
-          if (kDebugMode)
+          if (kDebugMode) {
             debugPrint(
               "ActiveProviderNotifier: Target provider '$_targetProviderId' not found after plugins loaded. Clearing.",
             );
+          }
           _targetProviderId = null;
           ref.read(settingsRepositoryProvider).setActiveProviderId(null);
           ref.read(providerResolutionLoadingProvider.notifier).set(false);
@@ -294,10 +304,11 @@ class ActiveProviderNotifier extends Notifier<SkyStreamProvider?> {
         final found = next.where((p) => p.packageName == currentPackageName);
 
         if (found.isEmpty) {
-          if (kDebugMode)
+          if (kDebugMode) {
             debugPrint(
               "ActiveProviderNotifier: Active provider removed, showing provider selector.",
             );
+          }
           state = null;
           _targetProviderId = currentPackageName;
           ref.read(providerResolutionLoadingProvider.notifier).set(false);

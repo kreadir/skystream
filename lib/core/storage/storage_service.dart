@@ -1,6 +1,5 @@
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,10 +36,11 @@ class StorageService {
     try {
       return await Hive.openBox(boxName);
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
           "Error opening Hive box '$boxName': $e. Deleting and recreating...",
         );
+      }
       // If the box is corrupted or has unknown type IDs, delete it.
       try {
         await Hive.deleteBoxFromDisk(boxName);

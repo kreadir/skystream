@@ -118,9 +118,11 @@ class ExtensionsController extends Notifier<ExtensionsState> {
       // Load Asset Plugins if enabled
       if (ref.read(settingsRepositoryProvider).getDevLoadAssets()) {
         final assetPlugins = await _loadAssetPlugins();
-        if (kDebugMode) debugPrint(
+        if (kDebugMode) {
+          debugPrint(
           "ExtensionsController: Loaded ${assetPlugins.length} asset plugins",
         );
+        }
         plugins.addAll(assetPlugins);
       } else {
         if (kDebugMode) debugPrint("ExtensionsController: Asset loading disabled");
@@ -239,9 +241,11 @@ class ExtensionsController extends Notifier<ExtensionsState> {
       if (repo != null) {
         // Handle Recursive Repositories (Megarepo)
         if (repo.includedRepos.isNotEmpty) {
-          if (kDebugMode) debugPrint(
+          if (kDebugMode) {
+            debugPrint(
             "Repo ${repo.name} contains ${repo.includedRepos.length} included repos",
           );
+          }
           for (final subRepoUrl in repo.includedRepos) {
             await addRepository(subRepoUrl, visitedUrls: visitedUrls);
           }

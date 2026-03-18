@@ -9,8 +9,9 @@ class AppUtils {
       // Use app_restarter package for cross-platform restart
       await AppRestarter.restartApp(context);
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("AppRestarter failed: $e. Falling back to main().");
+      }
       // Fallback if package fails (e.g. context issue)
       app_main.main();
     }

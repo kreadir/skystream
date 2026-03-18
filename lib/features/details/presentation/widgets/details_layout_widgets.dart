@@ -247,8 +247,9 @@ class SliverDetailsDesktopEpisodeGrid extends ConsumerWidget {
     final detailsState = ref.watch(detailsControllerProvider(itemUrl));
     var episodes = detailsState.seasonMap[detailsState.selectedSeason] ?? [];
 
-    if (episodes.isEmpty)
+    if (episodes.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
 
     // Apply Language Filter
     if (detailsState.selectedDubStatus != DubStatus.none) {
@@ -335,8 +336,9 @@ class SliverDetailsEpisodeList extends ConsumerWidget {
     final detailsState = ref.watch(detailsControllerProvider(itemUrl));
     var episodes = detailsState.seasonMap[detailsState.selectedSeason] ?? [];
 
-    if (episodes.isEmpty)
+    if (episodes.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
 
     // Apply Language Filter
     if (detailsState.selectedDubStatus != DubStatus.none) {

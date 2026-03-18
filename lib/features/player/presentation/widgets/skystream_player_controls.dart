@@ -327,8 +327,9 @@ class SkyStreamPlayerControlsState
         return;
       }
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('SkyStreamPlayerControls._handleDoubleTap: $e');
+      }
     }
 
     if (widget.isLoading || _duration == Duration.zero) return;

@@ -1,5 +1,7 @@
 package dev.akash.skystream
 
+import android.content.Intent
+import android.net.Uri
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -9,6 +11,7 @@ import android.os.Build
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "dev.akash.skystream.player/pip"
     private val TV_CHANNEL = "dev.akash.skystream/tv_channel"
+    private val PLAYER_CHANNEL = "dev.akash.skystream/external_player"
 
     private var isPlaying = false
 
@@ -85,6 +88,39 @@ class MainActivity : FlutterActivity() {
                     }.start()
                 }
                 else -> result.notImplemented()
+            }
+        }
+
+        // External Player Channel — uses native Intent to avoid Uri.parse() issues
+        MethodChannel(messenger, PLAYER_CHANNEL).setMethodCallHandler { call, result ->
+            if (call.method == "launchVideoInPlayer") {
+                val videoUrl = call.argument<String>("url") ?: run {
+                    result.error("INVALID_ARGS", "url is required", null)
+                    return@setMethodCallHandler
+                }
+                val packageName = call.argument<String>("package")
+                val mimeType = call.argument<String>("mimeType") ?: "video/*"
+                val title = call.argument<String>("title")
+
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(Uri.parse(videoUrl), mimeType)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        if (!packageName.isNullOrEmpty()) setPackage(packageName)
+                        if (!title.isNullOrEmpty()) {
+                            putExtra("title", title)
+                            putExtra("android.intent.extra.TITLE", title)
+                        }
+                    }
+                    startActivity(intent)
+                    result.success(true)
+                } catch (e: android.content.ActivityNotFoundException) {
+                    result.success(false) // Player not installed / not found
+                } catch (e: Exception) {
+                    result.error("LAUNCH_ERROR", e.message, null)
+                }
+            } else {
+                result.notImplemented()
             }
         }
     }
