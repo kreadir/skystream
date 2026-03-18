@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:skystream/core/router/app_router.dart';
 import 'package:skystream/core/utils/image_fallbacks.dart';
 import 'package:skystream/core/utils/layout_constants.dart';
+import '../../../core/utils/responsive_breakpoints.dart';
+import '../../../shared/widgets/multimedia_card.dart';
 import 'library_provider.dart';
 
 class LibraryScreen extends ConsumerWidget {
@@ -15,7 +17,9 @@ class LibraryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final libraryItems = ref.watch(libraryProvider);
+    final isLarge = context.isTabletOrLarger;
 
+    final double totalHeight = isLarge ? 180.0 : 150.0;
     return Scaffold(
       appBar: AppBar(title: const Text('Library')),
       body: libraryItems.isEmpty
@@ -38,8 +42,8 @@ class LibraryScreen extends ConsumerWidget {
             )
           : GridView.builder(
               padding: const EdgeInsets.all(LayoutConstants.spacingMd),
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 180, // Responsive column sizing
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: totalHeight, // Responsive column sizing
                 childAspectRatio: 2 / 3.4, // Matches poster aspect ratio
                 crossAxisSpacing: LayoutConstants.spacingMd,
                 mainAxisSpacing: LayoutConstants.spacingMd,
@@ -47,41 +51,19 @@ class LibraryScreen extends ConsumerWidget {
               itemCount: libraryItems.length,
               itemBuilder: (context, index) {
                 final item = libraryItems[index];
-                return RepaintBoundary(child: FocusableItem(
-                  onTap: () => context.push('/details', extra: DetailsRouteExtra(item: item)),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: CachedNetworkImage(
-                            imageUrl: AppImageFallbacks.poster(item.posterUrl, label: item.title),
-                            fit: BoxFit.cover,
-                            memCacheWidth: 300, // P15: Optimize memory
-                            placeholder: (context, url) => Container(
-                              color: Theme.of(context).dividerColor,
-                            ),
-                            errorWidget: (_, _, _) =>
-                                const ThumbnailErrorPlaceholder(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Text(
-                          item.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                    ],
+                return MultimediaCard(
+                  key: ValueKey(item.url),
+                  imageUrl: AppImageFallbacks.poster(
+                    item.posterUrl,
+                    label: item.title,
                   ),
-                ));
+                  title: item.title,
+                  heroTag: 'home_${item.url}_$index',
+                  onTap: () => context.push(
+                    '/details',
+                    extra: DetailsRouteExtra(item: item),
+                  ),
+                );
               },
             ),
     );
