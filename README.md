@@ -132,9 +132,7 @@ SkyStream is not on the App Store. You must **sideload** it using a computer.
 ## 🛠️ Build from Source
 
 ### Extension Development
-This app uses a custom JS runtime for extensions. 
-*   See [HOW_TO_SCRAPE_NEW_PROVIDER.md](docs/HOW_TO_SCRAPE_NEW_PROVIDER.md) for a guide on writing providers.
-*   See [KOTLIN_TO_JS_MIGRATION.md](docs/KOTLIN_TO_JS_MIGRATION.md) for creating JS ports of existing Kotlin providers.
+This app uses a custom JS runtime for extensions.
 *   **See [PLUGIN_DEVELOPMENT_GUIDE.md](docs/PLUGIN_DEVELOPMENT_GUIDE.md) for a complete guide on packaging and releasing your plugins.**
 
 

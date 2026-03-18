@@ -90,7 +90,6 @@ class SkyStreamPlayerControlsState
   int _resizeMode = 0;
 
   late bool _isPlaying;
-  late bool _isBuffering;
   late Duration _position;
   late Duration _duration;
 
@@ -150,7 +149,6 @@ class SkyStreamPlayerControlsState
     }
     _checkIpad();
     _isPlaying = widget.player.state.playing;
-    _isBuffering = widget.player.state.buffering;
     _position = widget.player.state.position;
     _duration = widget.player.state.duration;
 
@@ -172,10 +170,7 @@ class SkyStreamPlayerControlsState
           ).invokeMethod('setPipState', {'isPlaying': val});
         }
       }),
-      // Buffering: No setState needed - StreamBuilder in PlayerPlayPauseButton handles UI
-      widget.player.stream.buffering.listen((val) {
-        _isBuffering = val; // Update local cache for non-UI logic
-      }),
+      widget.player.stream.buffering.listen((val) {}),
       // Position: No setState needed - StreamBuilder in PlayerProgressBar handles UI
       widget.player.stream.position.listen((val) {
         _position = val; // Update local cache for seek calculations
@@ -687,27 +682,11 @@ class SkyStreamPlayerControlsState
                   ),
 
                 // Persistent buffering indicator
-                if (!_isLocked && (_isBuffering || widget.isLoading))
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: AnimatedOpacity(
-                        opacity: !_isVisible ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 300),
-                        child: Center(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.45),
-                              shape: BoxShape.circle,
-                            ),
-                            padding: const EdgeInsets.all(16),
-                            child: const CircularProgressIndicator(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                PlayerBufferingIndicator(
+                  player: widget.player,
+                  isLoading: widget.isLoading,
+                  isVisible: _isVisible,
+                ),
 
                 // Seek animation — isolated via AnimatedBuilder
                 AnimatedBuilder(

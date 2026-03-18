@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
+import '../player_controller.dart';
 
 import '../../../../shared/widgets/custom_widgets.dart';
 
@@ -187,42 +189,34 @@ class PlayerPlayPauseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<bool>(
-      stream: player.stream.buffering,
-      initialData: player.state.buffering,
-      builder: (context, bufferingSnapshot) {
-        final isBuffering = bufferingSnapshot.data ?? false;
+    return Consumer(
+      builder: (context, ref, _) {
+        final isBuffering = ref.watch(playerControllerProvider.select((s) => s.isBuffering));
+        final isLoading = ref.watch(playerControllerProvider.select((s) => s.isLoading));
+        final isPlaying = player.state.playing; // We still need the raw playing state for the icon
 
-        return StreamBuilder<bool>(
-          stream: player.stream.playing,
-          initialData: player.state.playing,
-          builder: (context, playingSnapshot) {
-            final isPlaying = playingSnapshot.data ?? false;
-
-            return CustomButton(
-              showFocusHighlight: isTv,
-              autofocus: true,
-              focusNode: focusNode,
-              onPressed: onPressed ?? () => player.playOrPause(),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Colors.black45,
-                  shape: BoxShape.circle,
-                ),
-                child: (isBuffering || isLoading)
-                    ? const Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: CircularProgressIndicator(color: Colors.white),
-                      )
-                    : Icon(
-                        isPlaying ? Icons.pause : Icons.play_arrow,
-                        color: Colors.white,
-                        size: 64,
-                      ),
-              ),
-            );
-          },
+        return CustomButton(
+          showFocusHighlight: isTv,
+          autofocus: true,
+          focusNode: focusNode,
+          onPressed: onPressed ?? () => player.playOrPause(),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Colors.black45,
+              shape: BoxShape.circle,
+            ),
+            child: (isBuffering || isLoading)
+                ? const Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(color: Colors.white),
+                  )
+                : Icon(
+                    isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white,
+                    size: 64,
+                  ),
+          ),
         );
       },
     );
@@ -244,13 +238,12 @@ class PlayerBufferingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<bool>(
-      stream: player.stream.buffering,
-      initialData: player.state.buffering,
-      builder: (context, snapshot) {
-        final isBuffering = snapshot.data ?? false;
+    return Consumer(
+      builder: (context, ref, _) {
+        final isLoading = ref.watch(playerControllerProvider.select((s) => s.isLoading));
+        final isBuffering = ref.watch(playerControllerProvider.select((s) => s.isBuffering));
 
-        if (!isBuffering && !isLoading) {
+        if (!isLoading && !isBuffering) {
           return const SizedBox.shrink();
         }
 

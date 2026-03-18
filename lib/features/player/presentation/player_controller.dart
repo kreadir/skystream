@@ -36,6 +36,7 @@ class PlayerState {
   final String? nextEpisodeTitle;
   final int retryCountdown; // seconds remaining before auto-retry
   final bool isAdaptiveBufferingActive;
+  final bool isBuffering;
 
   const PlayerState({
     this.isLoading = true,
@@ -55,6 +56,7 @@ class PlayerState {
     this.nextEpisodeTitle,
     this.retryCountdown = 0,
     this.isAdaptiveBufferingActive = false,
+    this.isBuffering = false,
   });
 
   PlayerState copyWith({
@@ -75,6 +77,7 @@ class PlayerState {
     String? nextEpisodeTitle,
     int? retryCountdown,
     bool? isAdaptiveBufferingActive,
+    bool? isBuffering,
   }) {
     return PlayerState(
       isLoading: isLoading ?? this.isLoading,
@@ -96,6 +99,7 @@ class PlayerState {
       retryCountdown: retryCountdown ?? this.retryCountdown,
       isAdaptiveBufferingActive:
           isAdaptiveBufferingActive ?? this.isAdaptiveBufferingActive,
+      isBuffering: isBuffering ?? this.isBuffering,
     );
   }
 }
@@ -120,6 +124,7 @@ class PlayerController extends Notifier<PlayerState> {
 
   final List<DateTime> _bufferDepletionTimes = [];
   Timer? _retryTimer;
+  Timer? _stallTimer;
 
   @override
   PlayerState build() {
@@ -129,6 +134,7 @@ class PlayerController extends Notifier<PlayerState> {
     ref.onDispose(() {
       _torrentPollTimer?.cancel();
       _retryTimer?.cancel();
+      _stallTimer?.cancel();
       _videoParamsSub?.cancel();
       _errorSub?.cancel();
       _playingSub?.cancel();
@@ -212,6 +218,14 @@ class PlayerController extends Notifier<PlayerState> {
     _bufferingSub = _player.stream.buffering.listen((isBuffering) {
       if (isBuffering) {
         _handleBufferStall();
+        // Delay showing the loader to avoid flicker on micro-stalls
+        _stallTimer?.cancel();
+        _stallTimer = Timer(const Duration(milliseconds: 200), () {
+          state = state.copyWith(isBuffering: true);
+        });
+      } else {
+        _stallTimer?.cancel();
+        state = state.copyWith(isBuffering: false);
       }
     });
   }
@@ -252,7 +266,6 @@ class PlayerController extends Notifier<PlayerState> {
   void _setupErrorListener() {
     _errorSub = _player.stream.error.listen((error) {
       if (kDebugMode) debugPrint("Player Error: $error");
-      if (state.isOpeningStream) return;
       if (error.toString().toLowerCase().contains("abort")) return;
 
       if (state.isLoading || _player.state.position == Duration.zero) {
@@ -715,8 +728,8 @@ class PlayerController extends Notifier<PlayerState> {
               itemToSave,
               0,
               0,
-              lastStreamUrl: state.currentStream?.url,
-              lastEpisodeUrl: _videoUrl,
+              lastStreamUrl: null, // Don't save temporary links for livestreams
+              lastEpisodeUrl: null,
             );
         return;
       }
@@ -1228,14 +1241,19 @@ class PlayerController extends Notifier<PlayerState> {
     try {
       await _player.stream.duration
           .firstWhere((d) => d != Duration.zero)
-          .timeout(const Duration(seconds: 10));
-
+          .timeout(const Duration(seconds: 8));
       if (_player.state.duration.inMilliseconds > position) {
         await _player.seek(Duration(milliseconds: position));
       }
+    } on TimeoutException catch (e) {
+      if (kDebugMode) {
+        debugPrint("Timeout waiting for duration: $e");
+      }
+      // Rethrow to allow caller (loadStreamAtIndex / changeStream) to handle failure
+      rethrow;
     } catch (e) {
       if (kDebugMode) {
-        debugPrint("Timeout waiting for duration or seek failed: $e");
+        debugPrint("Seek failed: $e");
       }
     }
   }

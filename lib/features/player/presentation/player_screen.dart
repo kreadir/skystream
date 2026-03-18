@@ -68,7 +68,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
     // Increase network timeout to allow TorrServer to pre-buffer
     if (_player.platform is NativePlayer) {
-      (_player.platform as NativePlayer).setProperty('network-timeout', '120');
+      final native = _player.platform as NativePlayer;
+      native.setProperty('network-timeout', '120');
+      native.setProperty('force-seekable', 'yes');
     }
     _videoController = VideoController(_player);
 
