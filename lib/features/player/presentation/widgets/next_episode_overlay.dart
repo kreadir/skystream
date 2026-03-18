@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class NextEpisodeOverlay extends StatefulWidget {
@@ -17,22 +18,31 @@ class NextEpisodeOverlay extends StatefulWidget {
   State<NextEpisodeOverlay> createState() => _NextEpisodeOverlayState();
 }
 
-class _NextEpisodeOverlayState extends State<NextEpisodeOverlay> {
+class _NextEpisodeOverlayState extends State<NextEpisodeOverlay>
+    with SingleTickerProviderStateMixin {
   int _secondsRemaining = 15;
   Timer? _timer;
+  late AnimationController _progressController;
 
   @override
   void initState() {
     super.initState();
+    _progressController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 15),
+    )..reverse(from: 1.0);
+
     _startTimer();
   }
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 1) {
-        setState(() {
-          _secondsRemaining--;
-        });
+        if (mounted) {
+          setState(() {
+            _secondsRemaining--;
+          });
+        }
       } else {
         _timer?.cancel();
         widget.onPlayNext();
@@ -43,64 +53,136 @@ class _NextEpisodeOverlayState extends State<NextEpisodeOverlay> {
   @override
   void dispose() {
     _timer?.cancel();
+    _progressController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          width: 300,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white24),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Next Episode Starting In',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.nextEpisodeTitle,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: widget.onPlayNext,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: Text('Play Now ($_secondsRemaining)'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  IconButton(
-                    onPressed: widget.onDismiss,
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    tooltip: 'Cancel',
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              width: 340,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.65),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),
-            ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: CircularProgressIndicator(
+                              value: _progressController.value,
+                              strokeWidth: 3,
+                              color: Theme.of(context).colorScheme.primary,
+                              backgroundColor: Colors.white12,
+                            ),
+                          ),
+                          AnimatedBuilder(
+                            animation: _progressController,
+                            builder: (context, _) => Text(
+                              _secondsRemaining.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Next Up',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            letterSpacing: 1.2,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: widget.onDismiss,
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white60,
+                          size: 20,
+                        ),
+                        tooltip: 'Dismiss',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    widget.nextEpisodeTitle,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: widget.onPlayNext,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.play_arrow_rounded, size: 24),
+                          SizedBox(width: 8),
+                          Text(
+                            'Play Now',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

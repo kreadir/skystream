@@ -407,7 +407,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         child: Stack(
           children: [
             Positioned(
-              bottom: 160,
+              bottom: MediaQuery.sizeOf(context).height < 500 ? 60 : 160,
               left: 0,
               right: 0,
               child: Center(
@@ -421,14 +421,21 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                         showFocusHighlight: _isTv,
                         onPressed: () => _forceShowControls.value = true,
                         child: Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(Icons.skip_next),
                               const SizedBox(width: 8),
-                              Text(
-                                "Skip to manual source selection ${streams.isNotEmpty ? "(${currentIndex + 1}/${streams.length})" : ""}",
+                              Flexible(
+                                child: Text(
+                                  "Skip to manual source selection ${streams.isNotEmpty ? "(${currentIndex + 1}/${streams.length})" : ""}",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                           ),

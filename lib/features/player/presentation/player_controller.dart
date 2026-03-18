@@ -351,7 +351,10 @@ class PlayerController extends Notifier<PlayerState> {
 
     try {
       if (_videoUrl.isNotEmpty) {
-        state = state.copyWith(streamSubtitle: "Initializing stream...");
+        state = state.copyWith(
+          streamSubtitle: "Initializing stream...",
+          isLoading: true,
+        );
         if (await _handleFallbackTorrent()) return;
 
         final streams = await activeProvider.loadStreams(_videoUrl);
@@ -679,6 +682,8 @@ class PlayerController extends Notifier<PlayerState> {
       state = state.copyWith(
         playerTitle: "${_item.title} - ${nextEpisode.name}",
         showNextEpisodeOverlay: false,
+        isLoading: true,
+        streamSubtitle: "Fetching sources...",
       );
 
       await _initStream();
