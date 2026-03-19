@@ -157,11 +157,17 @@ class SkyStreamPlayerControlsState
     _subscriptions.addAll([
       // Playing state: Only for timer/PiP sync, NOT for UI rebuilds (StreamBuilder handles that)
       widget.player.stream.playing.listen((val) {
-        _isPlaying = val; // Update local cache without setState
+        final oldPlaying = _isPlaying;
+        _isPlaying = val; // Update local cache
         if (val) {
           _startHideTimer();
         } else {
           _cancelHideTimer();
+        }
+        
+        // REBUILD: If we transition to playing but were stuck in loading UI, trigger rebuild
+        if (mounted && val && !oldPlaying && _duration == Duration.zero) {
+          setState(() {});
         }
         // Sync PiP state with Android
         if (Platform.isAndroid) {
@@ -613,8 +619,9 @@ class SkyStreamPlayerControlsState
 
     if (_isInPip || isSmallWindow) return const SizedBox.shrink();
 
-    // Loading state: simplified UI
-    if (widget.isLoading || _duration == Duration.zero) {
+    // Loading state: simplified UI. If it's playing but duration is zero, 
+    // it's likely an unsupported video (audio only) - show controls so user can see source info.
+    if (widget.isLoading || (_duration == Duration.zero && !_isPlaying)) {
       if (!widget.forceShowControls) {
         return _buildLoadingUI(title: title, subtitle: subtitle);
       }

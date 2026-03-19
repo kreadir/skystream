@@ -37,6 +37,7 @@ class PlayerState {
   final int retryCountdown; // seconds remaining before auto-retry
   final bool isAdaptiveBufferingActive;
   final bool isBuffering;
+  final String? warningMessage;
 
   const PlayerState({
     this.isLoading = true,
@@ -57,6 +58,7 @@ class PlayerState {
     this.retryCountdown = 0,
     this.isAdaptiveBufferingActive = false,
     this.isBuffering = false,
+    this.warningMessage,
   });
 
   PlayerState copyWith({
@@ -78,6 +80,7 @@ class PlayerState {
     int? retryCountdown,
     bool? isAdaptiveBufferingActive,
     bool? isBuffering,
+    String? warningMessage,
   }) {
     return PlayerState(
       isLoading: isLoading ?? this.isLoading,
@@ -100,6 +103,7 @@ class PlayerState {
       isAdaptiveBufferingActive:
           isAdaptiveBufferingActive ?? this.isAdaptiveBufferingActive,
       isBuffering: isBuffering ?? this.isBuffering,
+      warningMessage: warningMessage ?? this.warningMessage,
     );
   }
 }
@@ -110,6 +114,7 @@ class PlayerController extends Notifier<PlayerState> {
   late String _videoUrl;
   Timer? _torrentPollTimer;
   bool _isPolling = false;
+  bool _isDisposed = false;
 
   // Track last saved position for threshold-based saving
   Duration _lastSavedPosition = Duration.zero;
@@ -125,6 +130,7 @@ class PlayerController extends Notifier<PlayerState> {
   final List<DateTime> _bufferDepletionTimes = [];
   Timer? _retryTimer;
   Timer? _stallTimer;
+  Timer? _unsupportedVideoTimer;
 
   @override
   PlayerState build() {
@@ -135,11 +141,13 @@ class PlayerController extends Notifier<PlayerState> {
       _torrentPollTimer?.cancel();
       _retryTimer?.cancel();
       _stallTimer?.cancel();
+      _unsupportedVideoTimer?.cancel();
       _videoParamsSub?.cancel();
       _errorSub?.cancel();
       _playingSub?.cancel();
       _positionSub?.cancel();
       _bufferingSub?.cancel();
+      _isDisposed = true;
     });
     return const PlayerState();
   }
@@ -206,11 +214,29 @@ class PlayerController extends Notifier<PlayerState> {
   void _setupVideoParamsListener() {
     _videoParamsSub = _player.stream.videoParams.listen((args) {
       if (args.w != null && args.w! > 0) {
+        _unsupportedVideoTimer?.cancel();
         if (state.isLoading) {
           state = state.copyWith(isLoading: false);
         }
       }
     });
+  }
+
+  void _startUnsupportedVideoCheck() {
+    _unsupportedVideoTimer?.cancel();
+    _unsupportedVideoTimer = Timer(const Duration(seconds: 5), () {
+      if (state.isLoading && _player.state.playing && !_isDisposed) {
+        state = state.copyWith(
+          isLoading: false,
+          warningMessage:
+              "Video format might not be supported in this player so consider using external player",
+        );
+      }
+    });
+  }
+
+  void clearWarning() {
+    state = state.copyWith(warningMessage: null);
   }
 
   void _setupBufferingMonitor() {
@@ -305,10 +331,13 @@ class PlayerController extends Notifier<PlayerState> {
         saveProgress();
         _torrentPollTimer?.cancel();
         _torrentPollTimer = null;
-      } else if (isPlaying &&
-          state.torrentStatus != null &&
-          _torrentPollTimer == null) {
-        startTorrentPolling();
+      } else if (isPlaying) {
+        if (state.isLoading) {
+          _startUnsupportedVideoCheck();
+        }
+        if (state.torrentStatus != null && _torrentPollTimer == null) {
+          startTorrentPolling();
+        }
       }
     });
 
@@ -500,6 +529,7 @@ class PlayerController extends Notifier<PlayerState> {
       currentStreamIndex: index,
       currentStream: stream,
       isLoading: true,
+      warningMessage: null,
       streamSubtitle: "$providerName - ${stream.source}",
       externalSubtitles: stream.subtitles ?? [],
     );
@@ -557,6 +587,7 @@ class PlayerController extends Notifier<PlayerState> {
     state = state.copyWith(
       isLoading: true,
       currentStream: stream,
+      warningMessage: null,
       externalSubtitles: stream.subtitles ?? [],
     );
 
