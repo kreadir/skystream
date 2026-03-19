@@ -250,38 +250,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<String?>(
-      playerControllerProvider.select((s) => s.warningMessage),
-      (prev, next) {
-        if (next != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.warning_amber_rounded, color: Colors.orange),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      next,
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: Colors.white.withValues(alpha: 0.9),
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              duration: const Duration(seconds: 4),
-            ),
-          );
-          ref.read(playerControllerProvider.notifier).clearWarning();
-        }
-      },
-    );
-
     final errorMessage = ref.watch(
       playerControllerProvider.select((s) => s.errorMessage),
     );
