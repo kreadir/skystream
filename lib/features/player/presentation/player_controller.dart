@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -257,7 +256,7 @@ class PlayerController extends Notifier<PlayerState> {
       // Re-apply properties with aggressive buffering
       if (_player.platform is NativePlayer) {
         final settings = ref.read(playerSettingsProvider).asData?.value;
-        final readahead = (settings?.readaheadSeconds ?? 300) * 2;
+        final readahead = (settings?.readaheadSeconds ?? 180) * 2;
         final native = _player.platform as NativePlayer;
         // Double the readahead and cache for VOD if stalled
         if (_player.state.duration > Duration.zero) {
@@ -1074,7 +1073,7 @@ class PlayerController extends Notifier<PlayerState> {
         await native.setProperty('cache-pause-wait', '2');
       } else {
         final settings = ref.read(playerSettingsProvider).asData?.value;
-        final readahead = settings?.readaheadSeconds ?? 300;
+        final readahead = settings?.readaheadSeconds ?? 180;
         await native.setProperty('demuxer-readahead-secs', '$readahead');
         await native.setProperty('cache-secs', '$readahead');
         await native.setProperty('cache', 'yes');

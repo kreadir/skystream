@@ -30,7 +30,7 @@ class PlayerSettings {
     this.subtitleBackgroundColor = 0x00000000, // Transparent
     this.hardwareDecoding = true,
     this.preferredPlayer,
-    this.readaheadSeconds = 300,
+    this.readaheadSeconds = 180,
   });
 
   PlayerSettings copyWith({
@@ -133,8 +133,8 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
         storage.getPlayerSetting<bool>('player_hw_dec', defaultValue: true) ??
         true;
     final rSecons =
-        storage.getPlayerSetting<int>('player_readahead', defaultValue: 300) ??
-        300;
+        storage.getPlayerSetting<int>('player_readahead', defaultValue: 180) ??
+        180;
 
     return PlayerSettings(
       leftGesture: _parse(l),
