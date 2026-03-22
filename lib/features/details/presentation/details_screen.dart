@@ -10,6 +10,8 @@ import '../../../core/utils/image_fallbacks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:skystream/core/utils/layout_constants.dart';
 import 'package:skystream/core/utils/responsive_breakpoints.dart';
+import 'package:virtual_mouse/virtual_mouse.dart';
+import 'package:skystream/core/providers/device_info_provider.dart';
 
 import '../../library/presentation/library_provider.dart';
 
@@ -76,7 +78,9 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
     );
     final item = details ?? widget.item;
 
-    return Scaffold(
+    final deviceProfileAsync = ref.watch(deviceProfileProvider);
+
+    final scaffold = Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -184,6 +188,21 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
             ),
         ],
       ),
+    );
+
+    return deviceProfileAsync.maybeWhen(
+      data: (profile) {
+        if (profile.isTv) {
+          return VirtualMouse(
+            visible: true,
+            velocity: 3,
+            pointerColor: Theme.of(context).colorScheme.primary,
+            child: scaffold,
+          );
+        }
+        return scaffold;
+      },
+      orElse: () => scaffold,
     );
   }
 

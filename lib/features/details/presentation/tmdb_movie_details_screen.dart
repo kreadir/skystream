@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:virtual_mouse/virtual_mouse.dart';
+import '../../../../core/providers/device_info_provider.dart';
 import '../../../core/models/tmdb_details.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/storage/history_repository.dart';
@@ -105,95 +107,114 @@ class _TmdbMovieDetailsScreenState
     final params = MovieDetailsParams(widget.movieId, widget.mediaType);
     final detailsAsync = ref.watch(movieDetailsProvider(params));
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: detailsAsync.when(
-        data: (data) {
-          if (data == null) {
-            return Center(
-              child: Text(
-                "Content not found",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            );
-          }
-          if (context.isDesktop) {
-            return _buildDesktopLayout(data);
-          }
-          return _buildMobileLayout(data);
-        },
-        loading: () {
-          final isMovie = widget.mediaType == 'movie';
-          return Scaffold(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: const BackButton(),
-            ),
-            body: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ShimmerPlaceholder.rectangular(
-                    height: 200,
-                    width: double.infinity,
-                    borderRadius: 12,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      _buildTmdbLogo(),
-                      const SizedBox(width: 12),
-                      _buildTopBadge(context, isMovie ? "MOVIE" : "TV SHOW"),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  ShimmerPlaceholder.rectangular(
-                    height: 30,
-                    width: 250,
-                    borderRadius: 6,
-                  ),
-                  const SizedBox(height: 16),
-                  ShimmerPlaceholder.rectangular(
-                    height: 100,
-                    width: double.infinity,
-                    borderRadius: 12,
-                  ),
-                ],
+    final deviceProfileAsync = ref.watch(deviceProfileProvider);
+
+    final content = detailsAsync.when(
+      data: (data) {
+        if (data == null) {
+          return Center(
+            child: Text(
+              "Content not found",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           );
-        },
-        error: (e, st) => Scaffold(
-          backgroundColor: Colors.transparent,
+        }
+        if (context.isDesktop) {
+          return _buildDesktopLayout(data);
+        }
+        return _buildMobileLayout(data);
+      },
+      loading: () {
+        final isMovie = widget.mediaType == 'movie';
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
             leading: const BackButton(),
           ),
-          body: Center(
+          body: Padding(
+            padding: const EdgeInsets.all(20.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Failed to load content",
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ShimmerPlaceholder.rectangular(
+                  height: 200,
+                  width: double.infinity,
+                  borderRadius: 12,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    _buildTmdbLogo(),
+                    const SizedBox(width: 12),
+                    _buildTopBadge(context, isMovie ? "MOVIE" : "TV SHOW"),
+                  ],
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: () => ref.invalidate(movieDetailsProvider(params)),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text("Retry"),
+                ShimmerPlaceholder.rectangular(
+                  height: 30,
+                  width: 250,
+                  borderRadius: 6,
+                ),
+                const SizedBox(height: 16),
+                ShimmerPlaceholder.rectangular(
+                  height: 100,
+                  width: double.infinity,
+                  borderRadius: 12,
                 ),
               ],
             ),
           ),
+        );
+      },
+      error: (e, st) => Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: const BackButton(),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Failed to load content",
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => ref.invalidate(movieDetailsProvider(params)),
+                icon: const Icon(Icons.refresh),
+                label: const Text("Retry"),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+
+    final scaffold = Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: content,
+    );
+
+    return deviceProfileAsync.maybeWhen(
+      data: (profile) {
+        if (profile.isTv) {
+          return VirtualMouse(
+            visible: true,
+            velocity: 3,
+            pointerColor: Theme.of(context).colorScheme.primary,
+            child: scaffold,
+          );
+        }
+        return scaffold;
+      },
+      orElse: () => scaffold,
     );
   }
 

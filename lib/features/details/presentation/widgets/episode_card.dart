@@ -31,17 +31,6 @@ class EpisodeCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scaleController = useAnimationController(
-      duration: const Duration(milliseconds: 200),
-    );
-    final scaleAnimation = useAnimation(
-      Tween<double>(begin: 1.0, end: 1.05).animate(
-        CurvedAnimation(parent: scaleController, curve: Curves.easeInOut),
-      ),
-    );
-
-    final isFocused = useState(false);
-
     final historyRepo = ref.watch(historyRepositoryProvider);
     final historyItem = ref.watch(
       watchHistoryProvider.select(
@@ -107,110 +96,78 @@ class EpisodeCard extends HookConsumerWidget {
       return null;
     }, [episode.url, isDownloading]);
 
-    void onFocusChange(bool focused) {
-      if (!context.mounted) return;
-      isFocused.value = focused;
-      if (focused) {
-        scaleController.forward();
-      } else {
-        scaleController.reverse();
-      }
-    }
-
-    return Focus(
-      onFocusChange: onFocusChange,
-      child: Transform.scale(
-        scale: scaleAnimation,
-        child: GestureDetector(
-          onTap: () => ref
-              .read(detailsControllerProvider(parentItem.url).notifier)
-              .handlePlayPress(context, parentItem, specificEpisode: episode),
-          child: Container(
-            width: width,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(12.0),
-              border: Border.all(
-                color: isFocused.value
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).dividerColor.withValues(
-                      alpha: Theme.of(context).brightness == Brightness.dark
-                          ? 0.1
-                          : 0.5,
-                    ),
-                width: isFocused.value ? 2 : 1,
-              ),
-              boxShadow: isFocused.value
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: Theme.of(context).brightness == Brightness.dark
-                              ? 0.3
-                              : 0.15,
-                        ),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
-            ),
-            clipBehavior: Clip.antiAlias,
-            padding: const EdgeInsets.all(LayoutConstants.spacingSm),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildThumbnail(context, progress, statusBadge),
-                    const SizedBox(width: LayoutConstants.spacingMd),
-                    Expanded(
-                      child: Text(
-                        "${episode.episode}. ${episode.name.toUpperCase()}",
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isFocused.value
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.onSurface,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: LayoutConstants.spacingXs),
-                    _buildActionButtons(
-                      context,
-                      ref,
-                      downloadedFile,
-                      isDownloading,
-                      downloadProgress,
-                      downloadProgressData,
-                      details,
-                    ),
-                  ],
+    return InkWell(
+      onTap: () => ref
+          .read(detailsControllerProvider(parentItem.url).notifier)
+          .handlePlayPress(context, parentItem, specificEpisode: episode),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: width,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(
+                  alpha: Theme.of(context).brightness == Brightness.dark
+                      ? 0.1
+                      : 0.5,
                 ),
-                if (episode.description != null &&
-                    episode.description!.isNotEmpty) ...[
-                  const SizedBox(height: LayoutConstants.spacingSm),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: Text(
-                      episode.description!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-                        height: 1.4,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        padding: const EdgeInsets.all(LayoutConstants.spacingSm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildThumbnail(context, progress, statusBadge),
+                const SizedBox(width: LayoutConstants.spacingMd),
+                Expanded(
+                  child: Text(
+                    "${episode.episode}. ${episode.name.toUpperCase()}",
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
+                ),
+                const SizedBox(width: LayoutConstants.spacingXs),
+                _buildActionButtons(
+                  context,
+                  ref,
+                  downloadedFile,
+                  isDownloading,
+                  downloadProgress,
+                  downloadProgressData,
+                  details,
+                ),
               ],
             ),
-          ),
+            if (episode.description != null &&
+                episode.description!.isNotEmpty) ...[
+              const SizedBox(height: LayoutConstants.spacingSm),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: Text(
+                  episode.description!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant
+                            .withValues(alpha: 0.8),
+                        height: 1.4,
+                      ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
