@@ -25,13 +25,17 @@ class DownloadItem {
 }
 
 final downloadsProvider =
-    AsyncNotifierProvider<DownloadsNotifier, List<DownloadItem>>(DownloadsNotifier.new);
+    AsyncNotifierProvider<DownloadsNotifier, List<DownloadItem>>(
+      DownloadsNotifier.new,
+    );
 
 class DownloadsNotifier extends AsyncNotifier<List<DownloadItem>> {
   @override
   Future<List<DownloadItem>> build() async {
     // Listen to updates from DownloadService (broadcast) instead of FileDownloader (single)
-    final subscription = ref.read(downloadServiceProvider).updates.listen((update) {
+    final subscription = ref.read(downloadServiceProvider).updates.listen((
+      update,
+    ) {
       _handleUpdate(update);
     });
 
@@ -51,7 +55,8 @@ class DownloadsNotifier extends AsyncNotifier<List<DownloadItem>> {
     for (final record in records) {
       // Skip non-download tasks and cancelled/failed ones
       if (record.task is! DownloadTask) continue;
-      if (record.status == TaskStatus.canceled || record.status == TaskStatus.failed) {
+      if (record.status == TaskStatus.canceled ||
+          record.status == TaskStatus.failed) {
         continue;
       }
 
@@ -63,7 +68,9 @@ class DownloadsNotifier extends AsyncNotifier<List<DownloadItem>> {
           task: record.task,
           status: record.status,
           progress: record.progress,
-          item: MultimediaItem.fromJson(Map<String, dynamic>.from(metadata['item'])),
+          item: MultimediaItem.fromJson(
+            Map<String, dynamic>.from(metadata['item']),
+          ),
           episode: metadata['episode'] != null
               ? Episode.fromJson(Map<String, dynamic>.from(metadata['episode']))
               : null,
@@ -81,7 +88,9 @@ class DownloadsNotifier extends AsyncNotifier<List<DownloadItem>> {
     if (state.value == null) return;
 
     final List<DownloadItem> currentList = state.value!;
-    final index = currentList.indexWhere((item) => item.id == update.task.taskId);
+    final index = currentList.indexWhere(
+      (item) => item.id == update.task.taskId,
+    );
 
     if (index != -1) {
       final existing = currentList[index];
@@ -119,14 +128,13 @@ class DownloadsNotifier extends AsyncNotifier<List<DownloadItem>> {
   }
 
   Future<void> removeDownload(DownloadItem item) async {
-    await ref.read(downloadServiceProvider).cancelDownload(
-      item.task.taskId,
-      item.task.url,
-    );
+    await ref
+        .read(downloadServiceProvider)
+        .cancelDownload(item.task.taskId, item.task.url);
     await FileDownloader().database.deleteRecordWithId(item.task.taskId);
-    await ref.read(storageServiceProvider).removeDownloadMetadata(
-      item.task.taskId,
-    );
+    await ref
+        .read(storageServiceProvider)
+        .removeDownloadMetadata(item.task.taskId);
 
     // Also delete file if complete
     if (item.status == TaskStatus.complete) {
@@ -147,14 +155,13 @@ class DownloadsNotifier extends AsyncNotifier<List<DownloadItem>> {
 
   Future<void> removeDownloads(List<DownloadItem> items) async {
     for (var item in items) {
-      await ref.read(downloadServiceProvider).cancelDownload(
-        item.task.taskId,
-        item.task.url,
-      );
+      await ref
+          .read(downloadServiceProvider)
+          .cancelDownload(item.task.taskId, item.task.url);
       await FileDownloader().database.deleteRecordWithId(item.task.taskId);
-      await ref.read(storageServiceProvider).removeDownloadMetadata(
-        item.task.taskId,
-      );
+      await ref
+          .read(storageServiceProvider)
+          .removeDownloadMetadata(item.task.taskId);
 
       // Also delete file if complete
       if (item.status == TaskStatus.complete) {
@@ -176,12 +183,12 @@ class DownloadsNotifier extends AsyncNotifier<List<DownloadItem>> {
       );
     }
   }
-  
+
   Future<void> pauseDownload(String taskId) async {
-      await ref.read(downloadServiceProvider).pauseDownload(taskId);
+    await ref.read(downloadServiceProvider).pauseDownload(taskId);
   }
-  
+
   Future<void> resumeDownload(String taskId) async {
-      await ref.read(downloadServiceProvider).resumeDownload(taskId);
+    await ref.read(downloadServiceProvider).resumeDownload(taskId);
   }
 }

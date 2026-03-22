@@ -95,30 +95,39 @@ class _SearchResultSectionState extends ConsumerState<SearchResultSection> {
           height: listHeight,
           child: DesktopScrollWrapper(
             controller: _scrollController,
-            child: ListView.separated(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              itemCount: widget.results.length,
-              separatorBuilder: (context, index) =>
-                  SizedBox(width: isLarge ? 24 : 12),
-              itemBuilder: (context, rIndex) {
-                final item = widget.results[rIndex];
-                final uniqueTag =
-                    'search_${widget.providerId}_${item.url}_$rIndex';
+            child: Builder(
+              builder: (context) {
+                final double cardWidth = isLarge ? 200.0 : 130.0;
+                final double spacing = isLarge ? 24.0 : 12.0;
 
-                return MultimediaCard(
-                  key: ValueKey(item.url),
-                  imageUrl: AppImageFallbacks.poster(
-                    item.posterUrl,
-                    label: item.title,
-                  ),
-                  title: item.title,
-                  heroTag: uniqueTag,
-                  onTap: () => context.push(
-                    '/details',
-                    extra: DetailsRouteExtra(item: item),
-                  ),
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.results.length,
+                  itemExtent: cardWidth + spacing,
+                  itemBuilder: (context, rIndex) {
+                    final item = widget.results[rIndex];
+                    final uniqueTag =
+                        'search_${widget.providerId}_${item.url}_$rIndex';
+
+                    return Padding(
+                      padding: EdgeInsets.only(right: spacing),
+                      child: MultimediaCard(
+                        key: ValueKey(item.url),
+                        imageUrl: AppImageFallbacks.poster(
+                          item.posterUrl,
+                          label: item.title,
+                        ),
+                        title: item.title,
+                        heroTag: uniqueTag,
+                        onTap: () => context.push(
+                          '/details',
+                          extra: DetailsRouteExtra(item: item),
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),

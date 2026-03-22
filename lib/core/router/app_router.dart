@@ -70,41 +70,60 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/home',
     navigatorKey: rootNavigatorKey,
     routes: [
-      ShellRoute(
-        navigatorKey: shellNavigatorKey,
-        builder: (context, state, child) {
-          return AppScaffold(child: child);
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return AppScaffold(navigationShell: navigationShell);
         },
-        routes: [
-          GoRoute(
-            path: '/discover',
-            builder: (context, state) => const DiscoverScreen(),
-          ),
-          GoRoute(
-            path: '/home',
-            builder: (context, state) => const HomeScreen(),
-          ),
-          GoRoute(
-            path: '/search',
-            builder: (context, state) => const SearchScreen(),
-          ),
-          GoRoute(
-            path: '/library',
-            builder: (context, state) => const LibraryScreen(),
-          ),
-          GoRoute(
-            path: '/settings',
-            builder: (context, state) => const SettingsScreen(),
+        branches: [
+          StatefulShellBranch(
             routes: [
               GoRoute(
-                path: 'extensions',
-                parentNavigatorKey: rootNavigatorKey,
-                builder: (context, state) => const ExtensionsScreen(),
+                path: '/home',
+                builder: (context, state) => const HomeScreen(),
               ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
               GoRoute(
-                path: 'developer',
-                parentNavigatorKey: rootNavigatorKey,
-                builder: (context, state) => const DeveloperOptionsScreen(),
+                path: '/search',
+                builder: (context, state) => const SearchScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/discover',
+                builder: (context, state) => const DiscoverScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/library',
+                builder: (context, state) => const LibraryScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/settings',
+                builder: (context, state) => const SettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'extensions',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const ExtensionsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'developer',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const DeveloperOptionsScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -178,4 +197,3 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-

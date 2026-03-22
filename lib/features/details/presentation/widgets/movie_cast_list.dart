@@ -100,7 +100,7 @@ class _MovieCastListState extends State<MovieCastList> {
           ClipRRect(
             borderRadius: BorderRadius.circular(40),
             child: CachedNetworkImage(
-              imageUrl: actor.profileImageUrl,
+              imageUrl: actor.profileImageUrl ?? '',
               width: 80,
               height: 80,
               fit: BoxFit.cover,
@@ -147,14 +147,12 @@ class _MovieCastListState extends State<MovieCastList> {
             ClipRRect(
               borderRadius: BorderRadius.circular(35),
               child: CachedNetworkImage(
-                imageUrl: member.profileImageUrl,
+                imageUrl: member.profileImageUrl ?? '',
                 width: 70,
                 height: 70,
                 fit: BoxFit.cover,
-                errorWidget: (_, _, _) => ThumbnailErrorPlaceholder(
-                  label: member.name,
-                  iconSize: 30,
-                ),
+                errorWidget: (_, _, _) =>
+                    ThumbnailErrorPlaceholder(label: member.name, iconSize: 30),
               ),
             ),
             const SizedBox(height: 8),

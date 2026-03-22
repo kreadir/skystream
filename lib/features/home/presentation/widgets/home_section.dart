@@ -56,24 +56,43 @@ class _HomeSectionState extends ConsumerState<HomeSection> {
           child: DesktopScrollWrapper(
             controller: _scrollController,
             showButtons: isLarge, // Show nav buttons on both desktop and TV
-            child: ListView.separated(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(
-                horizontal: LayoutConstants.spacingMd,
-                vertical: LayoutConstants.spacingXs,
-              ), // Added vertical padding for focus scaling
-              scrollDirection: Axis.horizontal,
-              itemCount: widget.items.length,
-              separatorBuilder: (context, index) =>
-                  SizedBox(width: isLarge ? LayoutConstants.spacingLg : LayoutConstants.spacingSm),
-              itemBuilder: (context, index) {
-                final item = widget.items[index];
-                return MultimediaCard(
-                  key: ValueKey(item.url),
-                  imageUrl: AppImageFallbacks.poster(item.posterUrl, label: item.title),
-                  title: item.title,
-                  heroTag: 'home_${item.url}_$index',
-                  onTap: () => context.push('/details', extra: DetailsRouteExtra(item: item)),
+            child: Builder(
+              builder: (context) {
+                final double cardWidth = isLarge ? 200.0 : 130.0;
+                final double spacing = isLarge
+                    ? LayoutConstants.spacingLg
+                    : LayoutConstants.spacingSm;
+
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: LayoutConstants.spacingMd,
+                    vertical: LayoutConstants.spacingXs,
+                  ),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.items.length,
+                  itemExtent: cardWidth + spacing,
+                  itemBuilder: (context, index) {
+                    final item = widget.items[index];
+                    return Padding(
+                      padding: EdgeInsets.only(right: spacing),
+                      child: MultimediaCard(
+                        key: ValueKey(item.url),
+                        imageUrl:
+                            AppImageFallbacks.poster(
+                              item.posterUrl,
+                              label: item.title,
+                            ) ??
+                            '',
+                        title: item.title,
+                        heroTag: 'home_${item.url}_$index',
+                        onTap: () => context.push(
+                          '/details',
+                          extra: DetailsRouteExtra(item: item),
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),

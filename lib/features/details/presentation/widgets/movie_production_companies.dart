@@ -99,7 +99,7 @@ class _MovieProductionCompaniesState extends State<MovieProductionCompanies> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: CachedNetworkImage(
-        imageUrl: c.logoImageUrl,
+        imageUrl: c.logoImageUrl ?? '',
         height: 20, // Reduced for TV
         fit: BoxFit.contain,
         placeholder: (_, _) => const SizedBox(width: 20, height: 20),
@@ -128,7 +128,7 @@ class _MovieProductionCompaniesState extends State<MovieProductionCompanies> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: CachedNetworkImage(
-        imageUrl: company.logoImageUrl,
+        imageUrl: company.logoImageUrl ?? '',
         fit: BoxFit.contain,
         width: 100,
         placeholder: (_, _) => const SizedBox.shrink(),

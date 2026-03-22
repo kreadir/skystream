@@ -59,13 +59,16 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
         _scrollController.position.maxScrollExtent <= 0) {
       final state = ref.read(viewAllControllerProvider(widget.category));
       if (state.hasMore && !state.isLoading) {
-        ref.read(viewAllControllerProvider(widget.category).notifier).fetchNextPage().then((_) {
-          if (mounted) {
-            WidgetsBinding.instance.addPostFrameCallback(
-              (_) => _checkInitialFill(),
-            );
-          }
-        });
+        ref
+            .read(viewAllControllerProvider(widget.category).notifier)
+            .fetchNextPage()
+            .then((_) {
+              if (mounted) {
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (_) => _checkInitialFill(),
+                );
+              }
+            });
       }
     }
   }
@@ -79,13 +82,17 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(viewAllControllerProvider(widget.category).notifier).fetchNextPage();
+      ref
+          .read(viewAllControllerProvider(widget.category).notifier)
+          .fetchNextPage();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final ViewAllState state = ref.watch(viewAllControllerProvider(widget.category));
+    final ViewAllState state = ref.watch(
+      viewAllControllerProvider(widget.category),
+    );
 
     // Calculate aspect ratio for 2:3 posters
     final isDesktop = context.isDesktop;
@@ -159,12 +166,15 @@ class _ViewAllScreenState extends ConsumerState<ViewAllScreen> {
               title: itemTitle,
               heroTag: uniqueTag,
               onTap: () {
-                context.push('/tmdb-details', extra: TmdbDetailsRouteExtra(
-                  movieId: item.id,
-                  mediaType: mediaType,
-                  heroTag: uniqueTag,
-                  placeholderPoster: imageUrl,
-                ));
+                context.push(
+                  '/tmdb-details',
+                  extra: TmdbDetailsRouteExtra(
+                    movieId: item.id,
+                    mediaType: mediaType,
+                    heroTag: uniqueTag,
+                    placeholderPoster: imageUrl,
+                  ),
+                );
               },
             );
           },

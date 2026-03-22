@@ -108,10 +108,10 @@ class EpisodeCard extends HookConsumerWidget {
           borderRadius: BorderRadius.circular(12.0),
           border: Border.all(
             color: Theme.of(context).dividerColor.withValues(
-                  alpha: Theme.of(context).brightness == Brightness.dark
-                      ? 0.1
-                      : 0.5,
-                ),
+              alpha: Theme.of(context).brightness == Brightness.dark
+                  ? 0.1
+                  : 0.5,
+            ),
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -129,9 +129,9 @@ class EpisodeCard extends HookConsumerWidget {
                   child: Text(
                     "${episode.episode}. ${episode.name.toUpperCase()}",
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -156,12 +156,11 @@ class EpisodeCard extends HookConsumerWidget {
                 child: Text(
                   episode.description!,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant
-                            .withValues(alpha: 0.8),
-                        height: 1.4,
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                    height: 1.4,
+                  ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),

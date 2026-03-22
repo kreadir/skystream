@@ -40,8 +40,10 @@ class ContinueWatchingCard extends ConsumerWidget {
     final providerName = providerObj?.name ?? item.provider;
 
     return FocusableItem(
-      onTap: () =>
-          context.push('/details', extra: DetailsRouteExtra(item: item, autoPlay: true)),
+      onTap: () => context.push(
+        '/details',
+        extra: DetailsRouteExtra(item: item, autoPlay: true),
+      ),
       onLongPress: () {
         showModalBottomSheet(
           context: context,
@@ -58,7 +60,10 @@ class ContinueWatchingCard extends ConsumerWidget {
                   title: const Text('View Details'),
                   onTap: () {
                     Navigator.pop(context);
-                    context.push('/details', extra: DetailsRouteExtra(item: item));
+                    context.push(
+                      '/details',
+                      extra: DetailsRouteExtra(item: item),
+                    );
                   },
                 ),
                 ListTile(
@@ -68,7 +73,9 @@ class ContinueWatchingCard extends ConsumerWidget {
                   ),
                   title: Text(
                     'Remove from History',
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                   onTap: () {
                     ref
@@ -100,7 +107,7 @@ class ContinueWatchingCard extends ConsumerWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.5)),
             ),
             child: Row(
               children: [
@@ -111,7 +118,12 @@ class ContinueWatchingCard extends ConsumerWidget {
                       left: Radius.circular(12),
                     ),
                     child: CachedNetworkImage(
-                      imageUrl: AppImageFallbacks.poster(item.posterUrl, label: item.title),
+                      imageUrl:
+                          AppImageFallbacks.poster(
+                            item.posterUrl,
+                            label: item.title,
+                          ) ??
+                          '',
                       fit: BoxFit.cover,
                       memCacheWidth: 200, // P15: Optimize memory
                       placeholder: (context, url) =>
@@ -132,8 +144,8 @@ class ContinueWatchingCard extends ConsumerWidget {
                           item.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -143,7 +155,8 @@ class ContinueWatchingCard extends ConsumerWidget {
                           spacing: 0,
                           runSpacing: 4,
                           children: [
-                            if (item.provider != null && item.provider!.isNotEmpty)
+                            if (item.provider != null &&
+                                item.provider!.isNotEmpty)
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 6,
@@ -173,14 +186,18 @@ class ContinueWatchingCard extends ConsumerWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 item.contentType.name.toUpperCase(),
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -188,7 +205,8 @@ class ContinueWatchingCard extends ConsumerWidget {
                           ],
                         ),
                         const Spacer(),
-                        if (item.contentType == MultimediaContentType.livestream) ...[
+                        if (item.contentType ==
+                            MultimediaContentType.livestream) ...[
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -227,10 +245,12 @@ class ContinueWatchingCard extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                         ] else ...[
-                          if (item.contentType == MultimediaContentType.series && 
-                              historyItem.season != null && 
+                          if (item.contentType ==
+                                  MultimediaContentType.series &&
+                              historyItem.season != null &&
                               historyItem.episode != null &&
-                              (historyItem.season! > 0 || historyItem.episode! > 0))
+                              (historyItem.season! > 0 ||
+                                  historyItem.episode! > 0))
                             Padding(
                               padding: const EdgeInsets.only(bottom: 4.0),
                               child: Text(
@@ -238,7 +258,9 @@ class ContinueWatchingCard extends ConsumerWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -249,9 +271,9 @@ class ContinueWatchingCard extends ConsumerWidget {
                             child: LinearProgressIndicator(
                               value: progress,
                               minHeight: 4,
-                              backgroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 Theme.of(context).colorScheme.primary,
                               ),

@@ -27,7 +27,9 @@ class ExtensionRepository {
 
   /// The Package Namespace.
   /// Returns explicit Package Name or falls back to Hash(Url).
-  String get packageName => _explicitId ?? sha256.convert(utf8.encode(url)).toString().substring(0, 10);
+  String get packageName =>
+      _explicitId ??
+      sha256.convert(utf8.encode(url)).toString().substring(0, 10);
 
   /// Factory constructor to parse from JSON
   factory ExtensionRepository.fromJson(Map<String, dynamic> json, String url) {
@@ -35,11 +37,24 @@ class ExtensionRepository {
     return ExtensionRepository(
       name: json['name'] as String? ?? 'Unknown Repository',
       url: url,
-      pluginLists: (json['pluginLists'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-      includedRepos: (json['repos'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-      plugins: (json['plugins'] as List<dynamic>?)
-          ?.map((e) => ExtensionPlugin.fromJson(e as Map<String, dynamic>, repoId))
-          .toList() ?? [],
+      pluginLists:
+          (json['pluginLists'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      includedRepos:
+          (json['repos'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      plugins:
+          (json['plugins'] as List<dynamic>?)
+              ?.map(
+                (e) =>
+                    ExtensionPlugin.fromJson(e as Map<String, dynamic>, repoId),
+              )
+              .toList() ??
+          [],
       description: json['description'] as String?,
       iconUrl: json['iconUrl'] as String?,
       manifestVersion: json['manifestVersion'] as int? ?? 1,

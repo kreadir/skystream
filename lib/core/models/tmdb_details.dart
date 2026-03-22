@@ -50,15 +50,19 @@ class TmdbDetails extends MultimediaItem {
     required this.originalLanguage,
     required this.releaseDateFull,
   }) : super(
-          url: '', // Resolved via provider
-          posterUrl: posterPath != null ? 'https://image.tmdb.org/t/p/w500$posterPath' : '',
-          bannerUrl: backdropPath != null ? 'https://image.tmdb.org/t/p/original$backdropPath' : null,
-          description: overview,
-          contentType: MultimediaItem.parseContentType(mediaType),
-          tmdbId: id,
-          score: voteAverage,
-          tags: genresStr?.split(' | '),
-        );
+         url: '', // Resolved via provider
+         posterUrl: posterPath != null
+             ? 'https://image.tmdb.org/t/p/w500$posterPath'
+             : '',
+         bannerUrl: backdropPath != null
+             ? 'https://image.tmdb.org/t/p/original$backdropPath'
+             : null,
+         description: overview,
+         contentType: MultimediaItem.parseContentType(mediaType),
+         tmdbId: id,
+         score: voteAverage,
+         tags: genresStr?.split(' | '),
+       );
 
   factory TmdbDetails.fromJson(Map<String, dynamic> json, String languageCode) {
     // Determine media type
@@ -246,7 +250,7 @@ class TmdbSeason {
     );
   }
 
-  String get posterImageUrl =>
+  String? get posterImageUrl =>
       AppImageFallbacks.tmdbPoster(posterPath, label: name);
 }
 
@@ -267,7 +271,7 @@ class TmdbCast {
     );
   }
 
-  String get profileImageUrl =>
+  String? get profileImageUrl =>
       AppImageFallbacks.tmdbProfile(profilePath, label: name);
 }
 
@@ -300,5 +304,5 @@ class TmdbProductionCompany {
     );
   }
 
-  String get logoImageUrl => AppImageFallbacks.tmdbLogo(logoPath, label: name);
+  String? get logoImageUrl => AppImageFallbacks.tmdbLogo(logoPath, label: name);
 }

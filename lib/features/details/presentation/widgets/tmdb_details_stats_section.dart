@@ -49,8 +49,9 @@ class TmdbDetailsStatsSection extends StatelessWidget {
             _DetailItem(
               isMovie ? "Release Date" : "First Air Date",
               releaseDateFull.isNotEmpty
-                  ? DateFormat('MMMM d, yyyy')
-                      .format(DateTime.parse(releaseDateFull))
+                  ? DateFormat(
+                      'MMMM d, yyyy',
+                    ).format(DateTime.parse(releaseDateFull))
                   : 'Unknown',
             ),
             _DetailItem("Original Language", originalLanguage),
@@ -79,11 +80,7 @@ class TmdbDetailsStatsSection extends StatelessWidget {
 }
 
 class _DetailItem extends StatelessWidget {
-  const _DetailItem(
-    this.label,
-    this.value, {
-    this.italic = false,
-  });
+  const _DetailItem(this.label, this.value, {this.italic = false});
 
   final String label;
   final String value;

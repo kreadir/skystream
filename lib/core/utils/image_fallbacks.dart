@@ -1,117 +1,64 @@
 import '../config/tmdb_config.dart';
 
+/// Utility for normalizing image URLs.
+///
+/// All methods return `null` when the image is missing — callers should use
+/// their local [ThumbnailErrorPlaceholder] / [ShimmerPlaceholder] widgets
+/// instead of fetching a network placeholder.
 class AppImageFallbacks {
-  static String poster(String? imageUrl, {required String label}) {
-    return _normalizedOr(imageUrl, posterPlaceholder(label));
+  // ---------------------------------------------------------------------------
+  // Provider / plugin image URLs
+  // ---------------------------------------------------------------------------
+
+  /// Returns the normalized URL, or null if missing/blank.
+  static String? poster(String? imageUrl, {String? label}) {
+    return _normalize(imageUrl);
   }
 
+  /// Returns the URL as-is if non-empty, or null.
   static String? optional(String? imageUrl) => _normalize(imageUrl);
 
-  static String tmdbPoster(String? path, {required String label}) {
-    return _tmdb(
-      path,
-      baseUrl: TmdbConfig.posterSizeUrl,
-      fallback: posterPlaceholder(label),
-    );
+  // ---------------------------------------------------------------------------
+  // TMDB image URLs
+  // ---------------------------------------------------------------------------
+
+  static String? tmdbPoster(String? path, {String? label}) {
+    return _tmdb(path, baseUrl: TmdbConfig.posterSizeUrl);
   }
 
-  static String tmdbThumbnail(String? path, {required String label}) {
-    return _tmdb(
-      path,
-      baseUrl: TmdbConfig.profileSizeUrl,
-      fallback: posterPlaceholder(label),
-    );
+  static String? tmdbThumbnail(String? path, {String? label}) {
+    return _tmdb(path, baseUrl: TmdbConfig.profileSizeUrl);
   }
 
-  static String tmdbBackdrop(String? path, {required String label}) {
-    return _tmdb(
-      path,
-      baseUrl: TmdbConfig.backdropSizeUrl,
-      fallback: backdropPlaceholder(label),
-    );
+  static String? tmdbBackdrop(String? path, {String? label}) {
+    return _tmdb(path, baseUrl: TmdbConfig.backdropSizeUrl);
   }
 
-  static String tmdbProfile(String? path, {required String label}) {
-    return _tmdb(
-      path,
-      baseUrl: TmdbConfig.profileSizeUrl,
-      fallback: profilePlaceholder(label),
-    );
+  static String? tmdbProfile(String? path, {String? label}) {
+    return _tmdb(path, baseUrl: TmdbConfig.profileSizeUrl);
   }
 
-  static String tmdbLogo(String? path, {required String label}) {
-    return _tmdb(
-      path,
-      baseUrl: TmdbConfig.imageBaseUrl,
-      fallback: logoPlaceholder(label),
-    );
+  static String? tmdbLogo(String? path, {String? label}) {
+    return _tmdb(path, baseUrl: TmdbConfig.imageBaseUrl);
   }
 
-  static String tmdbStill(String? path, {required String label}) {
-    return _tmdb(
-      path,
-      baseUrl: TmdbConfig.imageBaseUrl,
-      fallback: stillPlaceholder(label),
-    );
+  static String? tmdbStill(String? path, {String? label}) {
+    return _tmdb(path, baseUrl: TmdbConfig.imageBaseUrl);
   }
 
-  static String placeholder({
-    required int width,
-    required int height,
-    required String label,
-  }) {
-    return 'https://placehold.co/${width}x$height/png?text=${Uri.encodeComponent(_label(label))}';
-  }
+  // ---------------------------------------------------------------------------
+  // Internal helpers
+  // ---------------------------------------------------------------------------
 
-  static String posterPlaceholder(String label) {
-    return placeholder(width: 300, height: 450, label: label);
-  }
-
-  static String backdropPlaceholder(String label) {
-    return placeholder(width: 1280, height: 720, label: label);
-  }
-
-  static String profilePlaceholder(String label) {
-    return placeholder(width: 240, height: 240, label: label);
-  }
-
-  static String logoPlaceholder(String label) {
-    return placeholder(width: 320, height: 180, label: label);
-  }
-
-  static String stillPlaceholder(String label) {
-    return placeholder(width: 640, height: 360, label: label);
-  }
-
-  static String _tmdb(
-    String? path, {
-    required String baseUrl,
-    required String fallback,
-  }) {
+  static String? _tmdb(String? path, {required String baseUrl}) {
     final normalized = _normalize(path);
-    if (normalized == null) {
-      return fallback;
-    }
-    if (normalized.startsWith('http')) {
-      return normalized;
-    }
+    if (normalized == null) return null;
+    if (normalized.startsWith('http')) return normalized;
     return '$baseUrl$normalized';
-  }
-
-  static String _normalizedOr(String? value, String fallback) {
-    return _normalize(value) ?? fallback;
   }
 
   static String? _normalize(String? value) {
     final trimmed = value?.trim();
-    if (trimmed == null || trimmed.isEmpty) {
-      return null;
-    }
-    return trimmed;
-  }
-
-  static String _label(String label) {
-    final trimmed = label.trim();
-    return trimmed.isEmpty ? 'No Image' : trimmed;
+    return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
   }
 }

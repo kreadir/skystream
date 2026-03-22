@@ -20,16 +20,11 @@ final _providerSearchProvider = StreamProvider.family
     .autoDispose<SearchAggregateState, String>((ref, query) {
       ref.watch(extensionManagerProvider);
       final manager = ref.read(extensionManagerProvider.notifier);
-      // Collect the final emission from the incremental stream
 
       var cancelled = false;
       ref.onDispose(() => cancelled = true);
 
-      return searchAllProviders(
-        query,
-        manager,
-        isCancelled: () => cancelled,
-      );
+      return searchAllProviders(query, manager, isCancelled: () => cancelled);
     });
 
 class ProviderSearchSection extends ConsumerStatefulWidget {
@@ -127,126 +122,136 @@ class _ProviderSearchSectionState extends ConsumerState<ProviderSearchSection> {
             );
           }
 
-          return SizedBox(
-            height: 140,
-            child: DesktopScrollWrapper(
-              controller: _scrollController,
-              child: ListView.separated(
+          return RepaintBoundary(
+            child: SizedBox(
+              height: 140,
+              child: DesktopScrollWrapper(
                 controller: _scrollController,
-                clipBehavior: Clip.none,
-                scrollDirection: Axis.horizontal,
-                padding: widget.compact
-                    ? EdgeInsets.zero
-                    : const EdgeInsets.symmetric(
-                        horizontal: LayoutConstants.spacingMd,
-                      ),
-                itemCount: allItems.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(width: LayoutConstants.spacingSm),
-                itemBuilder: (context, index) {
-                  final data = allItems[index];
-                  final item = data['item'] as MultimediaItem;
-                  final providerName = data['providerName'] as String;
-
-                  return CardsWrapper(
-                    onTap: () {
-                      // Enrich item with provider and content type before navigation
-                      final enrichedItem = item.copyWith(
-                        provider: providerName,
-                        contentType: widget.parentMediaType != null
-                            ? MultimediaItem.parseContentType(
-                                widget.parentMediaType,
-                              )
-                            : item.contentType,
-                      );
-                      context.push('/details', extra: DetailsRouteExtra(item: enrichedItem));
-                    },
-                    child: SizedBox(
-                      width: 220,
-                      child: Card(
-                        elevation: 0,
-                        margin: EdgeInsets.zero,
-                        color: Theme.of(context).colorScheme.surface,
-                        clipBehavior: Clip.antiAlias,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.3),
-                          ),
+                child: ListView.separated(
+                  controller: _scrollController,
+                  clipBehavior: Clip.none,
+                  scrollDirection: Axis.horizontal,
+                  padding: widget.compact
+                      ? EdgeInsets.zero
+                      : const EdgeInsets.symmetric(
+                          horizontal: LayoutConstants.spacingMd,
                         ),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 90,
-                              height: double.infinity,
-                              child: CachedNetworkImage(
-                                imageUrl: AppImageFallbacks.poster(
-                                  item.posterUrl,
-                                  label: item.title,
-                                ),
-                                fit: BoxFit.cover,
-                                placeholder: (_, _) =>
-                                    ShimmerPlaceholder(borderRadius: 8),
-                                errorWidget: (_, _, _) =>
-                                    const ThumbnailErrorPlaceholder(),
-                              ),
+                  itemCount: allItems.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(width: LayoutConstants.spacingSm),
+                  itemBuilder: (context, index) {
+                    final data = allItems[index];
+                    final item = data['item'] as MultimediaItem;
+                    final providerName = data['providerName'] as String;
+
+                    return CardsWrapper(
+                      onTap: () {
+                        // Enrich item with provider and content type before navigation
+                        final enrichedItem = item.copyWith(
+                          provider: providerName,
+                          contentType: widget.parentMediaType != null
+                              ? MultimediaItem.parseContentType(
+                                  widget.parentMediaType,
+                                )
+                              : item.contentType,
+                        );
+                        context.push(
+                          '/details',
+                          extra: DetailsRouteExtra(item: enrichedItem),
+                        );
+                      },
+                      child: SizedBox(
+                        width: 220,
+                        child: Card(
+                          elevation: 0,
+                          margin: EdgeInsets.zero,
+                          color: Theme.of(context).colorScheme.surface,
+                          clipBehavior: Clip.antiAlias,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.3),
                             ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      item.title,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primaryContainer,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        providerName,
-                                        maxLines: 1,
+                          ),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 90,
+                                height: double.infinity,
+                                child: CachedNetworkImage(
+                                  imageUrl:
+                                      AppImageFallbacks.poster(
+                                        item.posterUrl,
+                                        label: item.title,
+                                      ) ??
+                                      '',
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, _) =>
+                                      ShimmerPlaceholder(borderRadius: 8),
+                                  errorWidget: (_, _, _) =>
+                                      const ThumbnailErrorPlaceholder(),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        item.title,
+                                        maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          fontSize: 10,
+                                          fontSize: 13,
                                           fontWeight: FontWeight.bold,
                                           color: Theme.of(
                                             context,
-                                          ).colorScheme.onPrimaryContainer,
+                                          ).colorScheme.onSurface,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primaryContainer,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          providerName,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           );

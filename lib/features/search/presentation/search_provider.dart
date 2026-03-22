@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/extensions/extension_manager.dart';
 import '../../../../core/domain/entity/multimedia_item.dart';
@@ -24,19 +25,51 @@ class SearchAggregateState {
   const SearchAggregateState({this.results = const [], this.isLoading = false});
 }
 
-/// Shared search orchestration — the single source of truth for provider
-/// fan-out, result mapping, and prefix filtering. Returns results
-/// incrementally as each provider completes natively concurrently.
-///
-/// Lifecycle: The [StreamController] is closed when the stream subscription
-/// is cancelled (e.g. ref.onDispose in the provider) via [onControllerCreated].
-/// In-flight futures check [isCancelled] and avoid adding to a closed controller.
+// ---------------------------------------------------------------------------
+// Background isolate helper — runs title filtering off the main thread.
+// ---------------------------------------------------------------------------
+class _FilterParams {
+  final List<MultimediaItem> items;
+  final List<String> queryParts;
+  const _FilterParams(this.items, this.queryParts);
+}
+
+List<MultimediaItem> _filterItems(_FilterParams params) {
+  return params.items.where((item) {
+    final titleLower = item.title.toLowerCase();
+    final titleParts = titleLower
+        .split(' ')
+        .where((s) => s.isNotEmpty)
+        .toList();
+    for (final qPart in params.queryParts) {
+      bool foundPrefix = false;
+      for (final tPart in titleParts) {
+        if (tPart.startsWith(qPart)) {
+          foundPrefix = true;
+          break;
+        }
+      }
+      if (!foundPrefix) return false;
+    }
+    return true;
+  }).toList();
+}
+
+// ---------------------------------------------------------------------------
+// Core search fan-out — emits incrementally as providers complete.
+//
+// Key performance improvements vs the old implementation:
+//   1. Title filtering runs in a background isolate via compute().
+//   2. Stream emissions are THROTTLED: at most one emit per 150ms regardless
+//      of how many providers finish simultaneously. This collapses 32 rapid
+//      completions into a handful of smooth rebuilds.
+//   3. A guaranteed final emit fires when the very last provider finishes,
+//      regardless of throttle state.
+// ---------------------------------------------------------------------------
 Stream<SearchAggregateState> searchAllProviders(
   String query,
   ExtensionManager manager, {
   required bool Function() isCancelled,
-  void Function(StreamController<SearchAggregateState> controller)?
-      onControllerCreated,
 }) async* {
   final providers = manager.getAllProviders();
 
@@ -52,8 +85,41 @@ Stream<SearchAggregateState> searchAllProviders(
   final queryParts = queryLower.split(' ').where((s) => s.isNotEmpty).toList();
 
   final controller = StreamController<SearchAggregateState>();
-  onControllerCreated?.call(controller);
   int activeFutures = providers.length;
+
+  // --- Throttle state ---
+  Timer? throttleTimer;
+  bool pendingEmit = false;
+
+  void doEmit() {
+    if (controller.isClosed || isCancelled()) return;
+    controller.add(
+      SearchAggregateState(
+        results: List.from(results),
+        isLoading: activeFutures > 0,
+      ),
+    );
+    pendingEmit = false;
+  }
+
+  void scheduleEmit({bool force = false}) {
+    if (isCancelled() || controller.isClosed) return;
+
+    if (force) {
+      // Final emit — cancel throttle and emit immediately.
+      throttleTimer?.cancel();
+      throttleTimer = null;
+      doEmit();
+      return;
+    }
+
+    // Throttle: only schedule if not already scheduled.
+    pendingEmit = true;
+    throttleTimer ??= Timer(const Duration(milliseconds: 150), () {
+      throttleTimer = null;
+      if (pendingEmit) doEmit();
+    });
+  }
 
   for (final provider in providers) {
     Future(() async {
@@ -63,7 +129,7 @@ Stream<SearchAggregateState> searchAllProviders(
         final rawResults = await provider.search(query);
         if (isCancelled()) return;
 
-        final providerResults = rawResults
+        final providerItems = rawResults
             .map(
               (item) => MultimediaItem(
                 title: item.title,
@@ -78,25 +144,13 @@ Stream<SearchAggregateState> searchAllProviders(
             )
             .toList();
 
-        final filtered = providerResults.where((item) {
-          final titleLower = item.title.toLowerCase();
-          final titleParts = titleLower
-              .split(' ')
-              .where((s) => s.isNotEmpty)
-              .toList();
+        // Run filtering in a background isolate so it doesn't block the UI.
+        final filtered = await compute(
+          _filterItems,
+          _FilterParams(providerItems, queryParts),
+        );
 
-          for (final qPart in queryParts) {
-            bool foundPrefix = false;
-            for (final tPart in titleParts) {
-              if (tPart.startsWith(qPart)) {
-                foundPrefix = true;
-                break;
-              }
-            }
-            if (!foundPrefix) return false;
-          }
-          return true;
-        }).toList();
+        if (isCancelled()) return;
 
         results.add(
           ProviderSearchResult(
@@ -107,7 +161,6 @@ Stream<SearchAggregateState> searchAllProviders(
         );
       } catch (e) {
         if (isCancelled()) return;
-
         results.add(
           ProviderSearchResult(
             providerId: provider.packageName,
@@ -118,25 +171,25 @@ Stream<SearchAggregateState> searchAllProviders(
         );
       } finally {
         activeFutures--;
-        if (!controller.isClosed && !isCancelled()) {
-          controller.add(
-            SearchAggregateState(
-              results: List.from(results),
-              isLoading: activeFutures > 0,
-            ),
-          );
-        }
-        if (activeFutures == 0 && !controller.isClosed) {
-          controller.close();
+        final isLast = activeFutures == 0;
+        // Force an immediate emit for the last provider; throttle all others.
+        scheduleEmit(force: isLast);
+        if (isLast && !controller.isClosed) {
+          // Give the final emit a microtask to land before we close.
+          Future.microtask(() {
+            if (!controller.isClosed) controller.close();
+          });
         }
       }
-    }); // Spawns Future concurrently
+    });
   }
 
   yield* controller.stream;
 }
 
-// State for the search query
+// ---------------------------------------------------------------------------
+// State for the committed (submitted) search query.
+// ---------------------------------------------------------------------------
 class SearchQueryNotifier extends Notifier<String> {
   @override
   String build() => '';
@@ -148,25 +201,20 @@ final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(
   SearchQueryNotifier.new,
 );
 
-// Incremental search results — delegates to shared searchAllProviders()
-final searchResultsProvider = StreamProvider.autoDispose<SearchAggregateState>((
-  ref,
-) {
+// ---------------------------------------------------------------------------
+// Incremental search results — delegates to searchAllProviders().
+//
+// NOT autoDispose: keeps the stream alive when the user switches tabs so
+// results aren't thrown away and the search doesn't re-run on return.
+// The stream naturally restarts whenever searchQueryProvider changes.
+// ---------------------------------------------------------------------------
+final searchResultsProvider = StreamProvider<SearchAggregateState>((ref) {
   final query = ref.watch(searchQueryProvider);
-  ref.watch(extensionManagerProvider); // trigger sub when plugins change
+  ref.watch(extensionManagerProvider);
   final manager = ref.read(extensionManagerProvider.notifier);
 
   var cancelled = false;
-  StreamController<SearchAggregateState>? searchController;
-  ref.onDispose(() {
-    cancelled = true;
-    searchController?.close();
-  });
+  ref.onDispose(() => cancelled = true);
 
-  return searchAllProviders(
-    query,
-    manager,
-    isCancelled: () => cancelled,
-    onControllerCreated: (c) => searchController = c,
-  );
+  return searchAllProviders(query, manager, isCancelled: () => cancelled);
 });

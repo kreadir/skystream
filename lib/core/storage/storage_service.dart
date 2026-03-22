@@ -30,7 +30,9 @@ class StorageService {
     _libraryBox = await _safeOpenBox(kLibraryBox);
     _settingsBox = await _safeOpenBox(kSettingsBox);
     _extensionsBox = await _safeOpenBox(kExtensionsBox);
-    await _safeOpenBox(kDownloadMetadataBox); // Open but no need to keep late reference if we use Hive.box()
+    await _safeOpenBox(
+      kDownloadMetadataBox,
+    ); // Open but no need to keep late reference if we use Hive.box()
     await initHistory();
   }
 
@@ -310,7 +312,12 @@ class StorageService {
     return 0;
   }
 
-  int getEpisodePosition(String epUrl, {String? mainUrl, int? season, int? episode}) {
+  int getEpisodePosition(
+    String epUrl, {
+    String? mainUrl,
+    int? season,
+    int? episode,
+  }) {
     final epKey = "EP_${_getKey(epUrl)}";
     if (_historyBox.containsKey(epKey)) {
       final map = _historyBox.get(epKey);
@@ -345,7 +352,12 @@ class StorageService {
     return 0;
   }
 
-  int getEpisodeDuration(String epUrl, {String? mainUrl, int? season, int? episode}) {
+  int getEpisodeDuration(
+    String epUrl, {
+    String? mainUrl,
+    int? season,
+    int? episode,
+  }) {
     final epKey = "EP_${_getKey(epUrl)}";
     if (_historyBox.containsKey(epKey)) {
       final map = _historyBox.get(epKey);
@@ -427,7 +439,11 @@ class StorageService {
     }
   }
 
-  Future<void> saveDownloadMetadata(String taskId, MultimediaItem item, {Episode? episode}) async {
+  Future<void> saveDownloadMetadata(
+    String taskId,
+    MultimediaItem item, {
+    Episode? episode,
+  }) async {
     final box = await Hive.openBox(kDownloadMetadataBox);
     await box.put(taskId, {
       'item': item.toJson(),
@@ -459,13 +475,13 @@ class StorageService {
 
       // Clear Preferences (Hive + Prefs) - For Factory Reset, we do NOT keep repos.
       await clearPreferences(keepRepos: false);
-      
+
       try {
         await Hive.deleteBoxFromDisk(kDownloadMetadataBox);
       } catch (_) {}
 
       // Clear Cache Manager (Images)
-// ... (rest of the code)
+      // ... (rest of the code)
       try {
         await DefaultCacheManager().emptyCache();
       } catch (e) {

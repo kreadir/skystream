@@ -18,8 +18,9 @@ final homeDataProvider = FutureProvider<Map<String, List<MultimediaItem>>>((
 
   // Fast connectivity check
   try {
-    final result = await InternetAddress.lookup('dns.google')
-        .timeout(const Duration(seconds: 2));
+    final result = await InternetAddress.lookup(
+      'dns.google',
+    ).timeout(const Duration(seconds: 2));
     if (result.isEmpty || result[0].rawAddress.isEmpty) {
       throw Exception('No internet connection');
     }
@@ -37,9 +38,11 @@ final homeDataProvider = FutureProvider<Map<String, List<MultimediaItem>>>((
   return items;
 });
 
-final homeFilterProvider = NotifierProvider<HomeFilterNotifier, ProviderType?>(() {
-  return HomeFilterNotifier();
-});
+final homeFilterProvider = NotifierProvider<HomeFilterNotifier, ProviderType?>(
+  () {
+    return HomeFilterNotifier();
+  },
+);
 
 class HomeFilterNotifier extends Notifier<ProviderType?> {
   @override

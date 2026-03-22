@@ -26,7 +26,8 @@ class SettingsRepository {
     return _storageService.getDevLoadAssets();
   }
 
-  Future<void> setActiveProviderId(String? id) => _storageService.setActiveProviderId(id);
+  Future<void> setActiveProviderId(String? id) =>
+      _storageService.setActiveProviderId(id);
 
   String? getActiveProviderId() {
     return _storageService.getActiveProviderId();

@@ -15,8 +15,12 @@ class ProxyOptions {
 
   factory ProxyOptions.fromJson(Map<String, dynamic> json) {
     return ProxyOptions(
-      mirrorHosts: (json['mirrorHosts'] as List?)?.map((e) => e.toString()).toList() ?? [],
-      keepCookies: (json['keepCookies'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      mirrorHosts:
+          (json['mirrorHosts'] as List?)?.map((e) => e.toString()).toList() ??
+          [],
+      keepCookies:
+          (json['keepCookies'] as List?)?.map((e) => e.toString()).toList() ??
+          [],
       referer: json['referer']?.toString(),
     );
   }
@@ -42,11 +46,13 @@ class LocalProxyService {
     try {
       _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       _serverPort = _server!.port;
-      if (kDebugMode) debugPrint("LocalProxyService: Started on port $_serverPort");
+      if (kDebugMode)
+        debugPrint("LocalProxyService: Started on port $_serverPort");
 
       _server!.listen(_handleRequest);
     } catch (e) {
-      if (kDebugMode) debugPrint("LocalProxyService: Failed to start server: $e");
+      if (kDebugMode)
+        debugPrint("LocalProxyService: Failed to start server: $e");
     }
   }
 
@@ -66,11 +72,15 @@ class LocalProxyService {
   }
 
   /// Returns a proxied URL for the given target URL, with optional sticky headers and options.
-  String getProxyUrl(String targetUrl, {Map<String, String>? headers, ProxyOptions? options}) {
+  String getProxyUrl(
+    String targetUrl, {
+    Map<String, String>? headers,
+    ProxyOptions? options,
+  }) {
     if (_server == null) startServer();
     final encoded = Uri.encodeComponent(targetUrl);
     String url = "http://127.0.0.1:$_serverPort/proxy?url=$encoded";
-    
+
     if (headers != null && headers.isNotEmpty) {
       final headerJson = jsonEncode(headers);
       final headerB64 = base64Url.encode(utf8.encode(headerJson));
@@ -86,7 +96,7 @@ class LocalProxyService {
       final optB64 = base64Url.encode(utf8.encode(optJson));
       url += "&o=$optB64";
     }
-    
+
     return url;
   }
 
@@ -115,7 +125,10 @@ class LocalProxyService {
         request.response.statusCode = HttpStatus.internalServerError;
         request.response.close();
       } catch (e) {
-        if (kDebugMode) debugPrint('LocalProxyService._handleRequest: error response failed: $e');
+        if (kDebugMode)
+          debugPrint(
+            'LocalProxyService._handleRequest: error response failed: $e',
+          );
       }
     }
   }
@@ -154,7 +167,8 @@ class LocalProxyService {
         final Map<String, dynamic> map = jsonDecode(decoded);
         map.forEach((key, value) => stickyHeaders[key] = value.toString());
       } catch (e) {
-        if (kDebugMode) debugPrint("[PROXY] Failed to parse sticky headers: $e");
+        if (kDebugMode)
+          debugPrint("[PROXY] Failed to parse sticky headers: $e");
       }
     }
 
@@ -175,7 +189,7 @@ class LocalProxyService {
 
     try {
       final req = await client.getUrl(Uri.parse(targetUrl));
-      
+
       // Check if this is an M3U8 request to handle Range headers and rewriting
       final isRequestM3u8 = targetUrl.toLowerCase().contains(".m3u8");
 
@@ -188,7 +202,10 @@ class LocalProxyService {
             for (var pair in v.split(';')) {
               final parts = pair.split('=');
               if (parts.length >= 2) {
-                mergedCookies[parts[0].trim()] = parts.sublist(1).join('=').trim();
+                mergedCookies[parts[0].trim()] = parts
+                    .sublist(1)
+                    .join('=')
+                    .trim();
               }
             }
           }
@@ -199,7 +216,7 @@ class LocalProxyService {
             lowerName != 'content-length' &&
             lowerName != 'connection' &&
             lowerName != 'accept-encoding' &&
-            lowerName != 'referer' && 
+            lowerName != 'referer' &&
             lowerName != 'user-agent') {
           for (var value in values) {
             req.headers.add(name, value);
@@ -214,7 +231,10 @@ class LocalProxyService {
           for (var pair in value.split(';')) {
             final parts = pair.split('=');
             if (parts.length >= 2) {
-              mergedCookies[parts[0].trim()] = parts.sublist(1).join('=').trim();
+              mergedCookies[parts[0].trim()] = parts
+                  .sublist(1)
+                  .join('=')
+                  .trim();
             }
           }
         } else {
@@ -224,7 +244,9 @@ class LocalProxyService {
 
       // 3. Set Merged Cookies
       if (mergedCookies.isNotEmpty) {
-        final cookieString = mergedCookies.entries.map((e) => "${e.key}=${e.value}").join("; ");
+        final cookieString = mergedCookies.entries
+            .map((e) => "${e.key}=${e.value}")
+            .join("; ");
         req.headers.set("Cookie", cookieString);
         // debugPrint("[PROXY] Final Cookie String: $cookieString");
       }
@@ -233,15 +255,20 @@ class LocalProxyService {
       _applySanitizedHeaders(req, targetUrl, options);
 
       // debugPrint("[PROXY] Fetching with headers: ${req.headers}");
-      final response = await _fetchWithRedirects(client, req, targetUrl, options);
+      final response = await _fetchWithRedirects(
+        client,
+        req,
+        targetUrl,
+        options,
+      );
       // debugPrint("[PROXY] Response Status: ${response.statusCode}, Content-Type: ${response.headers.contentType}");
 
       request.response.statusCode = response.statusCode;
-      
+
       // Copy ALL relevant headers from source response
       response.headers.forEach((name, values) {
         final lowerName = name.toLowerCase();
-        if (lowerName != 'transfer-encoding' && 
+        if (lowerName != 'transfer-encoding' &&
             lowerName != 'access-control-allow-origin') {
           for (var value in values) {
             request.response.headers.add(name, value);
@@ -251,17 +278,27 @@ class LocalProxyService {
       request.response.headers.add("Access-Control-Allow-Origin", "*");
 
       // RECURSIVE REWRITE for M3U8
-      final isResponseM3u8 = _isM3u8(response.headers.contentType?.mimeType, targetUrl);
+      final isResponseM3u8 = _isM3u8(
+        response.headers.contentType?.mimeType,
+        targetUrl,
+      );
       // debugPrint("[PROXY] Detected isM3u8: $isResponseM3u8 for $targetUrl");
 
       // Allow rewriting for 200 (OK) and 206 (Partial) if it's an M3U8
-      if (isResponseM3u8 && (response.statusCode == 200 || response.statusCode == 206)) {
+      if (isResponseM3u8 &&
+          (response.statusCode == 200 || response.statusCode == 206)) {
         // debugPrint("[PROXY] Triggering M3U8 rewrite for: $targetUrl");
-        // If rewriting, we must remove content-encoding and content-length 
+        // If rewriting, we must remove content-encoding and content-length
         // because the modified body will have different length/type.
         request.response.headers.removeAll('content-encoding');
         request.response.headers.removeAll('content-length');
-        await _rewriteM3u8Response(response, request, targetUrl, stickyHeaders, options);
+        await _rewriteM3u8Response(
+          response,
+          request,
+          targetUrl,
+          stickyHeaders,
+          options,
+        );
       } else {
         // if (isResponseM3u8) debugPrint("[PROXY] Skipping rewrite (status ${response.statusCode})");
         // Pipe binary data
@@ -274,102 +311,115 @@ class LocalProxyService {
     }
   }
 
-  void _applySanitizedHeaders(HttpClientRequest req, String targetUrl, ProxyOptions? options) {
-      // Default User-Agent if missing
-      if (req.headers['User-Agent'] == null) {
-        req.headers.set("User-Agent", "Mozilla/5.0 (Android) ExoPlayer");
-      }
+  void _applySanitizedHeaders(
+    HttpClientRequest req,
+    String targetUrl,
+    ProxyOptions? options,
+  ) {
+    // Default User-Agent if missing
+    if (req.headers['User-Agent'] == null) {
+      req.headers.set("User-Agent", "Mozilla/5.0 (Android) ExoPlayer");
+    }
 
-      // Default Referer if missing or proxy-based
-      final existingReferer = req.headers['Referer']?.join("");
-      if (existingReferer == null || existingReferer.contains("127.0.0.1")) {
-          final uri = Uri.parse(targetUrl);
-          final optReferer = options?.referer;
-          if (optReferer != null) {
-             req.headers.set("Referer", optReferer);
-          } else {
-             req.headers.set("Referer", "${uri.scheme}://${uri.host}/");
-          }
+    // Default Referer if missing or proxy-based
+    final existingReferer = req.headers['Referer']?.join("");
+    if (existingReferer == null || existingReferer.contains("127.0.0.1")) {
+      final uri = Uri.parse(targetUrl);
+      final optReferer = options?.referer;
+      if (optReferer != null) {
+        req.headers.set("Referer", optReferer);
+      } else {
+        req.headers.set("Referer", "${uri.scheme}://${uri.host}/");
       }
+    }
 
-      // CLEANUP: If target is CDN, remove session cookies (Mirror's security requirement)
-      // NOTE: For NetMirror, we actually WANT to keep cookies for their specific CDNs if possible,
-      // as they sometimes validate both the 'in' param and the 't_hash_t' cookie.
-      final targetUri = Uri.parse(targetUrl);
-      bool isMirrorSite = false;
-      if (options != null) {
-          isMirrorSite = options.mirrorHosts.any((host) => targetUri.host.contains(host));
-      }
-      
-      if (!isMirrorSite) {
-          final currentCookies = req.headers['Cookie']?.join("; ") ?? "";
-          if (options != null && options.keepCookies.isNotEmpty) {
-             final filtered = currentCookies.split(';')
-              .map((s) => s.trim())
-              .where((s) {
-                 final key = s.split('=')[0];
-                 return options.keepCookies.contains(key);
-              })
-              .join("; ");
-              if (filtered.isNotEmpty) {
-                  req.headers.set("Cookie", filtered);
-              } else {
-                  req.headers.removeAll("Cookie");
-              }
-          } else {
-             req.headers.removeAll("Cookie");
-          }
-      }
+    // CLEANUP: If target is CDN, remove session cookies (Mirror's security requirement)
+    // NOTE: For NetMirror, we actually WANT to keep cookies for their specific CDNs if possible,
+    // as they sometimes validate both the 'in' param and the 't_hash_t' cookie.
+    final targetUri = Uri.parse(targetUrl);
+    bool isMirrorSite = false;
+    if (options != null) {
+      isMirrorSite = options.mirrorHosts.any(
+        (host) => targetUri.host.contains(host),
+      );
+    }
 
-      // Default hd=on if keepCookies contains it
-      if (options != null && options.keepCookies.contains("hd")) {
-          final finalCookies = req.headers['Cookie']?.join("; ") ?? "";
-          if (!finalCookies.contains("hd=on")) {
-            if (finalCookies.isEmpty) {
-              req.headers.set("Cookie", "hd=on");
-            } else {
-              req.headers.set("Cookie", "$finalCookies; hd=on");
-            }
-          }
+    if (!isMirrorSite) {
+      final currentCookies = req.headers['Cookie']?.join("; ") ?? "";
+      if (options != null && options.keepCookies.isNotEmpty) {
+        final filtered = currentCookies
+            .split(';')
+            .map((s) => s.trim())
+            .where((s) {
+              final key = s.split('=')[0];
+              return options.keepCookies.contains(key);
+            })
+            .join("; ");
+        if (filtered.isNotEmpty) {
+          req.headers.set("Cookie", filtered);
+        } else {
+          req.headers.removeAll("Cookie");
+        }
+      } else {
+        req.headers.removeAll("Cookie");
       }
+    }
+
+    // Default hd=on if keepCookies contains it
+    if (options != null && options.keepCookies.contains("hd")) {
+      final finalCookies = req.headers['Cookie']?.join("; ") ?? "";
+      if (!finalCookies.contains("hd=on")) {
+        if (finalCookies.isEmpty) {
+          req.headers.set("Cookie", "hd=on");
+        } else {
+          req.headers.set("Cookie", "$finalCookies; hd=on");
+        }
+      }
+    }
   }
 
   /// Manually follow redirects to ensure headers (Referer/User-Agent) are preserved
-  Future<HttpClientResponse> _fetchWithRedirects(HttpClient client, HttpClientRequest initialRequest, String currentUrl, ProxyOptions? options) async {
+  Future<HttpClientResponse> _fetchWithRedirects(
+    HttpClient client,
+    HttpClientRequest initialRequest,
+    String currentUrl,
+    ProxyOptions? options,
+  ) async {
     HttpClientRequest currentReq = initialRequest;
     currentReq.followRedirects = false; // We handle it
-    
+
     int redirectCount = 0;
     const maxRedirects = 5;
 
     while (redirectCount < maxRedirects) {
       final response = await currentReq.close();
-      
-      if (response.statusCode == HttpStatus.movedPermanently || 
+
+      if (response.statusCode == HttpStatus.movedPermanently ||
           response.statusCode == HttpStatus.found ||
           response.statusCode == HttpStatus.seeOther ||
           response.statusCode == HttpStatus.temporaryRedirect ||
           response.statusCode == HttpStatus.permanentRedirect) {
-        
         final location = response.headers.value('location');
         if (location == null) return response;
 
         final nextUrl = Uri.parse(currentUrl).resolve(location).toString();
         redirectCount++;
-        
+
         final nextReq = await client.getUrl(Uri.parse(nextUrl));
         nextReq.followRedirects = false;
 
         // PRESERVE CRITICAL HEADERS
         initialRequest.headers.forEach((name, values) {
           final lowerName = name.toLowerCase();
-          if (lowerName != 'host' && lowerName != 'content-length' && lowerName != 'connection') {
+          if (lowerName != 'host' &&
+              lowerName != 'content-length' &&
+              lowerName != 'connection') {
             for (var v in values) {
               nextReq.headers.add(name, v);
             }
           }
         });
-        
+
         // RE-APPLY SANITIZATION for the nextHop (especially cleaning cookies for CDNs)
         _applySanitizedHeaders(nextReq, nextUrl, options);
 
@@ -379,7 +429,7 @@ class LocalProxyService {
         return response;
       }
     }
-    
+
     throw Exception("Too many redirects");
   }
 
@@ -435,7 +485,13 @@ class LocalProxyService {
           }
 
           // Segment URL
-          final r = _rewriteUrl(trimmed, baseUrl, stickyHeaders, options, isSegment: true);
+          final r = _rewriteUrl(
+            trimmed,
+            baseUrl,
+            stickyHeaders,
+            options,
+            isSegment: true,
+          );
           // debugPrint("[PROXY] Rewrote Segment: $trimmed");
           return r;
         })
@@ -451,7 +507,9 @@ class LocalProxyService {
       if (bytes.length > 7) {
         // final prefix = utf8.decode(bytes.take(20).toList(), allowMalformed: true).trim();
         // debugPrint("[PROXY] M3U8 Prefix Check: '$prefix'");
-        return utf8.decode(bytes.take(7).toList(), allowMalformed: true).contains("#EXT");
+        return utf8
+            .decode(bytes.take(7).toList(), allowMalformed: true)
+            .contains("#EXT");
       }
     } catch (e) {
       if (kDebugMode) debugPrint('LocalProxyService._isValidM3u8: $e');
@@ -459,21 +517,35 @@ class LocalProxyService {
     return false;
   }
 
-  String _rewriteUrl(String uri, Uri baseUrl, Map<String, String> stickyHeaders, ProxyOptions? options, {bool isSegment = false}) {
+  String _rewriteUrl(
+    String uri,
+    Uri baseUrl,
+    Map<String, String> stickyHeaders,
+    ProxyOptions? options, {
+    bool isSegment = false,
+  }) {
     try {
       Uri resolved = baseUrl.resolve(uri);
-      
+
       // Generic Mirror Security: If the resolved URL is relative (same host) OR on a mirror host
       // and has no query, it MUST inherit the query params from the parent playlist.
       bool isHostMatch = false;
       if (options != null) {
-          isHostMatch = options.mirrorHosts.any((host) => resolved.host.contains(host));
+        isHostMatch = options.mirrorHosts.any(
+          (host) => resolved.host.contains(host),
+        );
       }
-      
-      if (resolved.query.isEmpty && baseUrl.query.isNotEmpty && (resolved.host == baseUrl.host || isHostMatch)) {
-          resolved = resolved.replace(query: baseUrl.query);
+
+      if (resolved.query.isEmpty &&
+          baseUrl.query.isNotEmpty &&
+          (resolved.host == baseUrl.host || isHostMatch)) {
+        resolved = resolved.replace(query: baseUrl.query);
       }
-      return getProxyUrl(resolved.toString(), headers: stickyHeaders, options: options); // Recursive proxy with headers and options
+      return getProxyUrl(
+        resolved.toString(),
+        headers: stickyHeaders,
+        options: options,
+      ); // Recursive proxy with headers and options
     } catch (e) {
       return uri;
     }

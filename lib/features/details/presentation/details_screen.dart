@@ -106,7 +106,8 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                           AppImageFallbacks.poster(
                             item.posterUrl,
                             label: item.title,
-                          ),
+                          ) ??
+                          '',
                       fit: BoxFit.cover,
                       alignment: Alignment.topCenter,
                       memCacheWidth: 800, // P19: Optimize memory
@@ -230,10 +231,12 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: CachedNetworkImage(
-                          imageUrl: AppImageFallbacks.poster(
-                            item.posterUrl,
-                            label: item.title,
-                          ),
+                          imageUrl:
+                              AppImageFallbacks.poster(
+                                item.posterUrl,
+                                label: item.title,
+                              ) ??
+                              '',
                           width: 250,
                           height: 375,
                           fit: BoxFit.cover,
@@ -390,10 +393,12 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: CachedNetworkImage(
-                        imageUrl: AppImageFallbacks.poster(
-                          item.posterUrl,
-                          label: item.title,
-                        ),
+                        imageUrl:
+                            AppImageFallbacks.poster(
+                              item.posterUrl,
+                              label: item.title,
+                            ) ??
+                            '',
                         width: 100,
                         height: 150,
                         fit: BoxFit.cover,

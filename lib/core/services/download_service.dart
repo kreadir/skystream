@@ -328,7 +328,7 @@ class DownloadService {
       await FileDownloader().cancelTasksWithIds([taskId]);
       _ref.read(activeDownloadsProvider.notifier).remove(trackingUrl);
       _ref.read(downloadProgressProvider.notifier).remove(trackingUrl);
-      
+
       // Proactive cleanup
       await FileDownloader().database.deleteRecordWithId(taskId);
       await _ref.read(storageServiceProvider).removeDownloadMetadata(taskId);
@@ -433,8 +433,15 @@ class DownloadService {
     // Request permission on Android (Version Aware)
     if (Platform.isAndroid) {
       final androidInfo = await DeviceInfoPlugin().androidInfo;
-      if (androidInfo.version.sdkInt <= 32) {
-        // For Android 12 and below, we need storage permission for some public paths
+      if (androidInfo.version.sdkInt >= 30) {
+        // For Android 11+, request MANAGE_EXTERNAL_STORAGE to allow native C++ players (media_kit)
+        // to bypass FUSE directory depth limits for deeply nested series folders
+        final status = await Permission.manageExternalStorage.status;
+        if (!status.isGranted) {
+          await Permission.manageExternalStorage.request();
+        }
+      } else {
+        // For Android 10 and below, request standard storage permission
         await Permission.storage.request();
       }
     }

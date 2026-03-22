@@ -88,7 +88,9 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
                             final buffer = bufferSnapshot.data ?? Duration.zero;
                             final bufferMs = buffer.inMilliseconds.toDouble();
                             return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
                               child: LinearProgressIndicator(
                                 value: (bufferMs / durationMs).clamp(0, 1),
                                 backgroundColor: Colors.transparent,
@@ -100,7 +102,7 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
                             );
                           },
                         ),
-                      
+
                       // Actual Slider
                       SliderTheme(
                         data: SliderThemeData(
@@ -112,7 +114,9 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
                             overlayRadius: 16,
                           ),
                           activeTrackColor: Colors.white,
-                          inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
+                          inactiveTrackColor: Colors.white.withValues(
+                            alpha: 0.1,
+                          ),
                           trackShape: const RoundedRectSliderTrackShape(),
                           thumbColor: Colors.white,
                           overlayColor: Colors.white.withValues(alpha: 0.2),
@@ -137,7 +141,9 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
                             });
                           },
                           onChangeEnd: (val) {
-                            widget.player.seek(Duration(milliseconds: val.toInt()));
+                            widget.player.seek(
+                              Duration(milliseconds: val.toInt()),
+                            );
                             widget.onSeekEnd?.call();
                             setState(() {
                               _dragValue = null;
@@ -191,10 +197,12 @@ class PlayerPlayPauseButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
-        final isBuffering =
-            ref.watch(playerControllerProvider.select((s) => s.isBuffering));
-        final isLoading =
-            ref.watch(playerControllerProvider.select((s) => s.isLoading));
+        final isBuffering = ref.watch(
+          playerControllerProvider.select((s) => s.isBuffering),
+        );
+        final isLoading = ref.watch(
+          playerControllerProvider.select((s) => s.isLoading),
+        );
 
         return StreamBuilder<bool>(
           stream: player.stream.playing,
@@ -249,8 +257,12 @@ class PlayerBufferingIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
-        final isLoading = ref.watch(playerControllerProvider.select((s) => s.isLoading));
-        final isBuffering = ref.watch(playerControllerProvider.select((s) => s.isBuffering));
+        final isLoading = ref.watch(
+          playerControllerProvider.select((s) => s.isLoading),
+        );
+        final isBuffering = ref.watch(
+          playerControllerProvider.select((s) => s.isBuffering),
+        );
 
         if (!isLoading && !isBuffering) {
           return const SizedBox.shrink();

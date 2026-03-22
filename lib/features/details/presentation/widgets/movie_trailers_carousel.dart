@@ -183,7 +183,8 @@ class _MovieTrailersCarouselState extends State<MovieTrailersCarousel> {
               CachedNetworkImage(
                 imageUrl: thumbUrl,
                 fit: BoxFit.cover,
-                errorWidget: (_, _, _) => ThumbnailErrorPlaceholder(label: video.name),
+                errorWidget: (_, _, _) =>
+                    ThumbnailErrorPlaceholder(label: video.name),
               ),
               Container(color: Colors.black26),
               Center(

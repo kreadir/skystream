@@ -39,7 +39,7 @@ class ViewAllState {
 
 class ViewAllController extends Notifier<ViewAllState> {
   final ViewAllCategory categoryArg;
-  
+
   ViewAllController(this.categoryArg);
 
   @override
@@ -158,7 +158,7 @@ class ViewAllController extends Notifier<ViewAllState> {
   }
 }
 
-final viewAllControllerProvider =
-    NotifierProvider.autoDispose.family<ViewAllController, ViewAllState, ViewAllCategory>(
+final viewAllControllerProvider = NotifierProvider.autoDispose
+    .family<ViewAllController, ViewAllState, ViewAllCategory>(
       (category) => ViewAllController(category),
     );

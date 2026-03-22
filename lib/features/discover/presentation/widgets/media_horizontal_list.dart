@@ -59,7 +59,12 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
       children: [
         // Header Row
         Padding(
-          padding: const EdgeInsets.fromLTRB(LayoutConstants.spacingMd, LayoutConstants.spacingLg, LayoutConstants.spacingMd, LayoutConstants.spacingSm),
+          padding: const EdgeInsets.fromLTRB(
+            LayoutConstants.spacingMd,
+            LayoutConstants.spacingLg,
+            LayoutConstants.spacingMd,
+            LayoutConstants.spacingSm,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -91,16 +96,20 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
                   ],
                 ),
               ),
-              if (widget.showViewAll) const SizedBox(width: LayoutConstants.spacingXs),
+              if (widget.showViewAll)
+                const SizedBox(width: LayoutConstants.spacingXs),
 
               if (widget.showViewAll)
                 CardsWrapper(
                   onTap: () {
-                    context.push('/view-all', extra: ViewAllRouteExtra(
-                      title: widget.title,
-                      initialMediaList: widget.mediaList,
-                      category: widget.category,
-                    ));
+                    context.push(
+                      '/view-all',
+                      extra: ViewAllRouteExtra(
+                        title: widget.title,
+                        initialMediaList: widget.mediaList,
+                        category: widget.category,
+                      ),
+                    );
                   },
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
@@ -149,38 +158,54 @@ class _MediaHorizontalListState extends State<MediaHorizontalList> {
             // Wraps ListView
             controller: _scrollController,
             showButtons: isDesktop, // Show nav buttons on desktop/TV
-            child: ListView.separated(
-              controller: _scrollController, // Passes controller
-              clipBehavior: Clip.none,
-              padding: const EdgeInsets.symmetric(horizontal: LayoutConstants.spacingMd),
-              scrollDirection: Axis.horizontal,
-              itemCount: widget.mediaList.length,
-              separatorBuilder: (context, index) =>
-                  SizedBox(width: isDesktop ? LayoutConstants.spacingLg : LayoutConstants.spacingSm),
-              itemBuilder: (context, index) {
-                final item = widget.mediaList[index];
-                final imageUrl = item.posterImageUrl;
-                final itemTitle = item.title;
-                final prefix = widget.heroTagPrefix ?? 'list';
-                final uniqueTag =
-                    '${prefix}_${widget.title}_${item.id}_${itemTitle.hashCode}_$index';
-                final mediaType = item.mediaType;
+            child: Builder(
+              builder: (context) {
+                final double cardWidth = isDesktop ? 200.0 : 130.0;
+                final double spacing = isDesktop
+                    ? LayoutConstants.spacingLg
+                    : LayoutConstants.spacingSm;
 
-                return MultimediaCard(
-                  imageUrl: imageUrl,
-                  title: itemTitle,
-                  heroTag: uniqueTag,
-                  onTap: () {
-                    if (widget.onTap != null) {
-                      widget.onTap!(item);
-                    } else {
-                      context.push('/tmdb-details', extra: TmdbDetailsRouteExtra(
-                        movieId: item.id,
-                        mediaType: mediaType,
+                return ListView.builder(
+                  controller: _scrollController,
+                  clipBehavior: Clip.none,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: LayoutConstants.spacingMd,
+                  ),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.mediaList.length,
+                  itemExtent: cardWidth + spacing,
+                  itemBuilder: (context, index) {
+                    final item = widget.mediaList[index];
+                    final imageUrl = item.posterImageUrl;
+                    final itemTitle = item.title;
+                    final prefix = widget.heroTagPrefix ?? 'list';
+                    final uniqueTag =
+                        '${prefix}_${widget.title}_${item.id}_${itemTitle.hashCode}_$index';
+                    final mediaType = item.mediaType;
+
+                    return Padding(
+                      padding: EdgeInsets.only(right: spacing),
+                      child: MultimediaCard(
+                        imageUrl: imageUrl,
+                        title: itemTitle,
                         heroTag: uniqueTag,
-                        placeholderPoster: imageUrl,
-                      ));
-                    }
+                        onTap: () {
+                          if (widget.onTap != null) {
+                            widget.onTap!(item);
+                          } else {
+                            context.push(
+                              '/tmdb-details',
+                              extra: TmdbDetailsRouteExtra(
+                                movieId: item.id,
+                                mediaType: mediaType,
+                                heroTag: uniqueTag,
+                                placeholderPoster: imageUrl,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    );
                   },
                 );
               },

@@ -108,7 +108,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
             centerTitle: false,
             actions: [
               Padding(
-                padding: const EdgeInsets.only(right: LayoutConstants.spacingXs),
+                padding: const EdgeInsets.only(
+                  right: LayoutConstants.spacingXs,
+                ),
                 child: CardsWrapper(
                   onTap: () {
                     showDialog(
@@ -147,7 +149,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
               ),
 
               Padding(
-                padding: const EdgeInsets.only(right: LayoutConstants.spacingMd),
+                padding: const EdgeInsets.only(
+                  right: LayoutConstants.spacingMd,
+                ),
                 child: CardsWrapper(
                   onTap: () {
                     showSearch(
@@ -179,7 +183,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
               SliverToBoxAdapter(
                 child: Consumer(
                   builder: (context, ref, _) {
-                    final heroMoviesAsync = ref.watch(discoverHeroMovieProvider);
+                    final heroMoviesAsync = ref.watch(
+                      discoverHeroMovieProvider,
+                    );
                     return heroMoviesAsync.when(
                       data: (movies) {
                         if (movies.isEmpty) return const SizedBox.shrink();
@@ -189,7 +195,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                         );
                       },
                       loading: () => Padding(
-                        padding: const EdgeInsets.only(bottom: LayoutConstants.spacingLg),
+                        padding: const EdgeInsets.only(
+                          bottom: LayoutConstants.spacingLg,
+                        ),
                         child: SizedBox(
                           height: 500,
                           width: double.infinity,
@@ -202,11 +210,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                           bottom: LayoutConstants.spacingLg,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest.withValues(
-                            alpha: 0.3,
-                          ),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Center(
@@ -228,10 +235,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                               ),
                               const SizedBox(height: 8),
                               TextButton.icon(
-                                onPressed:
-                                    () => ref.invalidate(
-                                      discoverHeroMovieProvider,
-                                    ),
+                                onPressed: () =>
+                                    ref.invalidate(discoverHeroMovieProvider),
                                 icon: const Icon(Icons.refresh),
                                 label: const Text("Retry"),
                               ),
@@ -318,51 +323,60 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
         final asyncValue = ref.watch(provider);
         return asyncValue.when(
           data: (items) {
-        if (items.isEmpty) return const SizedBox.shrink();
-        return MediaHorizontalList(
-          title: title,
-          mediaList: items,
-          category: category,
-          heroTagPrefix: 'discover',
-        );
-      },
-    loading: () => Padding(
-      padding: const EdgeInsets.symmetric(vertical: LayoutConstants.spacingMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title Placeholder
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: LayoutConstants.spacingMd),
-            child: ShimmerPlaceholder.rectangular(width: 150, height: 24, borderRadius: 4),
-          ),
-          const SizedBox(height: LayoutConstants.spacingMd),
-          // List Placeholder
-          SizedBox(
-            height: 250,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              itemCount: 5,
-              separatorBuilder: (_, _) => const SizedBox(width: LayoutConstants.spacingSm),
-              itemBuilder: (context, index) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ShimmerPlaceholder.rectangular(
-                      width: 130, // mobile width
-                      height: 195,
-                      borderRadius: 12,
-                    ),
-                  ],
-                );
-              },
+            if (items.isEmpty) return const SizedBox.shrink();
+            return MediaHorizontalList(
+              title: title,
+              mediaList: items,
+              category: category,
+              heroTagPrefix: 'discover',
+            );
+          },
+          loading: () => Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: LayoutConstants.spacingMd,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title Placeholder
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: LayoutConstants.spacingMd,
+                  ),
+                  child: ShimmerPlaceholder.rectangular(
+                    width: 150,
+                    height: 24,
+                    borderRadius: 4,
+                  ),
+                ),
+                const SizedBox(height: LayoutConstants.spacingMd),
+                // List Placeholder
+                SizedBox(
+                  height: 250,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 5,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(width: LayoutConstants.spacingSm),
+                    itemBuilder: (context, index) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ShimmerPlaceholder.rectangular(
+                            width: 130, // mobile width
+                            height: 195,
+                            borderRadius: 12,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-    ),
-      error: (e, _) => const SizedBox.shrink(),
+          error: (e, _) => const SizedBox.shrink(),
         );
       },
     );

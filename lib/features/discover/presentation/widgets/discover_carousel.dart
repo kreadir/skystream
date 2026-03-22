@@ -190,11 +190,14 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
     // fallback to title check.
     final String mediaType = movie.mediaType;
 
-    context.push('/tmdb-details', extra: TmdbDetailsRouteExtra(
-      movieId: movie.id,
-      mediaType: mediaType,
-      heroTag: 'hero_${movie.id}',
-    ));
+    context.push(
+      '/tmdb-details',
+      extra: TmdbDetailsRouteExtra(
+        movieId: movie.id,
+        mediaType: mediaType,
+        heroTag: 'hero_${movie.id}',
+      ),
+    );
   }
 
   Widget _buildCarouselItem(
@@ -436,10 +439,8 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
             placeholder: (context, url) => Container(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
             ),
-            errorWidget: (_, _, _) => ThumbnailErrorPlaceholder(
-              label: title,
-              isBackdrop: true,
-            ),
+            errorWidget: (_, _, _) =>
+                ThumbnailErrorPlaceholder(label: title, isBackdrop: true),
           ),
           Container(
             decoration: BoxDecoration(
@@ -494,7 +495,8 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
         fit: BoxFit.contain,
         placeholderBuilder: (context) =>
             const SizedBox(height: 140, width: 300),
-        errorBuilder: (context, error, stackTrace) => _buildTitleFallback(title),
+        errorBuilder: (context, error, stackTrace) =>
+            _buildTitleFallback(title),
       );
     }
     return CachedNetworkImage(

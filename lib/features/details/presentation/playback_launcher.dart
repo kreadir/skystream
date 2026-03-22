@@ -34,7 +34,10 @@ class PlaybackLauncher {
     final itemToCheck = detailedItem ?? baseItem;
     final episode = itemToCheck.episodes?.firstWhereOrNull((e) => e.url == url);
     final downloadService = _ref.read(downloadServiceProvider);
-    final localFile = await downloadService.getDownloadedFile(itemToCheck, episode: episode);
+    final localFile = await downloadService.getDownloadedFile(
+      itemToCheck,
+      episode: episode,
+    );
     if (!context.mounted) return;
 
     final String finalUrl = AppUtils.normalizeUrl(localFile?.path ?? url);
@@ -77,10 +80,7 @@ class PlaybackLauncher {
   ) async {
     // If it's a local file, we can skip stream resolution
     if (AppUtils.isLocalFile(episodeDataUrl)) {
-      final stream = StreamResult(
-        url: episodeDataUrl,
-        source: 'Local',
-      );
+      final stream = StreamResult(url: episodeDataUrl, source: 'Local');
       await _launchStream(context, stream, item, episodeDataUrl, playerId);
       return;
     }

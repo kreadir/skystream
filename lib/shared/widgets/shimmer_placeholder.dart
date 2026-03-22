@@ -12,8 +12,10 @@ class ShimmerPlaceholder extends StatelessWidget {
     this.height,
     double borderRadius = 0,
     ShapeBorder shapeBorder = const RoundedRectangleBorder(),
-  }) : shapeBorder = borderRadius > 0 
-           ? RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(borderRadius)))
+  }) : shapeBorder = borderRadius > 0
+           ? RoundedRectangleBorder(
+               borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
+             )
            : shapeBorder;
 
   ShimmerPlaceholder.rectangular({
@@ -25,11 +27,8 @@ class ShimmerPlaceholder extends StatelessWidget {
          borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
        );
 
-  const ShimmerPlaceholder.circular({
-    super.key,
-    this.width,
-    this.height,
-  }) : shapeBorder = const CircleBorder();
+  const ShimmerPlaceholder.circular({super.key, this.width, this.height})
+    : shapeBorder = const CircleBorder();
 
   @override
   Widget build(BuildContext context) {

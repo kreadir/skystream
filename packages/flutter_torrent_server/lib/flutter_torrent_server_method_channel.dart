@@ -22,13 +22,18 @@ class MethodChannelFlutterTorrentServer extends FlutterTorrentServerPlatform {
 
   @override
   Future<String?> addTorrent(String link) async {
-    final hash = await methodChannel.invokeMethod<String>('addTorrent', {'link': link});
+    final hash = await methodChannel.invokeMethod<String>('addTorrent', {
+      'link': link,
+    });
     return hash;
   }
 
   @override
   Future<Map<String, dynamic>?> getTorrentStatus(String hash) async {
-    final status = await methodChannel.invokeMapMethod<String, dynamic>('getTorrentStatus', {'hash': hash});
+    final status = await methodChannel.invokeMapMethod<String, dynamic>(
+      'getTorrentStatus',
+      {'hash': hash},
+    );
     return status;
   }
 }

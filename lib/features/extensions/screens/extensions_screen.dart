@@ -96,12 +96,16 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
               .map((p) => p.packageName)
               .toSet();
           final installedOnlyPlugins = state.installedPlugins
-              .where((p) =>
-                  !p.isDebug && !allAvailablePackageNames.contains(p.packageName))
+              .where(
+                (p) =>
+                    !p.isDebug &&
+                    !allAvailablePackageNames.contains(p.packageName),
+              )
               .toList();
           final hasInstalledOnly = installedOnlyPlugins.isNotEmpty;
 
-          final itemCount = (hasDebug ? 1 : 0) +
+          final itemCount =
+              (hasDebug ? 1 : 0) +
               (hasInstalledOnly ? 1 : 0) +
               state.repositories.length;
 
@@ -129,11 +133,12 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
                   }
 
                   // Repositories
-                  final repoIndex = index - (hasDebug ? 1 : 0) - (hasInstalledOnly ? 1 : 0);
+                  final repoIndex =
+                      index - (hasDebug ? 1 : 0) - (hasInstalledOnly ? 1 : 0);
                   final repo = state.repositories[repoIndex];
                   final plugins = state.availablePlugins[repo.url] ?? [];
 
-                  return                   Card(
+                  return Card(
                     margin: const EdgeInsets.only(
                       bottom: LayoutConstants.spacingMd,
                       left: LayoutConstants.spacingMd,
@@ -226,12 +231,17 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
               child: Container(
                 height: 56,
                 constraints: const BoxConstraints(minWidth: 56),
-                padding: EdgeInsets.symmetric(horizontal: isFabExtended ? LayoutConstants.spacingMd : 0),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isFabExtended ? LayoutConstants.spacingMd : 0,
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add, color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      Icons.add,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     AnimatedSize(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -239,11 +249,15 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
                         width: isFabExtended ? null : 0,
                         child: isFabExtended
                             ? Padding(
-                                padding: const EdgeInsets.only(left: LayoutConstants.spacingSm),
+                                padding: const EdgeInsets.only(
+                                  left: LayoutConstants.spacingSm,
+                                ),
                                 child: Text(
                                   "Add Repo",
                                   style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
                                     fontWeight: FontWeight.w500,
                                   ),
                                   maxLines: 1,
@@ -369,7 +383,10 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
         initiallyExpanded: true,
         backgroundColor: Colors.transparent,
         collapsedBackgroundColor: Colors.transparent,
-        tilePadding: const EdgeInsets.symmetric(horizontal: LayoutConstants.spacingMd, vertical: LayoutConstants.spacingXs),
+        tilePadding: const EdgeInsets.symmetric(
+          horizontal: LayoutConstants.spacingMd,
+          vertical: LayoutConstants.spacingXs,
+        ),
         title: Text(
           "Debug Extensions",
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -416,7 +433,10 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
                   .removeRepository(repo.url);
               Navigator.pop(context);
             },
-            child: Text("Remove", style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Text(
+              "Remove",
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
@@ -484,10 +504,16 @@ class _PluginTile extends ConsumerWidget {
         leading: Container(
           padding: const EdgeInsets.all(LayoutConstants.spacingXs),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.1),
+            color: Theme.of(
+              context,
+            ).colorScheme.tertiary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(Icons.bug_report, color: Theme.of(context).colorScheme.tertiary, size: 20),
+          child: Icon(
+            Icons.bug_report,
+            color: Theme.of(context).colorScheme.tertiary,
+            size: 20,
+          ),
         ),
         title: Row(
           children: [
@@ -590,7 +616,8 @@ class _PluginTile extends ConsumerWidget {
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (context) => PluginSettingsDialog(plugin: installedPlugin),
+                  builder: (context) =>
+                      PluginSettingsDialog(plugin: installedPlugin),
                 );
               },
             ),
@@ -598,7 +625,10 @@ class _PluginTile extends ConsumerWidget {
           // Install / Delete Button
           if (isInstalled)
             IconButton(
-              icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+              icon: Icon(
+                Icons.delete,
+                color: Theme.of(context).colorScheme.error,
+              ),
               onPressed: () {
                 ref
                     .read(extensionsControllerProvider.notifier)

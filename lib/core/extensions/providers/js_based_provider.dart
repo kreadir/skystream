@@ -8,6 +8,31 @@ import '../base_provider.dart';
 import '../engine/js_engine.dart';
 import '../../services/local_proxy_service.dart';
 
+// Top-level function for compute() isolate
+Map<String, List<MultimediaItem>> _parseHomeResults(dynamic result) {
+  final map = <String, List<MultimediaItem>>{};
+  if (result is Map) {
+    result.forEach((key, value) {
+      if (value is List) {
+        map[key.toString()] = value
+            .map((e) => MultimediaItem.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+    });
+  }
+  return map;
+}
+
+// Top-level function for compute() isolate
+List<MultimediaItem> _parseSearchResults(dynamic result) {
+  if (result is List) {
+    return result
+        .map((e) => MultimediaItem.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+  return [];
+}
+
 class JsBasedProvider extends SkyStreamProvider {
   final JsEngineService _jsEngine;
   final String _scriptPath;
@@ -126,15 +151,15 @@ class JsBasedProvider extends SkyStreamProvider {
         await _jsEngine.loadScript(script);
         if (kDebugMode) {
           debugPrint(
-          "JsBasedProvider: Loaded namespaced script for $_packageName",
-        );
+            "JsBasedProvider: Loaded namespaced script for $_packageName",
+          );
         }
       } catch (e) {
         _error = "Eval: $e";
         if (kDebugMode) {
           debugPrint(
-          "JsBasedProvider: CRITICAL - Eval failed for $_packageName: $e",
-        );
+            "JsBasedProvider: CRITICAL - Eval failed for $_packageName: $e",
+          );
         }
       }
     } else {
@@ -231,16 +256,7 @@ class JsBasedProvider extends SkyStreamProvider {
     try {
       final result = await _jsEngine.invokeAsync(_fn('getHome'));
       if (result is Map) {
-        final map = <String, List<MultimediaItem>>{};
-        result.forEach((key, value) {
-          if (value is List) {
-            map[key.toString()] = value
-                .map(
-                  (e) => MultimediaItem.fromJson(Map<String, dynamic>.from(e)),
-                )
-                .toList();
-          }
-        });
+        final map = await compute(_parseHomeResults, result);
         return map;
       }
       throw Exception("Extension returned invalid home data (not a map).");
@@ -260,9 +276,7 @@ class JsBasedProvider extends SkyStreamProvider {
     try {
       final result = await _jsEngine.invokeAsync(_fn('search'), [query]);
       if (result is List) {
-        return result
-            .map((e) => MultimediaItem.fromJson(Map<String, dynamic>.from(e)))
-            .toList();
+        return await compute(_parseSearchResults, result);
       }
       return [];
     } on JsPluginException catch (e) {
@@ -327,10 +341,13 @@ class JsBasedProvider extends SkyStreamProvider {
             // DIRECT PROXY URL HANDLING
             // If the URL starts with MAGIC_PROXY_v1/v2, it means we need to use a local proxy
             // to inject necessary headers into HLS segments.
-            else if (finalUrl.startsWith("MAGIC_PROXY_v1") || finalUrl.startsWith("MAGIC_PROXY:")) {
+            else if (finalUrl.startsWith("MAGIC_PROXY_v1") ||
+                finalUrl.startsWith("MAGIC_PROXY:")) {
               try {
                 final bool isV1 = finalUrl.startsWith("MAGIC_PROXY_v1");
-                final b64Url = finalUrl.substring(isV1 ? "MAGIC_PROXY_v1".length : "MAGIC_PROXY:".length);
+                final b64Url = finalUrl.substring(
+                  isV1 ? "MAGIC_PROXY_v1".length : "MAGIC_PROXY:".length,
+                );
                 final realUrlBytes = base64Decode(b64Url);
                 final realUrl = utf8.decode(realUrlBytes);
                 finalUrl = LocalProxyService.instance.getProxyUrl(
@@ -350,15 +367,17 @@ class JsBasedProvider extends SkyStreamProvider {
                 final jsonBytes = base64Decode(b64Json);
                 final decodedJson = utf8.decode(jsonBytes);
                 final Map<String, dynamic> config = jsonDecode(decodedJson);
-                
+
                 final String realUrl = config['url'];
-                final Map<String, String>? sticky = config['headers'] != null 
-                    ? Map<String, String>.from(config['headers']) 
-                    : (map['headers'] != null ? Map<String, String>.from(map['headers']) : null);
-                
+                final Map<String, String>? sticky = config['headers'] != null
+                    ? Map<String, String>.from(config['headers'])
+                    : (map['headers'] != null
+                          ? Map<String, String>.from(map['headers'])
+                          : null);
+
                 ProxyOptions? options;
                 if (config['options'] != null) {
-                   options = ProxyOptions.fromJson(config['options']);
+                  options = ProxyOptions.fromJson(config['options']);
                 }
 
                 finalUrl = LocalProxyService.instance.getProxyUrl(

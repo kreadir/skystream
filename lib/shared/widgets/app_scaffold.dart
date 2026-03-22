@@ -7,53 +7,28 @@ import 'package:skystream/shared/widgets/custom_bottom_nav.dart';
 import 'package:virtual_mouse/virtual_mouse.dart';
 
 class AppScaffold extends ConsumerStatefulWidget {
-  final Widget child;
-  const AppScaffold({super.key, required this.child});
+  final StatefulNavigationShell navigationShell;
+  const AppScaffold({super.key, required this.navigationShell});
 
   @override
   ConsumerState<AppScaffold> createState() => _AppScaffoldState();
 }
 
 class _AppScaffoldState extends ConsumerState<AppScaffold> {
-  int _calculateSelectedIndex(BuildContext context) {
-    final String location = GoRouterState.of(context).uri.toString();
-    if (location.startsWith('/home')) return 0;
-    if (location.startsWith('/search')) return 1;
-    if (location.startsWith('/discover')) return 2;
-    if (location.startsWith('/library')) return 3;
-    if (location.startsWith('/settings')) return 4;
-    return 0;
-  }
-
-  bool _isOnHomeTab(BuildContext context) {
-    final String location = GoRouterState.of(context).uri.toString();
-    return location.startsWith('/home');
-  }
-
   void _onItemTapped(int index, BuildContext context) {
-    switch (index) {
-      case 0:
-        context.go('/home');
-        break;
-      case 1:
-        context.go('/search');
-        break;
-      case 2:
-        context.go('/discover');
-        break;
-      case 3:
-        context.go('/library');
-        break;
-      case 4:
-        context.go('/settings');
-        break;
-    }
+    widget.navigationShell.goBranch(
+      index,
+      // A common pattern when using bottom navigation bars is to support
+      // navigating to the initial location when tapping the item that is
+      // already active.
+      initialLocation: index == widget.navigationShell.currentIndex,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final deviceProfileAsync = ref.watch(deviceProfileProvider);
-    final isHome = _isOnHomeTab(context);
+    final isHome = widget.navigationShell.currentIndex == 0;
 
     return deviceProfileAsync.when(
       data: (profile) {
@@ -65,7 +40,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
             canPop: isHome,
             onPopInvokedWithResult: (didPop, result) {
               if (!didPop) {
-                context.go('/home');
+                widget.navigationShell.goBranch(0);
               }
             },
             child: Scaffold(
@@ -76,7 +51,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                     backgroundColor: Theme.of(
                       context,
                     ).appBarTheme.backgroundColor,
-                    selectedIndex: _calculateSelectedIndex(context),
+                    selectedIndex: widget.navigationShell.currentIndex,
                     onDestinationSelected: (index) =>
                         _onItemTapped(index, context),
                     labelType: NavigationRailLabelType.all,
@@ -108,7 +83,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                       ),
                     ],
                   ),
-                  Expanded(child: widget.child),
+                  Expanded(child: widget.navigationShell),
                 ],
               ),
             ),
@@ -132,13 +107,13 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
           canPop: isHome,
           onPopInvokedWithResult: (didPop, result) {
             if (!didPop) {
-              context.go('/home');
+              widget.navigationShell.goBranch(0);
             }
           },
           child: Scaffold(
-            body: widget.child,
+            body: widget.navigationShell,
             bottomNavigationBar: CustomBottomNavBar(
-              currentIndex: _calculateSelectedIndex(context),
+              currentIndex: widget.navigationShell.currentIndex,
               onTap: (index) => _onItemTapped(index, context),
             ),
           ),

@@ -194,7 +194,7 @@ class _MovieSeasonsListState extends ConsumerState<MovieSeasonsList> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
                                 child: CachedNetworkImage(
-                                  imageUrl: season.posterImageUrl,
+                                  imageUrl: season.posterImageUrl ?? '',
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                   errorWidget: (_, _, _) =>
@@ -325,7 +325,7 @@ class _MovieSeasonsListState extends ConsumerState<MovieSeasonsList> {
                           children: [
                             Expanded(
                               child: CachedNetworkImage(
-                                imageUrl: imageUrl,
+                                imageUrl: imageUrl ?? '',
                                 fit: BoxFit.cover,
                                 width: double.infinity,
                                 placeholder: (context, url) =>
@@ -498,7 +498,7 @@ class _MovieSeasonsListState extends ConsumerState<MovieSeasonsList> {
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: CachedNetworkImage(
-                                imageUrl: imageUrl,
+                                imageUrl: imageUrl ?? '',
                                 width: 120,
                                 height: 68,
                                 fit: BoxFit.cover,

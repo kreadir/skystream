@@ -9,9 +9,9 @@ class DeviceProfile {
   final bool isTablet;
 
   /// Indicates if running on a desktop operating system (macOS, Windows, Linux)
-  /// Use this for capability checks (e.g. window controls, mouse hovers), 
+  /// Use this for capability checks (e.g. window controls, mouse hovers),
   /// NOT for layout sizing. Use [ResponsiveBreakpoints] for layout sizing.
-  final bool isDesktopOS; 
+  final bool isDesktopOS;
 
   const DeviceProfile({
     this.isTv = false,

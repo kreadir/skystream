@@ -35,4 +35,6 @@ class LibraryNotifier extends Notifier<List<MultimediaItem>> {
   }
 }
 
-final libraryProvider = NotifierProvider<LibraryNotifier, List<MultimediaItem>>(LibraryNotifier.new);
+final libraryProvider = NotifierProvider<LibraryNotifier, List<MultimediaItem>>(
+  LibraryNotifier.new,
+);

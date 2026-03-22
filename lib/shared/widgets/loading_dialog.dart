@@ -29,9 +29,9 @@ class LoadingDialog extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -60,10 +60,7 @@ class LoadingDialog extends StatelessWidget {
     return showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => LoadingDialog(
-        message: message,
-        onCancel: onCancel,
-      ),
+      builder: (context) => LoadingDialog(message: message, onCancel: onCancel),
     );
   }
 }

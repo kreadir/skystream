@@ -28,7 +28,8 @@ class PluginStorageService {
     String filePath,
     String? explicitRepoId,
   ) async {
-    if (kDebugMode) debugPrint("PluginStorageService: Installing .sky from $filePath");
+    if (kDebugMode)
+      debugPrint("PluginStorageService: Installing .sky from $filePath");
     final file = File(filePath);
     if (!await file.exists()) throw Exception("Plugin file not found");
 
@@ -38,7 +39,9 @@ class PluginStorageService {
     // Find and parse plugin.json (Plugin v2 Standard)
     final jsonFile = archive.findFile('plugin.json');
     if (jsonFile == null) {
-      throw Exception("Invalid .sky: Missing plugin.json (V2 Standard required)");
+      throw Exception(
+        "Invalid .sky: Missing plugin.json (V2 Standard required)",
+      );
     }
 
     final jsonContent = utf8.decode(jsonFile.content as List<int>);
@@ -68,7 +71,8 @@ class PluginStorageService {
     final rootDir = await _pluginsDir;
     final targetDir = Directory(p.join(rootDir.path, plugin.packageName));
 
-    if (kDebugMode) debugPrint("PluginStorageService: Extracting to ${targetDir.path}");
+    if (kDebugMode)
+      debugPrint("PluginStorageService: Extracting to ${targetDir.path}");
 
     if (await targetDir.exists()) {
       await targetDir.delete(recursive: true);
@@ -95,7 +99,10 @@ class PluginStorageService {
     metaData['repositoryId'] = explicitRepoId; // cache source repo
     await metaFile.writeAsString(jsonEncode(metaData));
 
-    if (kDebugMode) debugPrint("PluginStorageService: Installation complete for ${plugin.packageName}");
+    if (kDebugMode)
+      debugPrint(
+        "PluginStorageService: Installation complete for ${plugin.packageName}",
+      );
     return plugin;
   }
 
@@ -146,7 +153,7 @@ class PluginStorageService {
             final content = await jsonFile.readAsString();
             final manifest = jsonDecode(content) as Map<String, dynamic>;
             // Auto-generate meta.json if missing
-            const repoId = 'Local'; 
+            const repoId = 'Local';
             manifest['repositoryId'] = repoId;
             await metaFile.writeAsString(jsonEncode(manifest));
             plugins.add(ExtensionPlugin.fromJson(manifest, repoId));
@@ -156,7 +163,8 @@ class PluginStorageService {
           // Legacy Folder Structure Loop (Optional: if we still want to see old plugins?)
           // User said "no backward compatibility", so we can ignore nested repo dirs if they don't follow new structure.
         } catch (e) {
-          if (kDebugMode) debugPrint("Error reading plugin at ${entity.path}: $e");
+          if (kDebugMode)
+            debugPrint("Error reading plugin at ${entity.path}: $e");
         }
       }
     }
@@ -176,7 +184,10 @@ class PluginStorageService {
   }
 
   /// Persists a dynamic settings schema to meta.json
-  Future<void> saveSettingsSchema(String packageName, List<dynamic> schema) async {
+  Future<void> saveSettingsSchema(
+    String packageName,
+    List<dynamic> schema,
+  ) async {
     final rootDir = await _pluginsDir;
     final metaFile = File(p.join(rootDir.path, packageName, 'meta.json'));
 
@@ -185,7 +196,10 @@ class PluginStorageService {
       final data = jsonDecode(content) as Map<String, dynamic>;
       data['settingsSchema'] = schema;
       await metaFile.writeAsString(jsonEncode(data));
-      if (kDebugMode) debugPrint("PluginStorageService: Saved settings schema for $packageName");
+      if (kDebugMode)
+        debugPrint(
+          "PluginStorageService: Saved settings schema for $packageName",
+        );
     }
   }
 }

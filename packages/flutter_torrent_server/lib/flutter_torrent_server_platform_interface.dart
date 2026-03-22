@@ -7,7 +7,8 @@ abstract class FlutterTorrentServerPlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static FlutterTorrentServerPlatform _instance = MethodChannelFlutterTorrentServer();
+  static FlutterTorrentServerPlatform _instance =
+      MethodChannelFlutterTorrentServer();
 
   /// The default instance of [FlutterTorrentServerPlatform] to use.
   ///

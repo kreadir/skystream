@@ -5,9 +5,10 @@ import '../../settings/presentation/general_settings_provider.dart';
 
 export '../../../../core/storage/history_repository.dart' show HistoryItem;
 
-final watchHistoryProvider = NotifierProvider<WatchHistoryNotifier, List<HistoryItem>>(() {
-  return WatchHistoryNotifier();
-});
+final watchHistoryProvider =
+    NotifierProvider<WatchHistoryNotifier, List<HistoryItem>>(() {
+      return WatchHistoryNotifier();
+    });
 
 class WatchHistoryNotifier extends Notifier<List<HistoryItem>> {
   late HistoryRepository _repository;

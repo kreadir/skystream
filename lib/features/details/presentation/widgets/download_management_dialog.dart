@@ -46,8 +46,9 @@ class DownloadManagementDialog extends HookConsumerWidget {
         : currentItem.title;
 
     final downloads = ref.watch(downloadsProvider).value ?? [];
-    final matchingItem = downloads.firstWhereOrNull((d) =>
-        d.item.url == item.url && d.episode?.url == episode?.url);
+    final matchingItem = downloads.firstWhereOrNull(
+      (d) => d.item.url == item.url && d.episode?.url == episode?.url,
+    );
 
     return AlertDialog(
       title: Text(title),
@@ -154,11 +155,8 @@ class DownloadManagementDialog extends HookConsumerWidget {
     WidgetRef ref,
     MultimediaItem details,
   ) {
-    ref.read(playbackLauncherProvider).play(
-      context,
-      file.path,
-      baseItem: details,
-      detailedItem: details,
-    );
+    ref
+        .read(playbackLauncherProvider)
+        .play(context, file.path, baseItem: details, detailedItem: details);
   }
 }

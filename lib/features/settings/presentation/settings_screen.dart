@@ -66,7 +66,9 @@ class SettingsScreen extends ConsumerWidget {
                     isLast: true,
                     onTap: () => ref
                         .read(generalSettingsProvider.notifier)
-                        .setWatchHistoryEnabled(!generalSettings.watchHistoryEnabled),
+                        .setWatchHistoryEnabled(
+                          !generalSettings.watchHistoryEnabled,
+                        ),
                   ),
                 ],
               ),

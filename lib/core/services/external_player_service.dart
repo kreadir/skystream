@@ -206,7 +206,9 @@ class ExternalPlayerService {
 
   // -- Android: Native Intent via platform channel --
 
-  static const _playerChannel = MethodChannel('dev.akash.skystream/external_player');
+  static const _playerChannel = MethodChannel(
+    'dev.akash.skystream/external_player',
+  );
 
   Future<bool> _launchAndroid(
     String videoUrl,
@@ -218,15 +220,13 @@ class ExternalPlayerService {
       // Use the native Kotlin channel which constructs a proper Android Intent.
       // This avoids url_launcher's Uri.parse() which breaks on video URLs
       // containing query parameters (?key=value&...).
-      final result = await _playerChannel.invokeMethod<bool>(
-        'launchVideoInPlayer',
-        {
-          'url': videoUrl,
-          'package': player.androidPackage,
-          'mimeType': 'video/*',
-          'title': ?title,
-        },
-      );
+      final result = await _playerChannel
+          .invokeMethod<bool>('launchVideoInPlayer', {
+            'url': videoUrl,
+            'package': player.androidPackage,
+            'mimeType': 'video/*',
+            'title': ?title,
+          });
       return result ?? false;
     } on PlatformException catch (e) {
       if (kDebugMode) debugPrint('Android external player error: ${e.message}');
@@ -268,13 +268,9 @@ class ExternalPlayerService {
             'infuse://x-callback-url/play?url=${Uri.encodeComponent(videoUrl)}';
       } else if (player.id == 'nplayer') {
         // nPlayer replaces the URL scheme: http→nplayer-http, https→nplayer-https
-        launchUrl = videoUrl.replaceFirst(
-          RegExp(r'^https://'),
-          'nplayer-https://',
-        ).replaceFirst(
-          RegExp(r'^http://'),
-          'nplayer-http://',
-        );
+        launchUrl = videoUrl
+            .replaceFirst(RegExp(r'^https://'), 'nplayer-https://')
+            .replaceFirst(RegExp(r'^http://'), 'nplayer-http://');
       } else {
         launchUrl = '${player.iosScheme}${Uri.encodeFull(videoUrl)}';
       }
@@ -308,8 +304,9 @@ class ExternalPlayerService {
       }
       if (player.desktopCommand != null) {
         if (await _isCommandAvailable(player.desktopCommand!)) {
-          await Process.start(player.desktopCommand!, [videoUrl],
-              mode: ProcessStartMode.detached);
+          await Process.start(player.desktopCommand!, [
+            videoUrl,
+          ], mode: ProcessStartMode.detached);
           return true;
         }
       }
@@ -339,9 +336,7 @@ class ExternalPlayerService {
       r'C:\Program Files\MPC-HC\mpc-hc64.exe',
       r'C:\Program Files (x86)\MPC-HC\mpc-hc64.exe',
     ],
-    'mpc-be64': [
-      r'C:\Program Files\MPC-BE x64\mpc-be64.exe',
-    ],
+    'mpc-be64': [r'C:\Program Files\MPC-BE x64\mpc-be64.exe'],
   };
 
   Future<bool> _launchWindows(String videoUrl, ExternalPlayer player) async {
@@ -351,8 +346,9 @@ class ExternalPlayerService {
       // 1. Try running by command name (works if it's in PATH)
       try {
         if (await _isCommandAvailable(command)) {
-          await Process.start(command, [videoUrl],
-              mode: ProcessStartMode.detached);
+          await Process.start(command, [
+            videoUrl,
+          ], mode: ProcessStartMode.detached);
           return true;
         }
       } catch (_) {
@@ -365,8 +361,9 @@ class ExternalPlayerService {
         try {
           final f = File(exePath);
           if (await f.exists()) {
-            await Process.start(exePath, [videoUrl],
-                mode: ProcessStartMode.detached);
+            await Process.start(exePath, [
+              videoUrl,
+            ], mode: ProcessStartMode.detached);
             return true;
           }
         } catch (_) {
@@ -376,14 +373,15 @@ class ExternalPlayerService {
 
       // 3. Last resort: use Windows shell `start` to open with default handler
       try {
-        // We use Process.run here as `start` is a cmd internal and returning 
+        // We use Process.run here as `start` is a cmd internal and returning
         // quickly is already handled by start /b or similar if needed,
         // but for safety with playUrl, run is fine for the fallback.
-        final result = await Process.run(
-          'cmd',
-          ['/c', 'start', '', '"$videoUrl"'],
-          runInShell: true,
-        );
+        final result = await Process.run('cmd', [
+          '/c',
+          'start',
+          '',
+          '"$videoUrl"',
+        ], runInShell: true);
         return result.exitCode == 0;
       } catch (_) {}
     } catch (e) {
@@ -399,8 +397,9 @@ class ExternalPlayerService {
       if (player.desktopCommand != null) {
         try {
           if (await _isCommandAvailable(player.desktopCommand!)) {
-            await Process.start(player.desktopCommand!, [videoUrl],
-                mode: ProcessStartMode.detached);
+            await Process.start(player.desktopCommand!, [
+              videoUrl,
+            ], mode: ProcessStartMode.detached);
             return true;
           }
         } catch (_) {

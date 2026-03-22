@@ -81,7 +81,9 @@ class DetailsController extends Notifier<DetailsState> {
 
       if (finishingUrls.isNotEmpty) {
         if (kDebugMode) {
-          debugPrint('[DetailsController] Re-checking status immediately after download finished: $finishingUrls');
+          debugPrint(
+            '[DetailsController] Re-checking status immediately after download finished: $finishingUrls',
+          );
         }
 
         // Re-check specific item if its URL finished
@@ -93,7 +95,9 @@ class DetailsController extends Notifier<DetailsState> {
         final episodes = details.episodes ?? [];
         for (final ep in episodes) {
           if (finishingUrls.contains(ep.url)) {
-            ref.read(downloadedFilesProvider.notifier).checkFile(details, episode: ep);
+            ref
+                .read(downloadedFilesProvider.notifier)
+                .checkFile(details, episode: ep);
           }
         }
       }
@@ -259,18 +263,19 @@ class DetailsController extends Notifier<DetailsState> {
 
     if (lastEpisodeUrl != null) {
       int lastIndex = allEpisodes.indexWhere((e) => e.url == lastEpisodeUrl);
-      
+
       // Fallback: Match by season/episode numbers if URL matching fails
       if (lastIndex == -1) {
-        final mainHistoryItem = ref.read(watchHistoryProvider).firstWhereOrNull(
-          (h) => h.item.url == contextItem.url,
-        );
-        if (mainHistoryItem != null && 
-            mainHistoryItem.season != null && 
+        final mainHistoryItem = ref
+            .read(watchHistoryProvider)
+            .firstWhereOrNull((h) => h.item.url == contextItem.url);
+        if (mainHistoryItem != null &&
+            mainHistoryItem.season != null &&
             mainHistoryItem.episode != null) {
           lastIndex = allEpisodes.indexWhere(
-            (e) => e.season == mainHistoryItem.season && 
-                   e.episode == mainHistoryItem.episode,
+            (e) =>
+                e.season == mainHistoryItem.season &&
+                e.episode == mainHistoryItem.episode,
           );
         }
       }

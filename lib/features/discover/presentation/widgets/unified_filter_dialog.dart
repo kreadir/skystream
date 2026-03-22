@@ -243,7 +243,9 @@ class _UnifiedFilterDialogState extends ConsumerState<UnifiedFilterDialog>
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: LayoutConstants.spacingMd),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: LayoutConstants.spacingMd,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -299,7 +301,9 @@ class _RatingTab extends ConsumerWidget {
           tileColor: isSelected
               ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
               : null,
-          focusColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+          focusColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.5),
           leading: Icon(
             Icons.star,
             color: isSelected
@@ -329,7 +333,10 @@ class _RatingTab extends ConsumerWidget {
             ),
           ),
           trailing: isSelected
-              ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+              ? Icon(
+                  Icons.check_circle,
+                  color: Theme.of(context).colorScheme.primary,
+                )
               : null,
         );
       },
@@ -363,9 +370,13 @@ class _LanguageTab extends ConsumerWidget {
             ref.read(languageProvider.notifier).setLanguage(lang.code);
           },
           borderRadius: BorderRadius.circular(16),
-          focusColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+          focusColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.6),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: LayoutConstants.spacingMd),
+            padding: const EdgeInsets.symmetric(
+              horizontal: LayoutConstants.spacingMd,
+            ),
             decoration: BoxDecoration(
               color: isSelected
                   ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
@@ -422,7 +433,9 @@ class _LanguageTab extends ConsumerWidget {
                         lang.nativeName,
                         style: TextStyle(
                           color: isSelected
-                              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.7)
+                              ? Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.7)
                               : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 12,
                         ),
@@ -473,7 +486,9 @@ class _GenreTab extends ConsumerWidget {
                   : null,
               leading: Icon(
                 Icons.category, // Distinct icon for All
-                color: isSelected ? Theme.of(context).colorScheme.primary : Colors.white24,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.white24,
               ),
               title: Text(
                 "All Genres",
@@ -502,7 +517,9 @@ class _GenreTab extends ConsumerWidget {
             tileColor: isSelected
                 ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
                 : null,
-            focusColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+            focusColor: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.5),
             leading: Icon(
               isSelected ? Icons.check_circle : Icons.circle_outlined,
               color: isSelected
@@ -561,18 +578,24 @@ class _YearTab extends ConsumerWidget {
               ref.read(discoverFilterProvider.notifier).setYear(null);
             },
             borderRadius: BorderRadius.circular(8),
-            focusColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+            focusColor: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.6),
             child: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.2)
                     : Theme.of(
                         context,
                       ).colorScheme.onSurface.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
                 ),
               ),
               child: Text(
@@ -599,7 +622,9 @@ class _YearTab extends ConsumerWidget {
             ref.read(discoverFilterProvider.notifier).setYear(year);
           },
           borderRadius: BorderRadius.circular(8),
-          focusColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+          focusColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.4),
           child: Container(
             alignment: Alignment.center,
             decoration: BoxDecoration(
@@ -610,7 +635,9 @@ class _YearTab extends ConsumerWidget {
                     ).colorScheme.onSurface.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.transparent,
               ),
             ),
             child: Text(

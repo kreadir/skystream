@@ -24,7 +24,8 @@ class FocusableItem extends StatefulWidget {
   State<FocusableItem> createState() => _FocusableItemState();
 }
 
-class _FocusableItemState extends State<FocusableItem> with SingleTickerProviderStateMixin {
+class _FocusableItemState extends State<FocusableItem>
+    with SingleTickerProviderStateMixin {
   bool _isFocused = false;
   bool _isHovered = false;
 
@@ -33,9 +34,10 @@ class _FocusableItemState extends State<FocusableItem> with SingleTickerProvider
     duration: const Duration(milliseconds: 200),
   );
 
-  late final Animation<double> _scaleAnim = Tween<double>(begin: 1.0, end: widget.focusedScale).animate(
-    CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-  );
+  late final Animation<double> _scaleAnim = Tween<double>(
+    begin: 1.0,
+    end: widget.focusedScale,
+  ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
 
   @override
   void dispose() {
@@ -78,15 +80,18 @@ class _FocusableItemState extends State<FocusableItem> with SingleTickerProvider
         child: ScaleTransition(
           scale: _scaleAnim,
           child: Container(
-            decoration: _isFocused 
-              ? BoxDecoration(
-                  border: Border.all(
-                    color: widget.focusColor ?? Theme.of(context).colorScheme.primary,
-                    width: 3
-                  ),
-                  borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
-                )
-              : null,
+            decoration: _isFocused
+                ? BoxDecoration(
+                    border: Border.all(
+                      color:
+                          widget.focusColor ??
+                          Theme.of(context).colorScheme.primary,
+                      width: 3,
+                    ),
+                    borderRadius:
+                        widget.borderRadius ?? BorderRadius.circular(12),
+                  )
+                : null,
             child: widget.child,
           ),
         ),

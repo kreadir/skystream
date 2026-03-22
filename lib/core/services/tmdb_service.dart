@@ -41,111 +41,200 @@ class TmdbService {
     int page = 1,
     Map<String, dynamic>? additionalParams,
   }) async {
-    final hasFilters = language != 'en-US' ||
+    final hasFilters =
+        language != 'en-US' ||
         genreId != null ||
         year != null ||
         minRating != null;
     if (hasFilters) {
       return _getDiscoveryResults(
-        discoverPath, language, sortBy,
-        genreId: genreId, year: year, minRating: minRating,
-        page: page, additionalParams: additionalParams,
+        discoverPath,
+        language,
+        sortBy,
+        genreId: genreId,
+        year: year,
+        minRating: minRating,
+        page: page,
+        additionalParams: additionalParams,
       );
     }
     return _getResults(directPath, language: language, page: page);
   }
 
   Future<List<MultimediaItem>> getTrending({
-    String language = 'en-US', int? genreId, int? year,
-    double? minRating, int page = 1,
+    String language = 'en-US',
+    int? genreId,
+    int? year,
+    double? minRating,
+    int page = 1,
   }) => _fetchWithFilterFallback(
-    discoverPath: '/discover/movie', directPath: '/trending/all/day',
-    sortBy: 'popularity.desc', language: language,
-    genreId: genreId, year: year, minRating: minRating, page: page,
+    discoverPath: '/discover/movie',
+    directPath: '/trending/all/day',
+    sortBy: 'popularity.desc',
+    language: language,
+    genreId: genreId,
+    year: year,
+    minRating: minRating,
+    page: page,
   );
 
   Future<List<MultimediaItem>> getPopularMovies({
-    String language = 'en-US', int? genreId, int? year,
-    double? minRating, int page = 1,
+    String language = 'en-US',
+    int? genreId,
+    int? year,
+    double? minRating,
+    int page = 1,
   }) => _getDiscoveryResults(
-    '/discover/movie', language, 'popularity.desc',
-    genreId: genreId, year: year, minRating: minRating, page: page,
+    '/discover/movie',
+    language,
+    'popularity.desc',
+    genreId: genreId,
+    year: year,
+    minRating: minRating,
+    page: page,
   );
 
   Future<List<MultimediaItem>> getTopRated({
-    String language = 'en-US', int? genreId, int? year,
-    double? minRating, int page = 1,
+    String language = 'en-US',
+    int? genreId,
+    int? year,
+    double? minRating,
+    int page = 1,
   }) => _getDiscoveryResults(
-    '/discover/movie', language, 'vote_average.desc',
-    genreId: genreId, year: year, minRating: minRating, page: page,
+    '/discover/movie',
+    language,
+    'vote_average.desc',
+    genreId: genreId,
+    year: year,
+    minRating: minRating,
+    page: page,
   );
 
   Future<List<MultimediaItem>> getNowPlayingMovies({
-    String language = 'en-US', int? genreId, int? year,
-    double? minRating, int page = 1,
+    String language = 'en-US',
+    int? genreId,
+    int? year,
+    double? minRating,
+    int page = 1,
   }) {
     final today = DateTime.now().toString().split(' ')[0];
     final extra = <String, dynamic>{'release_date.lte': today};
-    if (genreId != null || year != null || minRating != null || language != 'en-US') {
+    if (genreId != null ||
+        year != null ||
+        minRating != null ||
+        language != 'en-US') {
       return _getDiscoveryResults(
-        '/discover/movie', language, 'release_date.desc',
-        genreId: genreId, year: year, minRating: minRating,
-        page: page, additionalParams: extra,
+        '/discover/movie',
+        language,
+        'release_date.desc',
+        genreId: genreId,
+        year: year,
+        minRating: minRating,
+        page: page,
+        additionalParams: extra,
       );
     }
     return _getResults('/movie/now_playing', language: language, page: page);
   }
 
   Future<List<MultimediaItem>> getTrendingMovies({
-    String language = 'en-US', int? genreId, int? year,
-    double? minRating, int page = 1,
+    String language = 'en-US',
+    int? genreId,
+    int? year,
+    double? minRating,
+    int page = 1,
   }) => _fetchWithFilterFallback(
-    discoverPath: '/discover/movie', directPath: '/trending/movie/week',
-    sortBy: 'popularity.desc', language: language,
-    genreId: genreId, year: year, minRating: minRating, page: page,
+    discoverPath: '/discover/movie',
+    directPath: '/trending/movie/week',
+    sortBy: 'popularity.desc',
+    language: language,
+    genreId: genreId,
+    year: year,
+    minRating: minRating,
+    page: page,
   );
 
   Future<List<MultimediaItem>> getTrendingAllDay({
-    String language = 'en-US', int? genreId, int? year,
-    double? minRating, int page = 1,
+    String language = 'en-US',
+    int? genreId,
+    int? year,
+    double? minRating,
+    int page = 1,
   }) => _fetchWithFilterFallback(
-    discoverPath: '/discover/movie', directPath: '/trending/all/day',
-    sortBy: 'popularity.desc', language: language,
-    genreId: genreId, year: year, minRating: minRating, page: page,
+    discoverPath: '/discover/movie',
+    directPath: '/trending/all/day',
+    sortBy: 'popularity.desc',
+    language: language,
+    genreId: genreId,
+    year: year,
+    minRating: minRating,
+    page: page,
   );
 
   Future<List<MultimediaItem>> getOnTheAirTV({
-    String language = 'en-US', int? genreId, int? year,
-    double? minRating, int page = 1,
+    String language = 'en-US',
+    int? genreId,
+    int? year,
+    double? minRating,
+    int page = 1,
   }) => _fetchWithFilterFallback(
-    discoverPath: '/discover/tv', directPath: '/tv/on_the_air',
-    sortBy: 'popularity.desc', language: language,
-    genreId: genreId, year: year, minRating: minRating, page: page,
+    discoverPath: '/discover/tv',
+    directPath: '/tv/on_the_air',
+    sortBy: 'popularity.desc',
+    language: language,
+    genreId: genreId,
+    year: year,
+    minRating: minRating,
+    page: page,
   );
 
   Future<List<MultimediaItem>> getPopularTV({
-    String language = 'en-US', int? genreId, int? year,
-    double? minRating, int page = 1,
+    String language = 'en-US',
+    int? genreId,
+    int? year,
+    double? minRating,
+    int page = 1,
   }) => _getDiscoveryResults(
-    '/discover/tv', language, 'popularity.desc',
-    genreId: genreId, year: year, minRating: minRating, page: page,
+    '/discover/tv',
+    language,
+    'popularity.desc',
+    genreId: genreId,
+    year: year,
+    minRating: minRating,
+    page: page,
   );
 
   Future<List<MultimediaItem>> getTopRatedTV({
-    String language = 'en-US', int? genreId, int? year,
-    double? minRating, int page = 1,
+    String language = 'en-US',
+    int? genreId,
+    int? year,
+    double? minRating,
+    int page = 1,
   }) => _getDiscoveryResults(
-    '/discover/tv', language, 'vote_average.desc',
-    genreId: genreId, year: year, minRating: minRating, page: page,
+    '/discover/tv',
+    language,
+    'vote_average.desc',
+    genreId: genreId,
+    year: year,
+    minRating: minRating,
+    page: page,
   );
 
   Future<List<MultimediaItem>> getAiringTodayTV({
-    String language = 'en-US', int? genreId, int? year,
-    double? minRating, int page = 1,
+    String language = 'en-US',
+    int? genreId,
+    int? year,
+    double? minRating,
+    int page = 1,
   }) => _fetchWithFilterFallback(
-    discoverPath: '/discover/tv', directPath: '/tv/airing_today',
-    sortBy: 'first_air_date.desc', language: language,
-    genreId: genreId, year: year, minRating: minRating, page: page,
+    discoverPath: '/discover/tv',
+    directPath: '/tv/airing_today',
+    sortBy: 'first_air_date.desc',
+    language: language,
+    genreId: genreId,
+    year: year,
+    minRating: minRating,
+    page: page,
   );
 
   Future<List<MultimediaItem>> multiSearch({

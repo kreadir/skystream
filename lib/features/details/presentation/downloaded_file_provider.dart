@@ -7,8 +7,8 @@ import '../../../core/services/download_service.dart';
 /// Maps URL strings to File objects if they exist.
 final downloadedFilesProvider =
     NotifierProvider<DownloadedFilesNotifier, Map<String, File?>>(
-  DownloadedFilesNotifier.new,
-);
+      DownloadedFilesNotifier.new,
+    );
 
 class DownloadedFilesNotifier extends Notifier<Map<String, File?>> {
   @override
@@ -19,18 +19,15 @@ class DownloadedFilesNotifier extends Notifier<Map<String, File?>> {
   Future<void> checkFile(MultimediaItem item, {Episode? episode}) async {
     final key = episode?.url ?? item.url;
     final downloadService = ref.read(downloadServiceProvider);
-    final file = await downloadService.getDownloadedFile(item, episode: episode);
-    
-    state = {
-      ...state,
-      key: file,
-    };
+    final file = await downloadService.getDownloadedFile(
+      item,
+      episode: episode,
+    );
+
+    state = {...state, key: file};
   }
 
   void removeFile(String key) {
-    state = {
-      ...state,
-      key: null,
-    };
+    state = {...state, key: null};
   }
 }

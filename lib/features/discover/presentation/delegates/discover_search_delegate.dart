@@ -172,11 +172,14 @@ class _SearchSuggestionsListState
             ),
           ),
           onTap: () {
-            context.push('/tmdb-details', extra: TmdbDetailsRouteExtra(
-              movieId: item.id,
-              mediaType: mediaType,
-              heroTag: 'search_${item.id}',
-            ));
+            context.push(
+              '/tmdb-details',
+              extra: TmdbDetailsRouteExtra(
+                movieId: item.id,
+                mediaType: mediaType,
+                heroTag: 'search_${item.id}',
+              ),
+            );
           },
         );
       },
@@ -240,7 +243,8 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
     final results = searchState.results;
     if (isLoading && results.isEmpty) {
       final screenWidth = MediaQuery.sizeOf(context).width;
-      final isDesktop = screenWidth > LayoutConstants.discoverCarouselDesktopBreakpoint;
+      final isDesktop =
+          screenWidth > LayoutConstants.discoverCarouselDesktopBreakpoint;
       final maxExtent = isDesktop ? 240.0 : 150.0;
       const childAspectRatio = 0.55;
 
@@ -294,7 +298,8 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
     }
 
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final isDesktop = screenWidth > LayoutConstants.discoverCarouselDesktopBreakpoint;
+    final isDesktop =
+        screenWidth > LayoutConstants.discoverCarouselDesktopBreakpoint;
     final maxExtent = isDesktop ? 240.0 : 150.0;
     const childAspectRatio = 0.55;
 
@@ -322,12 +327,15 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
 
         return GestureDetector(
           onTap: () {
-            context.push('/tmdb-details', extra: TmdbDetailsRouteExtra(
-              movieId: id,
-              mediaType: mediaType,
-              heroTag: uniqueTag,
-              placeholderPoster: imageUrl,
-            ));
+            context.push(
+              '/tmdb-details',
+              extra: TmdbDetailsRouteExtra(
+                movieId: id,
+                mediaType: mediaType,
+                heroTag: uniqueTag,
+                placeholderPoster: imageUrl,
+              ),
+            );
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +349,8 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      placeholder: (_, _) => ShimmerPlaceholder(borderRadius: 4),
+                      placeholder: (_, _) =>
+                          ShimmerPlaceholder(borderRadius: 4),
                       errorWidget: (_, _, _) =>
                           const ThumbnailErrorPlaceholder(),
                     ),

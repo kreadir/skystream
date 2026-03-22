@@ -133,9 +133,15 @@ class TmdbDetailsDesktopHero extends ConsumerWidget {
                       const SizedBox(height: 12),
                       Consumer(
                         builder: (context, ref, _) {
-                          final historyRepo = ref.watch(historyRepositoryProvider);
-                          final pos = historyRepo.getPosition(data.id.toString());
-                          final dur = historyRepo.getDuration(data.id.toString());
+                          final historyRepo = ref.watch(
+                            historyRepositoryProvider,
+                          );
+                          final pos = historyRepo.getPosition(
+                            data.id.toString(),
+                          );
+                          final dur = historyRepo.getDuration(
+                            data.id.toString(),
+                          );
 
                           if (pos > 0 && dur > 0) {
                             final progress = (pos / dur).clamp(0.0, 1.0);
@@ -180,16 +186,47 @@ class TmdbDetailsDesktopHero extends ConsumerWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           _buildTmdbLogo(),
-                          _buildTopBadge(context, isMovie ? "MOVIE" : "TV SHOW"),
+                          _buildTopBadge(
+                            context,
+                            isMovie ? "MOVIE" : "TV SHOW",
+                          ),
                           if (year.isNotEmpty)
-                            _buildIconInfo(context, Icons.calendar_today_rounded, year, textColor),
-                          _buildIconInfo(context, Icons.star_rounded, rating, const Color(0xFF01B4E4)),
+                            _buildIconInfo(
+                              context,
+                              Icons.calendar_today_rounded,
+                              year,
+                              textColor,
+                            ),
+                          _buildIconInfo(
+                            context,
+                            Icons.star_rounded,
+                            rating,
+                            const Color(0xFF01B4E4),
+                          ),
                           if (durationText.isNotEmpty)
-                            _buildIconInfo(context, Icons.timer_outlined, durationText, textColor),
+                            _buildIconInfo(
+                              context,
+                              Icons.timer_outlined,
+                              durationText,
+                              textColor,
+                            ),
                           if (certification.isNotEmpty)
-                            _buildBorderedInfo(context, certification, textColor),
+                            _buildBorderedInfo(
+                              context,
+                              certification,
+                              textColor,
+                            ),
                           if (director != "Unknown")
-                            _buildIconInfo(context, isMovie ? Icons.movie_creation_outlined : Icons.person_outline, isMovie ? "Director: $director" : "Creator: $director", textColor),
+                            _buildIconInfo(
+                              context,
+                              isMovie
+                                  ? Icons.movie_creation_outlined
+                                  : Icons.person_outline,
+                              isMovie
+                                  ? "Director: $director"
+                                  : "Creator: $director",
+                              textColor,
+                            ),
                         ],
                       ),
                       const SizedBox(height: 20),
@@ -236,8 +273,9 @@ class TmdbDetailsDesktopHero extends ConsumerWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary
-                                  .withValues(alpha: 0.2),
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.2,
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -315,15 +353,16 @@ class TmdbDetailsDesktopHero extends ConsumerWidget {
     );
   }
 
-  Widget _buildIconInfo(BuildContext context, IconData icon, String text, Color color) {
+  Widget _buildIconInfo(
+    BuildContext context,
+    IconData icon,
+    String text,
+    Color color,
+  ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 14,
-          color: color.withValues(alpha: 0.5),
-        ),
+        Icon(icon, size: 14, color: color.withValues(alpha: 0.5)),
         const SizedBox(width: 4),
         Text(
           text,
@@ -341,10 +380,10 @@ class TmdbDetailsDesktopHero extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        border: Border.all(
-          color: color.withValues(alpha: 0.1),
-        ),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        border: Border.all(color: color.withValues(alpha: 0.1)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(

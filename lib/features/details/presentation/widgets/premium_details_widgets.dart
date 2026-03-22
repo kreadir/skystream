@@ -487,10 +487,12 @@ class RecommendationsCarousel extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: CachedNetworkImage(
-                            imageUrl: AppImageFallbacks.poster(
-                              item.posterUrl,
-                              label: item.title,
-                            ),
+                            imageUrl:
+                                AppImageFallbacks.poster(
+                                  item.posterUrl,
+                                  label: item.title,
+                                ) ??
+                                '',
                             fit: BoxFit.cover,
                             width: 110,
                             errorWidget: (_, _, _) =>

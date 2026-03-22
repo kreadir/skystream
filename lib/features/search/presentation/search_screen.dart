@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/layout_constants.dart';
@@ -15,20 +14,26 @@ class SearchScreen extends ConsumerStatefulWidget {
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  Timer? _debounce; // P7: Debounce timer to prevent excessive API calls
 
   @override
   void initState() {
     super.initState();
+    // Restore any previously committed query into the text field.
     _controller.text = ref.read(searchQueryProvider);
   }
 
   @override
   void dispose() {
-    _debounce?.cancel(); // P7: Cancel debounce timer
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _submitSearch(String val) {
+    final trimmed = val.trim();
+    ref.read(searchQueryProvider.notifier).set(trimmed);
+    // Dismiss keyboard after submitting, just like YouTube / browser.
+    _focusNode.unfocus();
   }
 
   @override
@@ -46,12 +51,51 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: ValueListenableBuilder<TextEditingValue>(
               valueListenable: _controller,
               builder: (context, value, child) {
+                // Determine loading state from the stream provider.
+                final isSearching = searchResultsAsync.maybeWhen(
+                  data: (state) => state.isLoading,
+                  loading: () => true,
+                  orElse: () => false,
+                );
+
+                // Suffix logic (matches the screenshot):
+                //   • Searching → small spinner (primary colour)
+                //   • Done + text present → clear ✕ button
+                //   • Done + empty → nothing
+                Widget? suffix;
+                if (isSearching) {
+                  suffix = Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  );
+                } else if (value.text.isNotEmpty) {
+                  suffix = IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _controller.clear();
+                      ref.read(searchQueryProvider.notifier).set('');
+                    },
+                  );
+                }
+
                 return TextField(
                   controller: _controller,
                   focusNode: _focusNode,
                   autofocus: false,
                   style: const TextStyle(fontSize: 16),
                   textAlignVertical: TextAlignVertical.center,
+                  // Shows the "Search" / magnifying-glass action key on
+                  // Android & iOS keyboards. On desktop, Enter maps to the
+                  // same onSubmitted callback — identical to YouTube / browser.
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: _submitSearch,
                   decoration: InputDecoration(
                     hintText: 'Search movies, series...',
                     border: OutlineInputBorder(
@@ -67,7 +111,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
-                    // fillColor inherited from AppTheme (0xFF22222E)
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 20),
                     hintStyle: TextStyle(
@@ -81,23 +124,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       minWidth: 48,
                       minHeight: 48,
                     ),
-                    suffixIcon: value.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _controller.clear();
-                              ref.read(searchQueryProvider.notifier).set('');
-                            },
-                          )
-                        : null,
+                    suffixIcon: suffix,
                   ),
-                  onChanged: (val) {
-                    // P7: Debounce search to avoid triggering on every keystroke
-                    _debounce?.cancel();
-                    _debounce = Timer(const Duration(milliseconds: 300), () {
-                      ref.read(searchQueryProvider.notifier).set(val);
-                    });
-                  },
+                  // NOTE: No onChanged / debounce here — search only fires
+                  // on explicit submit (keyboard Search key or Enter).
                 );
               },
             ),
@@ -106,7 +136,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       ),
       body: searchResultsAsync.when(
         data: (state) {
-          // Flatten to check for any results
           final allResults = state.results.expand((e) => e.results).toList();
 
           if (allResults.isEmpty && !state.isLoading) {
@@ -115,19 +144,27 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: LayoutConstants.spacingMd),
-            itemCount: state.results.length,
-            itemBuilder: (context, index) {
-              final pResult = state.results[index];
-              if (pResult.results.isEmpty) return const SizedBox.shrink();
+          // RepaintBoundary isolates list repaints from the rest of the
+          // screen (app bar, background) so each incremental result update
+          // only repaints the list — not the entire scaffold.
+          return RepaintBoundary(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(
+                vertical: LayoutConstants.spacingMd,
+              ),
+              itemCount: state.results.length,
+              itemBuilder: (context, index) {
+                final pResult = state.results[index];
+                if (pResult.results.isEmpty) return const SizedBox.shrink();
 
-              return SearchResultSection(
-                providerName: pResult.providerName,
-                providerId: pResult.providerId,
-                results: pResult.results,
-              );
-            },
+                return SearchResultSection(
+                  key: ValueKey(pResult.providerId),
+                  providerName: pResult.providerName,
+                  providerId: pResult.providerId,
+                  results: pResult.results,
+                );
+              },
+            ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -152,6 +189,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             Text(
               'Search for your favorite content',
               style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Press the Search key or Enter to start',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),

@@ -4,13 +4,9 @@ import '../../../core/storage/settings_repository.dart';
 class GeneralSettings {
   final bool watchHistoryEnabled;
 
-  const GeneralSettings({
-    this.watchHistoryEnabled = true,
-  });
+  const GeneralSettings({this.watchHistoryEnabled = true});
 
-  GeneralSettings copyWith({
-    bool? watchHistoryEnabled,
-  }) {
+  GeneralSettings copyWith({bool? watchHistoryEnabled}) {
     return GeneralSettings(
       watchHistoryEnabled: watchHistoryEnabled ?? this.watchHistoryEnabled,
     );
@@ -35,5 +31,5 @@ class GeneralSettingsNotifier extends Notifier<GeneralSettings> {
 
 final generalSettingsProvider =
     NotifierProvider<GeneralSettingsNotifier, GeneralSettings>(
-  GeneralSettingsNotifier.new,
-);
+      GeneralSettingsNotifier.new,
+    );

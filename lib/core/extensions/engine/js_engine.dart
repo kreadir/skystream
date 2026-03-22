@@ -324,13 +324,16 @@ class JsEngineService {
         if (node == null) return null;
 
         if (multi) {
-          final List<html_dom.Element> elements =
-              _querySelectorAllWithContains(node, query);
+          final List<html_dom.Element> elements = _querySelectorAllWithContains(
+            node,
+            query,
+          );
           return elements.map((e) => _serializeElement(e)).toList();
         } else {
           final elements = _querySelectorAllWithContains(node, query);
-          final html_dom.Element? element =
-              elements.isNotEmpty ? elements.first : null;
+          final html_dom.Element? element = elements.isNotEmpty
+              ? elements.first
+              : null;
           return _serializeElement(element);
         }
       } catch (e) {
@@ -773,7 +776,10 @@ class JsEngineService {
         ),
       );
 
-      if (kDebugMode) debugPrint("[JS HTTP] Back $url ($requestId) -> ${response.statusCode}");
+      if (kDebugMode)
+        debugPrint(
+          "[JS HTTP] Back $url ($requestId) -> ${response.statusCode}",
+        );
 
       final responseHeaders = response.headers.map.map(
         (k, v) => MapEntry(k, v.join(',')),

@@ -115,9 +115,7 @@ class _TmdbMovieDetailsScreenState
           return Center(
             child: Text(
               "Content not found",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           );
         }

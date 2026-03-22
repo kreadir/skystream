@@ -53,15 +53,11 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Torrent Server Example'),
-        ),
-        body: Center(
-          child: Text('Status: $_serverStatus\n'),
-        ),
+        appBar: AppBar(title: const Text('Torrent Server Example')),
+        body: Center(child: Text('Status: $_serverStatus\n')),
         floatingActionButton: FloatingActionButton(
-           onPressed: initPlatformState,
-           child: const Icon(Icons.refresh),
+          onPressed: initPlatformState,
+          child: const Icon(Icons.refresh),
         ),
       ),
     );

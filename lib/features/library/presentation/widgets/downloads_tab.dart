@@ -134,10 +134,12 @@ class _GroupedDownloadTile extends ConsumerWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(LayoutConstants.radiusMd),
               child: CachedNetworkImage(
-                imageUrl: AppImageFallbacks.poster(
-                  firstItem.item.posterUrl,
-                  label: firstItem.item.title,
-                ),
+                imageUrl:
+                    AppImageFallbacks.poster(
+                      firstItem.item.posterUrl,
+                      label: firstItem.item.title,
+                    ) ??
+                    '',
                 width: 80,
                 height: 120,
                 fit: BoxFit.cover,
@@ -255,7 +257,10 @@ class _GroupedDownloadTile extends ConsumerWidget {
               Navigator.pop(ctx);
               ref.read(downloadsProvider.notifier).removeDownloads(items);
             },
-            child: const Text('Delete All', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Delete All',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -293,10 +298,12 @@ class _DownloadItemTile extends ConsumerWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(LayoutConstants.radiusMd),
           child: CachedNetworkImage(
-            imageUrl: AppImageFallbacks.poster(
-              item.item.posterUrl,
-              label: item.item.title,
-            ),
+            imageUrl:
+                AppImageFallbacks.poster(
+                  item.item.posterUrl,
+                  label: item.item.title,
+                ) ??
+                '',
             width: 80,
             height: 120,
             fit: BoxFit.cover,
@@ -342,15 +349,21 @@ class _DownloadItemTile extends ConsumerWidget {
               Row(
                 children: [
                   Icon(
-                    isDone ? Icons.check_circle_rounded : Icons.download_rounded,
+                    isDone
+                        ? Icons.check_circle_rounded
+                        : Icons.download_rounded,
                     size: 14,
-                    color: isDone ? Colors.green : theme.colorScheme.onSurfaceVariant,
+                    color: isDone
+                        ? Colors.green
+                        : theme.colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     isDone ? "Completed" : _getStatusText(status),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: isDone ? Colors.green : theme.colorScheme.onSurfaceVariant,
+                      color: isDone
+                          ? Colors.green
+                          : theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -394,8 +407,10 @@ class _DownloadItemTile extends ConsumerWidget {
                     ),
                   if (isDone)
                     IconButton(
-                      icon:
-                          const Icon(Icons.play_circle_fill_rounded, color: Colors.green),
+                      icon: const Icon(
+                        Icons.play_circle_fill_rounded,
+                        color: Colors.green,
+                      ),
                       onPressed: () => _playLocalFile(context, ref),
                       iconSize: 28,
                     ),
@@ -479,11 +494,9 @@ class _DownloadItemTile extends ConsumerWidget {
     }
 
     if (context.mounted) {
-      ref.read(playbackLauncherProvider).play(
-        context,
-        file.path,
-        baseItem: item.item,
-      );
+      ref
+          .read(playbackLauncherProvider)
+          .play(context, file.path, baseItem: item.item);
     }
   }
 

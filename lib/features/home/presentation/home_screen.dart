@@ -342,9 +342,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             const SizedBox(height: 24),
             Text(
               isOffline ? 'No Internet Connection' : 'Site Not Reachable',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Text(
@@ -390,8 +390,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   icon: const Icon(Icons.download_for_offline_rounded),
                   label: const Text('Go to Downloads'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                    foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.secondaryContainer,
+                    foregroundColor: Theme.of(
+                      context,
+                    ).colorScheme.onSecondaryContainer,
                   ),
                 ),
               ],

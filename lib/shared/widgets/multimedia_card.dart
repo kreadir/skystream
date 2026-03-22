@@ -6,7 +6,7 @@ import 'shimmer_placeholder.dart';
 import 'thumbnail_error_placeholder.dart';
 
 class MultimediaCard extends StatelessWidget {
-  final String imageUrl;
+  final String? imageUrl;
   final String title;
   final VoidCallback onTap;
   final String heroTag;
@@ -24,10 +24,10 @@ class MultimediaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDesktop = context.isDesktop;
-    final cardWidth = isDesktop 
-        ? (isPortrait ? 200.0 : 300.0) 
+    final cardWidth = isDesktop
+        ? (isPortrait ? 200.0 : 300.0)
         : (isPortrait ? 130.0 : 200.0);
-    
+
     return RepaintBoundary(
       child: CardsWrapper(
         onTap: onTap,
@@ -42,7 +42,7 @@ class MultimediaCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: CachedNetworkImage(
-                      imageUrl: imageUrl,
+                      imageUrl: imageUrl ?? '',
                       memCacheWidth: isPortrait ? 350 : 600,
                       fit: BoxFit.cover,
                       width: double.infinity,
@@ -60,7 +60,9 @@ class MultimediaCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.8),
                   fontSize: isDesktop ? 22 : 14,
                   fontWeight: FontWeight.w500,
                 ),

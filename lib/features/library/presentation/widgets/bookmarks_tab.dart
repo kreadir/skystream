@@ -51,16 +51,12 @@ class BookmarksTab extends ConsumerWidget {
         final item = libraryItems[index];
         return MultimediaCard(
           key: ValueKey(item.url),
-          imageUrl: AppImageFallbacks.poster(
-            item.posterUrl,
-            label: item.title,
-          ),
+          imageUrl:
+              AppImageFallbacks.poster(item.posterUrl, label: item.title) ?? '',
           title: item.title,
           heroTag: 'lib_bookmark_${item.url}_$index',
-          onTap: () => context.push(
-            '/details',
-            extra: DetailsRouteExtra(item: item),
-          ),
+          onTap: () =>
+              context.push('/details', extra: DetailsRouteExtra(item: item)),
         );
       },
     );

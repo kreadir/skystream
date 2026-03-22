@@ -225,22 +225,39 @@ class DownloadLauncher {
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(ctx);
-                
+
                 // Finalize path and filename
-                final episodeData = item.episodes?.firstWhereOrNull((e) => e.url == resolveUrl);
-                final saveDir = await downloadService.getDownloadPath(item, episode: episodeData);
-                
-                final extension = _getFileExtension(stream.url, metadata.mimeType);
+                final episodeData = item.episodes?.firstWhereOrNull(
+                  (e) => e.url == resolveUrl,
+                );
+                final saveDir = await downloadService.getDownloadPath(
+                  item,
+                  episode: episodeData,
+                );
+
+                final extension = _getFileExtension(
+                  stream.url,
+                  metadata.mimeType,
+                );
                 String filename;
-                if (episodeData != null && item.contentType != MultimediaContentType.movie) {
-                  final sanitizedEpName = episodeData.name.replaceAll(RegExp(r'[^\w\s-]'), '').trim();
-                  filename = "S${episodeData.season}-E${episodeData.episode} $sanitizedEpName$extension";
+                if (episodeData != null &&
+                    item.contentType != MultimediaContentType.movie) {
+                  final sanitizedEpName = episodeData.name
+                      .replaceAll(RegExp(r'[^\w\s-]'), '')
+                      .trim();
+                  filename =
+                      "S${episodeData.season}-E${episodeData.episode} $sanitizedEpName$extension";
                 } else {
-                  final sanitizedTitle = item.title.replaceAll(RegExp(r'[^\w\s-]'), '').trim();
+                  final sanitizedTitle = item.title
+                      .replaceAll(RegExp(r'[^\w\s-]'), '')
+                      .trim();
                   filename = "$sanitizedTitle$extension";
                 }
 
-                if (kDebugMode) debugPrint('[DownloadLauncher] Final Path: $saveDir/$filename');
+                if (kDebugMode)
+                  debugPrint(
+                    '[DownloadLauncher] Final Path: $saveDir/$filename',
+                  );
 
                 final started = await downloadService.startDownload(
                   url: stream.url,

@@ -44,14 +44,16 @@ final dioClientProvider = Provider<Dio>((ref) {
         // Optionally skip if DoH is disabled
         if (!DohService.instance.enabled) {
           return connectWithTlsUpgrade(
-            Socket.startConnect(host, uri.port).timeout(const Duration(seconds: 10)),
+            Socket.startConnect(
+              host,
+              uri.port,
+            ).timeout(const Duration(seconds: 10)),
           );
         }
 
-        final ip = await DohService.instance.resolve(host).timeout(
-          const Duration(seconds: 15),
-          onTimeout: () => null,
-        );
+        final ip = await DohService.instance
+            .resolve(host)
+            .timeout(const Duration(seconds: 15), onTimeout: () => null);
         if (ip != null) {
           if (kDebugMode) {
             debugPrint(
@@ -60,13 +62,19 @@ final dioClientProvider = Provider<Dio>((ref) {
           }
           // Connect to the resolved IP but preserve the original uri properties for SNI
           return connectWithTlsUpgrade(
-            Socket.startConnect(ip, uri.port).timeout(const Duration(seconds: 10)),
+            Socket.startConnect(
+              ip,
+              uri.port,
+            ).timeout(const Duration(seconds: 10)),
           );
         }
 
         // Fallback to normal DNS
         return connectWithTlsUpgrade(
-          Socket.startConnect(host, uri.port).timeout(const Duration(seconds: 10)),
+          Socket.startConnect(
+            host,
+            uri.port,
+          ).timeout(const Duration(seconds: 10)),
         );
       };
       return client;

@@ -102,7 +102,9 @@ class _ContinueWatchingSectionState
                           },
                           child: Text(
                             'Clear All',
-                            style: TextStyle(color: Theme.of(context).colorScheme.error),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
                           ),
                         ),
                       ],
@@ -112,7 +114,9 @@ class _ContinueWatchingSectionState
                 icon: const Icon(Icons.delete_sweep, size: 18),
                 label: const Text('Clear All'),
                 style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                  foregroundColor: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
               ),
@@ -124,20 +128,30 @@ class _ContinueWatchingSectionState
           child: DesktopScrollWrapper(
             controller: _scrollController,
             showButtons: isLarge, // Show nav buttons on desktop and TV
-            child: ListView.separated(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              scrollDirection: Axis.horizontal,
-              itemCount: widget.items.length,
-              separatorBuilder: (context, index) =>
-                  SizedBox(width: isLarge ? 24 : 12),
-              itemBuilder: (context, index) {
-                final historyItem = widget.items[index];
-                return ContinueWatchingCard(
-                  key: ValueKey(historyItem.item.url),
-                  historyItem: historyItem,
-                  width: width,
-                  isLarge: isLarge,
+            child: Builder(
+              builder: (context) {
+                final double spacing = isLarge ? 24.0 : 12.0;
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.items.length,
+                  itemExtent: width + spacing,
+                  itemBuilder: (context, index) {
+                    final historyItem = widget.items[index];
+                    return Padding(
+                      padding: EdgeInsets.only(right: spacing),
+                      child: ContinueWatchingCard(
+                        key: ValueKey(historyItem.item.url),
+                        historyItem: historyItem,
+                        width: width,
+                        isLarge: isLarge,
+                      ),
+                    );
+                  },
                 );
               },
             ),

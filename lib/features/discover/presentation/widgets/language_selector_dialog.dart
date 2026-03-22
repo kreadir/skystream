@@ -97,8 +97,9 @@ class LanguageSelectorDialog extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? theme.colorScheme.primary
-                                    .withValues(alpha: 0.2)
+                                ? theme.colorScheme.primary.withValues(
+                                    alpha: 0.2,
+                                  )
                                 : theme.colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
@@ -140,8 +141,9 @@ class LanguageSelectorDialog extends ConsumerWidget {
                                       style: TextStyle(
                                         color: isSelected
                                             ? theme.colorScheme.onSurface
-                                            : theme.colorScheme
-                                                .onSurfaceVariant,
+                                            : theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 15,
                                       ),

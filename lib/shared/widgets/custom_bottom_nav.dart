@@ -16,9 +16,7 @@ class CustomBottomNavBar extends StatelessWidget {
     // We will use a highly customized container to give it that floating/premium look.
 
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-      ),
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
       child: NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: onTap,

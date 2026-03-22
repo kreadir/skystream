@@ -11,10 +11,7 @@ class YearSelectorDialog extends ConsumerWidget {
     final theme = Theme.of(context);
     final selectedYear = ref.watch(discoverFilterProvider).selectedYear;
     final currentYear = DateTime.now().year;
-    final years = List.generate(
-      50,
-      (index) => currentYear - index,
-    );
+    final years = List.generate(50, (index) => currentYear - index);
 
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -99,8 +96,7 @@ class YearSelectorDialog extends ConsumerWidget {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? theme.colorScheme.primary
-                                  .withValues(alpha: 0.2)
+                              ? theme.colorScheme.primary.withValues(alpha: 0.2)
                               : theme.colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(

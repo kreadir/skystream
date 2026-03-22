@@ -9,7 +9,8 @@ class PluginSettingsDialog extends ConsumerStatefulWidget {
   const PluginSettingsDialog({super.key, required this.plugin});
 
   @override
-  ConsumerState<PluginSettingsDialog> createState() => _PluginSettingsDialogState();
+  ConsumerState<PluginSettingsDialog> createState() =>
+      _PluginSettingsDialogState();
 }
 
 class _PluginSettingsDialogState extends ConsumerState<PluginSettingsDialog> {
@@ -25,13 +26,15 @@ class _PluginSettingsDialogState extends ConsumerState<PluginSettingsDialog> {
   Future<void> _loadValues() async {
     final storage = ref.read(extensionRepositoryProvider);
     final schema = widget.plugin.settingsSchema ?? [];
-    
+
     for (var item in schema) {
       if (item is Map<String, dynamic>) {
         final id = item['id'];
         final defaultValue = item['default'];
         if (id != null) {
-          final savedValue = storage.getExtensionData("${widget.plugin.packageName}:$id");
+          final savedValue = storage.getExtensionData(
+            "${widget.plugin.packageName}:$id",
+          );
           _values[id] = savedValue ?? defaultValue;
         }
       }
@@ -107,7 +110,9 @@ class _PluginSettingsDialogState extends ConsumerState<PluginSettingsDialog> {
           title: Text(name),
           subtitle: description != null ? Text(description) : null,
           trailing: DropdownButton<String>(
-            value: _values[id]?.toString() ?? (options.isNotEmpty ? options.first.toString() : null),
+            value:
+                _values[id]?.toString() ??
+                (options.isNotEmpty ? options.first.toString() : null),
             items: options.map((opt) {
               return DropdownMenuItem<String>(
                 value: opt.toString(),

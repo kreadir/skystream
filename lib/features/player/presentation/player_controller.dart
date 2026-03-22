@@ -338,13 +338,16 @@ class PlayerController extends Notifier<PlayerState> {
         if (remaining.inSeconds <= 15 &&
             remaining.inSeconds > 0 &&
             !state.showNextEpisodeOverlay) {
-          
           // Use _episode if available, otherwise fallback to URL matching
           int? currentIndex;
           if (_episode != null) {
-            currentIndex = _item.episodes?.indexWhere((e) => e.url == _episode!.url);
+            currentIndex = _item.episodes?.indexWhere(
+              (e) => e.url == _episode!.url,
+            );
           } else {
-            currentIndex = _item.episodes?.indexWhere((e) => e.url == _videoUrl);
+            currentIndex = _item.episodes?.indexWhere(
+              (e) => e.url == _videoUrl,
+            );
           }
 
           if (currentIndex != null &&
@@ -718,8 +721,11 @@ class PlayerController extends Notifier<PlayerState> {
 
       // Smart Next Episode: Check for downloaded version
       final downloadService = ref.read(downloadServiceProvider);
-      final localFile = await downloadService.getDownloadedFile(_item, episode: nextEpisode);
-      
+      final localFile = await downloadService.getDownloadedFile(
+        _item,
+        episode: nextEpisode,
+      );
+
       final String finalUrl = localFile?.path ?? nextEpisode.url;
       final bool isLocal = localFile != null;
 

@@ -120,12 +120,13 @@ class ExtensionsController extends Notifier<ExtensionsState> {
         final assetPlugins = await _loadAssetPlugins();
         if (kDebugMode) {
           debugPrint(
-          "ExtensionsController: Loaded ${assetPlugins.length} asset plugins",
-        );
+            "ExtensionsController: Loaded ${assetPlugins.length} asset plugins",
+          );
         }
         plugins.addAll(assetPlugins);
       } else {
-        if (kDebugMode) debugPrint("ExtensionsController: Asset loading disabled");
+        if (kDebugMode)
+          debugPrint("ExtensionsController: Asset loading disabled");
       }
 
       state = state.copyWith(installedPlugins: plugins, isLoading: false);
@@ -188,7 +189,8 @@ class ExtensionsController extends Notifier<ExtensionsState> {
 
       return ExtensionPlugin.fromJson(json, 'LocalAssets');
     } catch (e) {
-      if (kDebugMode) debugPrint("Error parsing json manifest for $jsFilePath: $e");
+      if (kDebugMode)
+        debugPrint("Error parsing json manifest for $jsFilePath: $e");
       return null;
     }
   }
@@ -230,7 +232,8 @@ class ExtensionsController extends Notifier<ExtensionsState> {
     // Cycle Detection
     visitedUrls ??= {};
     if (visitedUrls.contains(url)) {
-      if (kDebugMode) debugPrint("Recursion detected: skipping repeated repo $url");
+      if (kDebugMode)
+        debugPrint("Recursion detected: skipping repeated repo $url");
       return;
     }
     visitedUrls.add(url);
@@ -243,8 +246,8 @@ class ExtensionsController extends Notifier<ExtensionsState> {
         if (repo.includedRepos.isNotEmpty) {
           if (kDebugMode) {
             debugPrint(
-            "Repo ${repo.name} contains ${repo.includedRepos.length} included repos",
-          );
+              "Repo ${repo.name} contains ${repo.includedRepos.length} included repos",
+            );
           }
           for (final subRepoUrl in repo.includedRepos) {
             await addRepository(subRepoUrl, visitedUrls: visitedUrls);

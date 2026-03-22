@@ -20,7 +20,7 @@ class TorrentStatus {
     required this.bytesRead,
     required this.data,
   });
-  
+
   final Map<dynamic, dynamic> data;
 
   factory TorrentStatus.fromMap(Map<dynamic, dynamic> map) {
@@ -36,13 +36,13 @@ class TorrentStatus {
       data: map,
     );
   }
-  
+
   String get speedString {
     return "${(downloadSpeed / 1024 / 1024).toStringAsFixed(2)} MB/s";
   }
-  
+
   double get progress {
-     if (totalSize == 0) return 0.0;
-     return bytesRead / totalSize;
+    if (totalSize == 0) return 0.0;
+    return bytesRead / totalSize;
   }
 }
