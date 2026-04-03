@@ -119,6 +119,13 @@ git add .
 git commit -m "Initial commit"
 git push -u origin main
 ```
+### Step 5. Shortcode Sharing (Optional)
+To make your repository easier to share, you can create a shortcode.
+1.  Go to **[cutt.ly](https://cutt.ly)**.
+2.  Paste your **Raw `repo.json` URL**.
+3.  Create a custom alias with the prefix `sky-`.
+    *   Example: `https://cutt.ly/sky-myrepo`
+4.  **Share**: Users can now just type `myrepo` in the app's "Add Repository" dialog.
 
 ---
 
