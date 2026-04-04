@@ -346,4 +346,77 @@ class PlayerBottomSheets {
       },
     );
   }
+
+  static void showSpeedSelection({
+    required BuildContext context,
+    required double currentSpeed,
+    required Function(double) onSpeedSelected,
+  }) {
+    final theme = Theme.of(context);
+    final speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor:
+          theme.bottomSheetTheme.modalBackgroundColor ??
+          theme.dialogTheme.backgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(LayoutConstants.spacingMd),
+                child: Text(
+                  "Playback Speed",
+                  style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Divider(color: theme.dividerColor),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: speeds.length,
+                  itemBuilder: (ctx, index) {
+                    final s = speeds[index];
+                    final isSelected = s == currentSpeed;
+                    return ListTile(
+                      leading: Icon(
+                        Icons.speed,
+                        color: isSelected
+                            ? theme.colorScheme.primary
+                            : theme.iconTheme.color,
+                      ),
+                      title: Text(
+                        "${s}x",
+                        style: TextStyle(
+                          color: isSelected
+                              ? theme.colorScheme.primary
+                              : theme.textTheme.bodyMedium?.color,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? Icon(Icons.check, color: theme.colorScheme.primary)
+                          : null,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        onSpeedSelected(s);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

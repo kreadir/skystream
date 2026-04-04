@@ -22,6 +22,7 @@ import 'next_episode_overlay.dart';
 import 'player_bottom_sheets.dart';
 import 'player_loading_overlay.dart';
 import 'player_osd_overlay.dart';
+import 'player_episode_overlay.dart';
 import '../player_platform_service.dart';
 import '../player_gesture_handler.dart';
 
@@ -614,6 +615,12 @@ class SkyStreamPlayerControlsState
     final nextEpTitle = ref.watch(
       playerControllerProvider.select((s) => s.nextEpisodeTitle),
     );
+    final showEpisodeList = ref.watch(
+      playerControllerProvider.select((s) => s.showEpisodeList),
+    );
+    final isSeries = ref.watch(
+      playerControllerProvider.select((s) => ref.read(playerControllerProvider.notifier).isSeries),
+    );
 
     // Guard against PiP or small window size
     final size = MediaQuery.sizeOf(context);
@@ -690,6 +697,8 @@ class SkyStreamPlayerControlsState
                     streams: streams,
                     currentStream: currentStream,
                     externalSubtitles: externalSubtitles,
+                    showEpisodeList: showEpisodeList,
+                    isSeries: isSeries,
                   ),
 
                 // Persistent buffering indicator
@@ -735,6 +744,57 @@ class SkyStreamPlayerControlsState
                         .read(playerControllerProvider.notifier)
                         .dismissNextEpisodeOverlay(),
                   ),
+
+                // Episode Sidebar Overlay
+                if (isSeries) ...[
+                  // Edge Arrow Toggle (only when controls are visible and list is closed)
+                  if (_isVisible && !showEpisodeList)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => ref
+                                .read(playerControllerProvider.notifier)
+                                .toggleEpisodeList(),
+                            borderRadius: const BorderRadius.horizontal(
+                              left: Radius.circular(30),
+                            ),
+                            child: Container(
+                              height: 80,
+                              width: 32,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.5),
+                                borderRadius: const BorderRadius.horizontal(
+                                  left: Radius.circular(30),
+                                ),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.chevron_left_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                  PlayerEpisodeOverlay(
+                    item: ref.read(playerControllerProvider.notifier).multimediaItem,
+                    isVisible: showEpisodeList,
+                    isTv: _isTv,
+                    onDismiss: () => ref
+                        .read(playerControllerProvider.notifier)
+                        .toggleEpisodeList(),
+                  ),
+                ],
               ],
             ),
           ),
@@ -782,6 +842,8 @@ class SkyStreamPlayerControlsState
     List<StreamResult>? streams,
     StreamResult? currentStream,
     List<SubtitleFile>? externalSubtitles,
+    required bool showEpisodeList,
+    required bool isSeries,
   }) {
     return AnimatedOpacity(
       opacity: _isVisible ? 1.0 : 0.0,
@@ -905,9 +967,31 @@ class SkyStreamPlayerControlsState
                                             ),
                                       ),
                                     ),
-                                    if (torrentStatus != null)
+                                    if (!ref.watch(playerControllerProvider).isLive)
                                       FocusTraversalOrder(
                                         order: const NumericFocusOrder(3),
+                                        child: _buildActionButton(
+                                          icon: Icons.speed,
+                                          label:
+                                              "${ref.watch(playerControllerProvider).playbackSpeed.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), '')}x",
+                                          onTap: () =>
+                                              PlayerBottomSheets.showSpeedSelection(
+                                            context: context,
+                                            currentSpeed: ref
+                                                .read(playerControllerProvider)
+                                                .playbackSpeed,
+                                            onSpeedSelected: (s) => ref
+                                                .read(
+                                                  playerControllerProvider
+                                                      .notifier,
+                                                )
+                                                .setPlaybackSpeed(s),
+                                          ),
+                                        ),
+                                      ),
+                                    if (torrentStatus != null)
+                                      FocusTraversalOrder(
+                                        order: const NumericFocusOrder(4),
                                         child: _buildActionButton(
                                           icon: Icons.folder,
                                           label: "Content",
@@ -929,7 +1013,7 @@ class SkyStreamPlayerControlsState
                                       ),
                                     if (torrentStatus != null)
                                       FocusTraversalOrder(
-                                        order: const NumericFocusOrder(4),
+                                        order: const NumericFocusOrder(5),
                                         child: _buildActionButton(
                                           icon: Icons.info_outline,
                                           label: "Stats",
@@ -943,18 +1027,16 @@ class SkyStreamPlayerControlsState
                                         ),
                                       ),
                                     FocusTraversalOrder(
-                                      order: const NumericFocusOrder(5),
+                                      order: const NumericFocusOrder(6),
                                       child: _buildActionButton(
                                         icon: Icons.aspect_ratio,
                                         label: "Resize",
                                         onTap: cycleResize,
                                       ),
                                     ),
-                                    if (ref
-                                        .read(playerControllerProvider.notifier)
-                                        .isSeries)
+                                    if (isSeries)
                                       FocusTraversalOrder(
-                                        order: const NumericFocusOrder(6),
+                                        order: const NumericFocusOrder(7),
                                         child: _buildActionButton(
                                           icon: Icons.skip_next,
                                           label: "Next",
@@ -975,7 +1057,7 @@ class SkyStreamPlayerControlsState
                                                 .isTv ??
                                             false))
                                       FocusTraversalOrder(
-                                        order: const NumericFocusOrder(7),
+                                        order: const NumericFocusOrder(8),
                                         child: _buildActionButton(
                                           icon: Icons.picture_in_picture_alt,
                                           label: "PIP",
@@ -991,7 +1073,7 @@ class SkyStreamPlayerControlsState
                                                 .isTv ??
                                             false))
                                       FocusTraversalOrder(
-                                        order: const NumericFocusOrder(8),
+                                        order: const NumericFocusOrder(9),
                                         child: _buildActionButton(
                                           icon: Icons.screen_rotation,
                                           label: "Rotate",
@@ -1002,7 +1084,7 @@ class SkyStreamPlayerControlsState
                                         Platform.isWindows ||
                                         Platform.isLinux)
                                       FocusTraversalOrder(
-                                        order: const NumericFocusOrder(9),
+                                        order: const NumericFocusOrder(10),
                                         child: _buildActionButton(
                                           icon: _isFullscreen
                                               ? Icons.fullscreen_exit

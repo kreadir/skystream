@@ -40,6 +40,9 @@ class PlayerState {
   final int retryCountdown; // seconds remaining before auto-retry
   final bool isAdaptiveBufferingActive;
   final bool isBuffering;
+  final bool showEpisodeList;
+  final double playbackSpeed;
+  final bool isLive;
 
   const PlayerState({
     this.isLoading = true,
@@ -60,6 +63,9 @@ class PlayerState {
     this.retryCountdown = 0,
     this.isAdaptiveBufferingActive = false,
     this.isBuffering = false,
+    this.showEpisodeList = false,
+    this.playbackSpeed = 1.0,
+    this.isLive = false,
   });
 
   PlayerState copyWith({
@@ -81,6 +87,9 @@ class PlayerState {
     int? retryCountdown,
     bool? isAdaptiveBufferingActive,
     bool? isBuffering,
+    bool? showEpisodeList,
+    double? playbackSpeed,
+    bool? isLive,
   }) {
     return PlayerState(
       isLoading: isLoading ?? this.isLoading,
@@ -103,6 +112,9 @@ class PlayerState {
       isAdaptiveBufferingActive:
           isAdaptiveBufferingActive ?? this.isAdaptiveBufferingActive,
       isBuffering: isBuffering ?? this.isBuffering,
+      showEpisodeList: showEpisodeList ?? this.showEpisodeList,
+      playbackSpeed: playbackSpeed ?? this.playbackSpeed,
+      isLive: isLive ?? this.isLive,
     );
   }
 }
@@ -126,6 +138,7 @@ class PlayerController extends Notifier<PlayerState> {
   StreamSubscription? _positionSub;
   StreamSubscription? _bufferingSub;
   StreamSubscription? _completedSub;
+  StreamSubscription? _rateSub;
 
   final List<DateTime> _bufferDepletionTimes = [];
   Timer? _retryTimer;
@@ -146,11 +159,14 @@ class PlayerController extends Notifier<PlayerState> {
       _positionSub?.cancel();
       _bufferingSub?.cancel();
       _completedSub?.cancel();
+      _rateSub?.cancel();
     });
     return const PlayerState();
   }
 
   bool get isSeries => _item.contentType == MultimediaContentType.series;
+  MultimediaItem get multimediaItem => _item;
+  String? get currentEpisodeUrl => _episode?.url ?? _videoUrl;
 
   Future<void> init({
     required Player player,
@@ -207,8 +223,18 @@ class PlayerController extends Notifier<PlayerState> {
     _setupErrorListener();
     _setupVideoParamsListener();
     _setupBufferingMonitor();
+    _setupRateListener();
+
+    state = state.copyWith(isLive: _item.contentType == MultimediaContentType.livestream || _isLiveStream(_videoUrl));
 
     await _initStream();
+  }
+
+  void _setupRateListener() {
+    _rateSub?.cancel();
+    _rateSub = _player.stream.rate.listen((rate) {
+      state = state.copyWith(playbackSpeed: rate);
+    });
   }
 
   void _setupVideoParamsListener() {
@@ -597,6 +623,7 @@ class PlayerController extends Notifier<PlayerState> {
       isLoading: true,
       currentStream: stream,
       externalSubtitles: stream.subtitles ?? [],
+      isLive: _item.contentType == MultimediaContentType.livestream || _isLiveStream(stream.url),
     );
 
     final rawPName =
@@ -762,6 +789,36 @@ class PlayerController extends Notifier<PlayerState> {
 
   void dismissNextEpisodeOverlay() {
     state = state.copyWith(showNextEpisodeOverlay: false);
+  }
+
+  void toggleEpisodeList() {
+    state = state.copyWith(showEpisodeList: !state.showEpisodeList);
+  }
+
+  Future<void> loadEpisode(Episode episode) async {
+    if (state.isLoading) return;
+    state = state.copyWith(isLoading: true, showEpisodeList: false);
+
+    _episode = episode;
+    _videoUrl = episode.url;
+
+    // Smart load: Check for downloaded version
+    final downloadService = ref.read(downloadServiceProvider);
+    final localFile = await downloadService.getDownloadedFile(
+      _item,
+      episode: episode,
+    );
+
+    final String finalUrl = localFile?.path ?? episode.url;
+    final bool isLocal = localFile != null;
+
+    _videoUrl = finalUrl;
+    state = state.copyWith(
+      playerTitle: "${_item.title} - ${episode.name}",
+      streamSubtitle: isLocal ? "Local - Downloaded" : "Fetching sources...",
+    );
+
+    await _initStream();
   }
 
   void saveProgress() {
@@ -1341,6 +1398,11 @@ class PlayerController extends Notifier<PlayerState> {
         debugPrint("Seek failed: $e");
       }
     }
+  }
+
+  Future<void> setPlaybackSpeed(double rate) async {
+    await _player.setRate(rate);
+    state = state.copyWith(playbackSpeed: rate);
   }
 }
 
