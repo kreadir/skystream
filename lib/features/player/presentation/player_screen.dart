@@ -321,7 +321,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                     ),
                   ),
                   Positioned(
-                    bottom: controlsVisible ? 120 : 20,
+                    bottom: (controlsVisible ? 120.0 : 20.0) +
+                        ((100 - (subtitleSettings?.subtitlePosition ?? 100.0)) *
+                            (MediaQuery.sizeOf(context).height * 0.008)),
                     left: 20,
                     right: 20,
                     child: SubtitleView(
@@ -335,6 +337,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                           backgroundColor: Color(
                             subtitleSettings?.subtitleBackgroundColor ??
                                 0x00000000,
+                          ).withOpacity(
+                            subtitleSettings?.subtitleBackgroundOpacity ?? 0.0,
                           ),
                           shadows: const [
                             Shadow(

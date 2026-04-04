@@ -786,14 +786,15 @@ class SkyStreamPlayerControlsState
                       ),
                     ),
                     
-                  PlayerEpisodeOverlay(
-                    item: ref.read(playerControllerProvider.notifier).multimediaItem,
-                    isVisible: showEpisodeList,
-                    isTv: _isTv,
-                    onDismiss: () => ref
-                        .read(playerControllerProvider.notifier)
-                        .toggleEpisodeList(),
-                  ),
+                  if (ref.read(playerControllerProvider.notifier).multimediaItem != null)
+                    PlayerEpisodeOverlay(
+                      item: ref.read(playerControllerProvider.notifier).multimediaItem!,
+                      isVisible: showEpisodeList,
+                      isTv: _isTv,
+                      onDismiss: () => ref
+                          .read(playerControllerProvider.notifier)
+                          .toggleEpisodeList(),
+                    ),
                 ],
               ],
             ),

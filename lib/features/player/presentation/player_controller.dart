@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:media_kit/media_kit.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:file_picker/file_picker.dart';
 
 import '../../../../core/services/download_service.dart';
 import '../../../../core/domain/entity/multimedia_item.dart';
@@ -43,6 +45,9 @@ class PlayerState {
   final bool showEpisodeList;
   final double playbackSpeed;
   final bool isLive;
+  final double subtitleDelay;
+  final String? imdbId;
+  final int? tmdbId;
 
   const PlayerState({
     this.isLoading = true,
@@ -66,6 +71,9 @@ class PlayerState {
     this.showEpisodeList = false,
     this.playbackSpeed = 1.0,
     this.isLive = false,
+    this.subtitleDelay = 0.0,
+    this.imdbId,
+    this.tmdbId,
   });
 
   PlayerState copyWith({
@@ -90,6 +98,9 @@ class PlayerState {
     bool? showEpisodeList,
     double? playbackSpeed,
     bool? isLive,
+    double? subtitleDelay,
+    String? imdbId,
+    int? tmdbId,
   }) {
     return PlayerState(
       isLoading: isLoading ?? this.isLoading,
@@ -115,6 +126,9 @@ class PlayerState {
       showEpisodeList: showEpisodeList ?? this.showEpisodeList,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       isLive: isLive ?? this.isLive,
+      subtitleDelay: subtitleDelay ?? this.subtitleDelay,
+      imdbId: imdbId ?? this.imdbId,
+      tmdbId: tmdbId ?? this.tmdbId,
     );
   }
 }
@@ -126,6 +140,7 @@ class PlayerController extends Notifier<PlayerState> {
   Episode? _episode;
   Timer? _torrentPollTimer;
   bool _isPolling = false;
+  bool _isInitialized = false;
 
   // Track last saved position for threshold-based saving
   Duration _lastSavedPosition = Duration.zero;
@@ -164,8 +179,8 @@ class PlayerController extends Notifier<PlayerState> {
     return const PlayerState();
   }
 
-  bool get isSeries => _item.contentType == MultimediaContentType.series;
-  MultimediaItem get multimediaItem => _item;
+  bool get isSeries => _isInitialized && _item.contentType == MultimediaContentType.series;
+  MultimediaItem? get multimediaItem => _isInitialized ? _item : null;
   String? get currentEpisodeUrl => _episode?.url ?? _videoUrl;
 
   Future<void> init({
@@ -214,9 +229,14 @@ class PlayerController extends Notifier<PlayerState> {
       }
     }
 
+    final imdbId = item.syncData?['imdbId'] ?? item.syncData?['imdb_id'];
+    final tmdbId = item.tmdbId;
+
     state = state.copyWith(
       playerTitle: initialTitle,
       streamSubtitle: "Searching for sources...",
+      imdbId: imdbId,
+      tmdbId: tmdbId,
     );
 
     _setupEventDrivenProgressSaving();
@@ -227,7 +247,9 @@ class PlayerController extends Notifier<PlayerState> {
 
     state = state.copyWith(isLive: _item.contentType == MultimediaContentType.livestream || _isLiveStream(_videoUrl));
 
+    _isInitialized = true;
     await _initStream();
+    await applySubtitleSettings();
   }
 
   void _setupRateListener() {
@@ -1403,6 +1425,75 @@ class PlayerController extends Notifier<PlayerState> {
   Future<void> setPlaybackSpeed(double rate) async {
     await _player.setRate(rate);
     state = state.copyWith(playbackSpeed: rate);
+  }
+
+  Future<void> setSubtitleDelay(double seconds) async {
+    final native = _player.platform;
+    if (native is NativePlayer) {
+      await native.setProperty('sub-delay', seconds.toString());
+      state = state.copyWith(subtitleDelay: seconds);
+    }
+  }
+
+  Future<void> applySubtitleSettings() async {
+    final native = _player.platform;
+    if (native is NativePlayer) {
+      final settings = ref.read(playerSettingsProvider).asData?.value ?? const PlayerSettings();
+      
+      // MPV sub properties
+      await native.setProperty('sub-font-size', settings.subtitleSize.toString());
+      await native.setProperty('sub-pos', settings.subtitlePosition.round().toString());
+      
+      // Colors are in MPV hex format (e.g. #RRGGBB or #AARRGGBB)
+      String colorToMpvHex(int color, [double opacity = 1.0]) {
+        final alpha = (opacity * 255).toInt().toRadixString(16).padLeft(2, '0');
+        final rgb = color.toRadixString(16).padLeft(8, '0').substring(2);
+        return '#$alpha$rgb';
+      }
+      
+      await native.setProperty('sub-color', colorToMpvHex(settings.subtitleColor));
+      if (settings.subtitleBackgroundColor != 0x00000000) {
+        await native.setProperty('sub-back-color', colorToMpvHex(settings.subtitleBackgroundColor, settings.subtitleBackgroundOpacity));
+      } else {
+        await native.setProperty('sub-back-color', '#00000000');
+      }
+    }
+  }
+
+  Future<void> loadExternalSubtitleFile({String? filePath}) async {
+    String? path = filePath;
+    if (path == null) {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['srt', 'vtt', 'ass', 'ssa'],
+      );
+      if (result != null && result.files.single.path != null) {
+        path = result.files.single.path!;
+      }
+    }
+
+    if (path != null) {
+      final player = _player;
+      final ext = p.extension(path).toLowerCase().replaceAll('.', '');
+      
+      // Load track into media_kit
+      await player.setSubtitleTrack(SubtitleTrack.uri(
+        path,
+        title: "External ($ext)",
+        language: "und",
+      ));
+
+      // Add to local state
+      final newSub = SubtitleFile(
+        url: path,
+        label: "External ($ext)",
+        lang: "und",
+      );
+      
+      state = state.copyWith(
+        externalSubtitles: [...state.externalSubtitles, newSub],
+      );
+    }
   }
 }
 

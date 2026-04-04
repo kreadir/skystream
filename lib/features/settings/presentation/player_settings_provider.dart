@@ -13,10 +13,12 @@ class PlayerSettings {
   final double subtitleSize;
   final int subtitleColor;
   final int subtitleBackgroundColor;
+  final double subtitleBackgroundOpacity;
   final bool hardwareDecoding;
   final String?
   preferredPlayer; // null = internal, 'vlc' / 'mpv' etc. = external
   final int readaheadSeconds;
+  final double subtitlePosition;
 
   const PlayerSettings({
     this.leftGesture = PlayerGesture.brightness,
@@ -28,9 +30,11 @@ class PlayerSettings {
     this.subtitleSize = 22.0,
     this.subtitleColor = 0xFFFFFFFF, // White
     this.subtitleBackgroundColor = 0x00000000, // Transparent
+    this.subtitleBackgroundOpacity = 0.5, // Default opacity (50%)
     this.hardwareDecoding = true,
     this.preferredPlayer,
     this.readaheadSeconds = 180,
+    this.subtitlePosition = 100.0,
   });
 
   PlayerSettings copyWith({
@@ -43,10 +47,12 @@ class PlayerSettings {
     double? subtitleSize,
     int? subtitleColor,
     int? subtitleBackgroundColor,
+    double? subtitleBackgroundOpacity,
     bool? hardwareDecoding,
     String? preferredPlayer,
     bool clearPreferredPlayer = false,
     int? readaheadSeconds,
+    double? subtitlePosition,
   }) {
     return PlayerSettings(
       leftGesture: leftGesture ?? this.leftGesture,
@@ -59,11 +65,14 @@ class PlayerSettings {
       subtitleColor: subtitleColor ?? this.subtitleColor,
       subtitleBackgroundColor:
           subtitleBackgroundColor ?? this.subtitleBackgroundColor,
+      subtitleBackgroundOpacity:
+          subtitleBackgroundOpacity ?? this.subtitleBackgroundOpacity,
       hardwareDecoding: hardwareDecoding ?? this.hardwareDecoding,
       preferredPlayer: clearPreferredPlayer
           ? null
           : (preferredPlayer ?? this.preferredPlayer),
       readaheadSeconds: readaheadSeconds ?? this.readaheadSeconds,
+      subtitlePosition: subtitlePosition ?? this.subtitlePosition,
     );
   }
 }
@@ -105,10 +114,7 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
         ) ??
         'Fit';
     final subSize =
-        storage.getPlayerSetting<double>(
-          'player_sub_size',
-          defaultValue: 22.0,
-        ) ??
+        (storage.getPlayerSetting('player_sub_size') as num?)?.toDouble() ??
         22.0;
     final subColor =
         storage.getPlayerSetting<int>(
@@ -117,11 +123,11 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
         ) ??
         0xFFFFFFFF;
     final subBg =
-        storage.getPlayerSetting<int>(
-          'player_sub_bg',
-          defaultValue: 0x00000000,
-        ) ??
+        (storage.getPlayerSetting('player_sub_bg') as num?)?.toInt() ??
         0x00000000;
+    final subBgOpacity = 
+        (storage.getPlayerSetting('player_sub_bg_opacity') as num?)?.toDouble() ??
+        0.5;
     final prefPlayer = storage.getPlayerSetting<String>('player_preferred');
     final swipeSeek =
         storage.getPlayerSetting<bool>(
@@ -135,6 +141,9 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
     final rSecons =
         storage.getPlayerSetting<int>('player_readahead', defaultValue: 180) ??
         180;
+    final subPos =
+         (storage.getPlayerSetting('player_sub_pos') as num?)?.toDouble() ??
+         100.0;
 
     return PlayerSettings(
       leftGesture: _parse(l),
@@ -146,9 +155,11 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
       subtitleSize: subSize,
       subtitleColor: subColor,
       subtitleBackgroundColor: subBg,
+      subtitleBackgroundOpacity: subBgOpacity,
       hardwareDecoding: hwDec,
       preferredPlayer: prefPlayer,
       readaheadSeconds: rSecons,
+      subtitlePosition: subPos,
     );
   }
 
@@ -194,16 +205,20 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
     state = AsyncData(current.copyWith(hardwareDecoding: val));
   }
 
-  Future<void> setSubtitleSettings(double size, int color, int bg) async {
+  Future<void> setSubtitleSettings(double size, int color, int bg, [double? opacity]) async {
     await _repository.setPlayerSetting('player_sub_size', size);
     await _repository.setPlayerSetting('player_sub_color', color);
     await _repository.setPlayerSetting('player_sub_bg', bg);
+    if (opacity != null) {
+      await _repository.setPlayerSetting('player_sub_bg_opacity', opacity);
+    }
     final current = state.asData?.value ?? const PlayerSettings();
     state = AsyncData(
       current.copyWith(
         subtitleSize: size,
         subtitleColor: color,
         subtitleBackgroundColor: bg,
+        subtitleBackgroundOpacity: opacity ?? current.subtitleBackgroundOpacity,
       ),
     );
   }
@@ -225,6 +240,37 @@ class PlayerSettingsNotifier extends AsyncNotifier<PlayerSettings> {
     await _repository.setPlayerSetting('player_readahead', seconds);
     final current = state.asData?.value ?? const PlayerSettings();
     state = AsyncData(current.copyWith(readaheadSeconds: seconds));
+  }
+
+  Future<void> setSubtitlePosition(double pos) async {
+    await _repository.setPlayerSetting('player_sub_pos', pos);
+    final current = state.asData?.value ?? const PlayerSettings();
+    state = AsyncData(current.copyWith(subtitlePosition: pos));
+  }
+
+  Future<void> setSubtitleBackgroundOpacity(double val) async {
+    await _repository.setPlayerSetting('player_sub_bg_opacity', val);
+    final current = state.asData?.value ?? const PlayerSettings();
+    state = AsyncData(current.copyWith(subtitleBackgroundOpacity: val));
+  }
+
+  Future<void> resetSubtitleSettings() async {
+    final current = state.asData?.value ?? const PlayerSettings();
+    final newState = current.copyWith(
+      subtitleSize: 22.0,
+      subtitleColor: 0xFFFFFFFF,
+      subtitleBackgroundColor: 0x00000000,
+      subtitleBackgroundOpacity: 0.5,
+      subtitlePosition: 100.0,
+    );
+
+    await _repository.setPlayerSetting('player_sub_size', 22.0);
+    await _repository.setPlayerSetting('player_sub_color', 0xFFFFFFFF);
+    await _repository.setPlayerSetting('player_sub_bg', 0x00000000);
+    await _repository.setPlayerSetting('player_sub_bg_opacity', 0.5);
+    await _repository.setPlayerSetting('player_sub_pos', 100.0);
+
+    state = AsyncData(newState);
   }
 
   PlayerGesture _parse(String s) {
