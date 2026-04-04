@@ -725,7 +725,6 @@ class PlayerBottomSheets {
       backgroundColor: theme.bottomSheetTheme.modalBackgroundColor ?? theme.dialogTheme.backgroundColor,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (ctx) {
-        final ref = ctx as dynamic; // Not correct, but we'll use Consumer inside
         return Container(
           height: MediaQuery.of(context).size.height * 0.8,
           padding: EdgeInsets.only(
