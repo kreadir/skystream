@@ -42,6 +42,17 @@ class _DesktopScrollWrapperState extends State<DesktopScrollWrapper> {
   }
 
   @override
+  void didUpdateWidget(DesktopScrollWrapper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.removeListener(_updateArrows);
+      widget.controller.addListener(_updateArrows);
+      // Update state for the new controller
+      WidgetsBinding.instance.addPostFrameCallback((_) => _updateArrows());
+    }
+  }
+
+  @override
   void dispose() {
     widget.controller.removeListener(_updateArrows);
     super.dispose();
