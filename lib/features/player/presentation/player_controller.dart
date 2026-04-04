@@ -125,6 +125,7 @@ class PlayerController extends Notifier<PlayerState> {
   StreamSubscription? _playingSub;
   StreamSubscription? _positionSub;
   StreamSubscription? _bufferingSub;
+  StreamSubscription? _completedSub;
 
   final List<DateTime> _bufferDepletionTimes = [];
   Timer? _retryTimer;
@@ -144,6 +145,7 @@ class PlayerController extends Notifier<PlayerState> {
       _playingSub?.cancel();
       _positionSub?.cancel();
       _bufferingSub?.cancel();
+      _completedSub?.cancel();
     });
     return const PlayerState();
   }
@@ -315,6 +317,21 @@ class PlayerController extends Notifier<PlayerState> {
           state.torrentStatus != null &&
           _torrentPollTimer == null) {
         startTorrentPolling();
+      }
+    });
+
+    _completedSub?.cancel();
+    _completedSub = _player.stream.completed.listen((isCompleted) {
+      if (isCompleted) {
+        final isLive =
+            _item.contentType == MultimediaContentType.livestream ||
+            _isLiveStream(_videoUrl);
+        if (isLive && state.currentStream != null) {
+          if (kDebugMode)
+            debugPrint("Live stream reached EOF. Forcing auto-reconnect...");
+          // Emulate ExoPlayer's BEHIND_LIVE_WINDOW by re-initializing the failed stream internally
+          changeStream(state.currentStream!, resetPosition: true);
+        }
       }
     });
 
@@ -926,6 +943,7 @@ class PlayerController extends Notifier<PlayerState> {
     _playingSub?.cancel();
     _positionSub?.cancel();
     _bufferingSub?.cancel();
+    _completedSub?.cancel();
 
     saveProgress();
     ref.read(torrentServiceProvider).stop();
@@ -1099,6 +1117,34 @@ class PlayerController extends Notifier<PlayerState> {
         await native.setProperty('cache', 'yes');
         await native.setProperty('cache-pause-initial', 'yes');
         await native.setProperty('cache-pause-wait', '2');
+
+        // Network
+        await native.setProperty('network-timeout', '30');
+        await native.setProperty('tls-verify', 'no');
+
+        // Reconnect
+        await native.setProperty(
+          'stream-lavf-o',
+          'reconnect_on_network_error=1,reconnect_delay_max=5,reconnect_on_eof=1,reconnect_streamed=1',
+        );
+
+        // HLS demuxer
+        await native.setProperty('demuxer-lavf-o', 'seg_max_retry=5');
+
+        // Playback
+        await native.setProperty('framedrop', 'decoder');
+        await native.setProperty('hr-seek-framedrop', 'yes');
+        await native.setProperty('hwdec', 'auto-safe');
+
+        // H.264 resilience: wait for clean keyframe after reconnect
+        await native.setProperty('vd-lavc-skiploopfilter', 'nonkey');
+        await native.setProperty('vd-lavc-skipframe', 'nonref');
+
+        if (kDebugMode) {
+          _player.stream.log.listen((log) {
+            debugPrint('[MPV] ${log.level}: ${log.text}');
+          });
+        }
       } else {
         final settings = ref.read(playerSettingsProvider).asData?.value;
         final readahead = settings?.readaheadSeconds ?? 180;
