@@ -99,7 +99,7 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
     );
     final duration = Duration(milliseconds: _vvDurationMs);
 
-    final isLive = playerState.isLive || _vvDurationMs == 0;
+    final isLive = playerState.isLive;
 
     return _buildRow(
       duration: duration,
@@ -162,8 +162,7 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
               bufferWidget: bufferWidget,
               onSeekEnd: (val) =>
                   widget.player.seek(Duration(milliseconds: val.toInt())),
-              isLive:
-                  ref.watch(playerControllerProvider).isLive || durationMs == 0,
+              isLive: ref.watch(playerControllerProvider).isLive,
             );
           },
         );
@@ -240,8 +239,7 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
           ),
         ),
         const SizedBox(width: 12),
-        // Right Side: Total Duration / LIVE Chip Fallback
-        if (isLive && duration == Duration.zero)
+        if (isLive)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
@@ -315,7 +313,8 @@ class PlayerPlayPauseButton extends StatelessWidget {
                   vv.VideoControllerPlaybackState.playing;
               return _buildButton(
                 isPlaying: isPlaying,
-                isSpinning: isBuffering, // Only show spinner for buffering in Full UI
+                isSpinning:
+                    isBuffering, // Only show spinner for buffering in Full UI
               );
             },
           );
@@ -328,7 +327,8 @@ class PlayerPlayPauseButton extends StatelessWidget {
             final isPlaying = playingSnapshot.data ?? false;
             return _buildButton(
               isPlaying: isPlaying,
-              isSpinning: isBuffering, // Only show spinner for buffering in Full UI
+              isSpinning:
+                  isBuffering, // Only show spinner for buffering in Full UI
             );
           },
         );
