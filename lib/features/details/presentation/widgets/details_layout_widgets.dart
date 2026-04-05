@@ -17,6 +17,7 @@ import '../download_launcher.dart';
 import 'download_progress_dialog.dart';
 import 'download_management_dialog.dart';
 import 'episode_card.dart';
+import 'package:skystream/core/providers/device_info_provider.dart';
 
 class DetailsSeasonListWrapper extends ConsumerWidget {
   const DetailsSeasonListWrapper({super.key, required this.itemUrl});
@@ -92,6 +93,9 @@ class DetailsActionButtons extends HookConsumerWidget {
       detailsControllerProvider(itemUrl).select((s) => s.isMovie),
     );
 
+    final playFocusNode = useFocusNode();
+    final isTv = ref.watch(deviceProfileProvider).asData?.value.isTv ?? false;
+
     final pos = targetEpisode != null
         ? historyRepo.getEpisodePosition(
             targetEpisode.url,
@@ -119,14 +123,22 @@ class DetailsActionButtons extends HookConsumerWidget {
 
     final playBtn = CustomButton(
       isPrimary: true,
+      focusNode: playFocusNode,
       autofocus: true,
       onPressed:
           (details != null &&
-              details!.episodes != null &&
-              details!.episodes!.isNotEmpty)
-          ? () => ref
-                .read(detailsControllerProvider(item.url).notifier)
-                .handlePlayPress(context, details!)
+               details!.episodes != null &&
+               details!.episodes!.isNotEmpty)
+          ? () async {
+              await ref
+                  .read(detailsControllerProvider(item.url).notifier)
+                  .handlePlayPress(context, details!);
+              
+              // Phase 10 Fix: TV Focus restoration on return from player
+              if (context.mounted && isTv) {
+                playFocusNode.requestFocus();
+              }
+            }
           : null,
       child: Padding(
         padding: const EdgeInsets.all(LayoutConstants.spacingMd),

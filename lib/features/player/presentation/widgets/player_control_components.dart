@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:video_view/video_view.dart' as vv;
 import '../../../../shared/widgets/custom_widgets.dart';
 import 'player_stream_widgets.dart';
 
@@ -92,6 +93,7 @@ class PlayerTopBar extends StatelessWidget {
 /// Uses StreamBuilder-based PlayerPlayPauseButton for efficient updates.
 class PlayerCenterControls extends StatelessWidget {
   final Player player;
+  final vv.VideoController? videoViewController;
   final bool isLoading;
   final bool isTv;
   final FocusNode? playFocusNode;
@@ -105,6 +107,7 @@ class PlayerCenterControls extends StatelessWidget {
     required this.onSeekBackward,
     required this.onSeekForward,
     required this.onPlayPause,
+    this.videoViewController,
     this.isLoading = false,
     this.isTv = false,
     this.playFocusNode,
@@ -127,6 +130,7 @@ class PlayerCenterControls extends StatelessWidget {
           // Play/Pause Toggle
           PlayerPlayPauseButton(
             player: player,
+            videoViewController: videoViewController,
             isLoading: isLoading,
             isTv: isTv,
             focusNode: playFocusNode,

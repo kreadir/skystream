@@ -352,35 +352,35 @@ class DetailsController extends Notifier<DetailsState> {
     }
   }
 
-  void handlePlayPress(
+  Future<void> handlePlayPress(
     BuildContext context,
     MultimediaItem details, {
     Episode? specificEpisode,
     String? overrideUrl,
-  }) {
+  }) async {
     if (overrideUrl != null) {
-      ref
+      await ref
           .read(playbackLauncherProvider)
           .play(context, overrideUrl, baseItem: details);
       return;
     }
 
     if (specificEpisode != null) {
-      ref
+      await ref
           .read(playbackLauncherProvider)
           .play(context, specificEpisode.url, baseItem: details);
       return;
     }
 
     if (state.isMovie) {
-      ref
+      await ref
           .read(playbackLauncherProvider)
           .play(context, details.episodes!.first.url, baseItem: details);
       return;
     }
 
     if (state.targetEpisode != null) {
-      ref
+      await ref
           .read(playbackLauncherProvider)
           .play(context, state.targetEpisode!.url, baseItem: details);
       return;
@@ -390,7 +390,7 @@ class DetailsController extends Notifier<DetailsState> {
     if (firstSeason.isNotEmpty) {
       final ep = state.seasonMap[firstSeason.first]?.first;
       if (ep != null) {
-        ref
+        await ref
             .read(playbackLauncherProvider)
             .play(context, ep.url, baseItem: details);
       }

@@ -188,17 +188,10 @@ class SettingsScreen extends ConsumerWidget {
                           .read(playerSettingsProvider.notifier)
                           .setHardwareDecoding(val),
                     ),
+                    isLast: true,
                     onTap: () => ref
                         .read(playerSettingsProvider.notifier)
                         .setHardwareDecoding(!playerSettings.hardwareDecoding),
-                  ),
-                  SettingsTile(
-                    icon: Icons.subtitles_rounded,
-                    title: 'Subtitles',
-                    subtitle: 'Customize appearance',
-                    isLast: true,
-                    onTap: () =>
-                        showSubtitleDialog(context, ref, playerSettings),
                   ),
                 ],
               ),

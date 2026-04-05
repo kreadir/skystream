@@ -175,15 +175,37 @@ class _ExtensionsScreenState extends ConsumerState<ExtensionsScreen> {
                                   ),
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.delete_outline,
-                              color: Theme.of(context).colorScheme.error,
+                          if (state.isLoading)
+                            const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            )
+                          else ...[
+                            IconButton(
+                              icon: const Icon(Icons.download),
+                              onPressed: () {
+                                ref
+                                    .read(extensionsControllerProvider.notifier)
+                                    .installPlugins(plugins);
+                              },
+                              tooltip: "Download All available providers",
                             ),
-                            onPressed: () =>
-                                _confirmDeleteRepo(context, ref, repo),
-                            tooltip: "Remove Repository",
-                          ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.delete_outline,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              onPressed: () =>
+                                  _confirmDeleteRepo(context, ref, repo),
+                              tooltip: "Remove Repository",
+                            ),
+                          ],
                         ],
                       ),
                       children: plugins.asMap().entries.map((entry) {

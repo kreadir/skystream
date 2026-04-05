@@ -8,6 +8,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
+import 'package:video_view/video_view.dart' as vv;
 import '../player_controller.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import '../../../../core/domain/entity/multimedia_item.dart';
@@ -28,6 +29,7 @@ import '../player_gesture_handler.dart';
 
 class SkyStreamPlayerControls extends ConsumerStatefulWidget {
   final Player player;
+  final vv.VideoController? videoViewController;
   final String? title;
   final String? subtitle;
   final VoidCallback? onBackPointer;
@@ -44,6 +46,7 @@ class SkyStreamPlayerControls extends ConsumerStatefulWidget {
   const SkyStreamPlayerControls({
     super.key,
     required this.player,
+    this.videoViewController,
     this.title,
     this.subtitle,
     this.onBackPointer,
@@ -79,6 +82,8 @@ class SkyStreamPlayerControlsState
   void focusBack() {
     _backFocusNode.requestFocus();
   }
+
+  void togglePlayPause() => _togglePlay();
 
   bool _showTorrentInfo = false; // Changed from true
   Timer? _hideTimer;
@@ -203,6 +208,14 @@ class SkyStreamPlayerControlsState
     );
     // No addListener needed — AnimatedBuilder wraps the seek widget directly
 
+    // Bridge video_view state into local cache so seek calculations and
+    // the loading guard stay correct when ExoPlayer is active.
+    widget.videoViewController?.position.addListener(_onVvPosition);
+    widget.videoViewController?.playbackState.addListener(_onVvPlaybackState);
+    widget.videoViewController?.mediaInfo.addListener(_onVvMediaInfo);
+    widget.videoViewController?.videoSize.addListener(_updateOrientation);
+    widget.videoViewController?.orientation.addListener(_updateOrientation);
+
     if (Platform.isAndroid) {
       const MethodChannel(
         'dev.akash.skystream.player/pip',
@@ -216,10 +229,20 @@ class SkyStreamPlayerControlsState
             }
             break;
           case 'play':
-            widget.player.play();
+            if (ref.read(playerControllerProvider.select((s) => s.useExoPlayer)) &&
+                widget.videoViewController != null) {
+              widget.videoViewController!.play();
+            } else {
+              widget.player.play();
+            }
             break;
           case 'pause':
-            widget.player.pause();
+            if (ref.read(playerControllerProvider.select((s) => s.useExoPlayer)) &&
+                widget.videoViewController != null) {
+              widget.videoViewController!.pause();
+            } else {
+              widget.player.pause();
+            }
             break;
           case 'seekForward':
             _seekRelative(const Duration(seconds: 10));
@@ -273,6 +296,11 @@ class SkyStreamPlayerControlsState
 
   @override
   void dispose() {
+    widget.videoViewController?.position.removeListener(_onVvPosition);
+    widget.videoViewController?.playbackState.removeListener(_onVvPlaybackState);
+    widget.videoViewController?.mediaInfo.removeListener(_onVvMediaInfo);
+    widget.videoViewController?.videoSize.removeListener(_updateOrientation);
+    widget.videoViewController?.orientation.removeListener(_updateOrientation);
     FocusManager.instance.removeListener(_onFocusChange);
     _playFocusNode.dispose();
     _backFocusNode.dispose();
@@ -297,10 +325,28 @@ class SkyStreamPlayerControlsState
   }
 
   void _updateOrientation() {
-    _platformService.updateOrientation(
-      widget.player.state.width,
-      widget.player.state.height,
-    );
+    final useExo = ref.read(playerControllerProvider.select((s) => s.useExoPlayer));
+    if (useExo && widget.videoViewController != null) {
+      final size = widget.videoViewController!.videoSize.value;
+      final orientation = widget.videoViewController!.orientation.value;
+      
+      if (size.width > 0 && size.height > 0) {
+        // Swap dimensions if orientation is 90 or 270 degrees
+        final isLandscape = orientation == 1 || orientation == 3;
+        final w = isLandscape ? size.height : size.width;
+        final h = isLandscape ? size.width : size.height;
+        
+        _platformService.updateOrientation(
+          w.toInt(),
+          h.toInt(),
+        );
+      }
+    } else {
+      _platformService.updateOrientation(
+        widget.player.state.width,
+        widget.player.state.height,
+      );
+    }
   }
 
   Future<void> _enterPip() async {
@@ -412,13 +458,72 @@ class SkyStreamPlayerControlsState
     }
   }
 
+  // --- video_view bridge listeners ---
+  void _onVvPosition() {
+    final ms = widget.videoViewController?.position.value ?? 0;
+    _position = Duration(milliseconds: ms);
+  }
+
+  void _onVvPlaybackState() {
+    final state = widget.videoViewController?.playbackState.value;
+    final playing = state == vv.VideoControllerPlaybackState.playing;
+    if (playing != _isPlaying) {
+      _isPlaying = playing;
+      if (playing) {
+        _startHideTimer();
+      } else {
+        _cancelHideTimer();
+      }
+    }
+  }
+
+  void _onVvMediaInfo() {
+    final info = widget.videoViewController?.mediaInfo.value;
+    final ms = info?.duration ?? 0;
+    final newDuration = Duration(milliseconds: ms);
+    final oldDuration = _duration;
+    _duration = newDuration;
+    // Show controls when media loads (same logic as media_kit duration listener)
+    if (mounted && oldDuration == Duration.zero && newDuration != Duration.zero) {
+      setState(() => _isVisible = true);
+      _startHideTimer();
+    }
+    
+    if (widget.videoViewController != null) {
+      final size = widget.videoViewController!.videoSize.value;
+      if (size.width > 0 && size.height > 0) {
+        _updateOrientation();
+      }
+    }
+  }
+  // ------------------------------------
+
   void _togglePlay() {
-    widget.player.playOrPause();
+    final useExoPlayer = ref.read(
+      playerControllerProvider.select((s) => s.useExoPlayer),
+    );
+    if (useExoPlayer && widget.videoViewController != null) {
+      final vvc = widget.videoViewController!;
+      if (vvc.playbackState.value == vv.VideoControllerPlaybackState.playing) {
+        vvc.pause();
+      } else {
+        vvc.play();
+      }
+    } else {
+      widget.player.playOrPause();
+    }
   }
 
   void _seekRelative(Duration amount) {
     final newPos = _position + amount;
-    widget.player.seek(newPos);
+    final useExoPlayer = ref.read(
+      playerControllerProvider.select((s) => s.useExoPlayer),
+    );
+    if (useExoPlayer && widget.videoViewController != null) {
+      widget.videoViewController!.seekTo(newPos.inMilliseconds);
+    } else {
+      widget.player.seek(newPos);
+    }
     _startHideTimer();
   }
 
@@ -786,14 +891,15 @@ class SkyStreamPlayerControlsState
                       ),
                     ),
                     
-                  PlayerEpisodeOverlay(
-                    item: ref.read(playerControllerProvider.notifier).multimediaItem,
-                    isVisible: showEpisodeList,
-                    isTv: _isTv,
-                    onDismiss: () => ref
-                        .read(playerControllerProvider.notifier)
-                        .toggleEpisodeList(),
-                  ),
+                  if (ref.read(playerControllerProvider.notifier).multimediaItem != null)
+                    PlayerEpisodeOverlay(
+                      item: ref.read(playerControllerProvider.notifier).multimediaItem!,
+                      isVisible: showEpisodeList,
+                      isTv: _isTv,
+                      onDismiss: () => ref
+                          .read(playerControllerProvider.notifier)
+                          .toggleEpisodeList(),
+                    ),
                 ],
               ],
             ),
@@ -875,7 +981,9 @@ class SkyStreamPlayerControlsState
             // Playback controls - Extracted to component
             PlayerCenterControls(
               player: widget.player,
-              isLoading: widget.isLoading,
+              videoViewController: widget.videoViewController,
+              // If we are forcing controls, we don't want the loading spinner in the middle
+              isLoading: widget.isLoading && !widget.forceShowControls,
               isTv: _isTv,
               playFocusNode: _playFocusNode,
               onSeekBackward: () => _seekRelative(const Duration(seconds: -10)),
@@ -906,6 +1014,7 @@ class SkyStreamPlayerControlsState
                       // Progress bar with StreamBuilder
                       PlayerProgressBar(
                         player: widget.player,
+                        videoViewController: widget.videoViewController,
                         onSeekStart: _cancelHideTimer,
                       ),
                       // Actions Row
