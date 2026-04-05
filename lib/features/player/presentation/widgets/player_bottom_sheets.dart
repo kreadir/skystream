@@ -450,47 +450,49 @@ class PlayerBottomSheets {
       builder: (ctx) {
         return Consumer(builder: (context, ref, child) {
           return SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(LayoutConstants.spacingMd),
-                  child: Text("Subtitle Options", style: TextStyle(color: theme.textTheme.bodyLarge?.color, fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                Divider(color: theme.dividerColor, height: 1),
-                ListTile(
-                  leading: const Icon(Icons.file_open_outlined),
-                  title: const Text("Load from Device"),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    ref.read(playerControllerProvider.notifier).loadExternalSubtitleFile();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.sync),
-                  title: const Text("Sync / Delay"),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _showSubtitleSync(context);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.style),
-                  title: const Text("Style Settings"),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _showSubtitleStyles(context);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.search),
-                  title: const Text("Search Online (Subtitle Search)"),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _showSubtitleSearch(context);
-                  },
-                ),
-              ],
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(LayoutConstants.spacingMd),
+                    child: Text("Subtitle Options", style: TextStyle(color: theme.textTheme.bodyLarge?.color, fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  Divider(color: theme.dividerColor, height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.file_open_outlined),
+                    title: const Text("Load from Device"),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      ref.read(playerControllerProvider.notifier).loadExternalSubtitleFile();
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.sync),
+                    title: const Text("Sync / Delay"),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _showSubtitleSync(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.style),
+                    title: const Text("Style Settings"),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _showSubtitleStyles(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.search),
+                    title: const Text("Search Online (Subtitle Search)"),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _showSubtitleSearch(context);
+                    },
+                  ),
+                ],
+              ),
             ),
           );
         });

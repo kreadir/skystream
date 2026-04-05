@@ -48,7 +48,7 @@ class PlaybackLauncher {
             .read(detailsControllerProvider(baseItem.url).notifier)
             .setLaunching(true);
       }
-      _launchExternal(
+      await _launchExternal(
         context,
         finalUrl,
         detailedItem ?? baseItem,
@@ -61,7 +61,7 @@ class PlaybackLauncher {
         }
       });
     } else {
-      context.push(
+      await context.push(
         '/player',
         extra: PlayerRouteExtra(
           item: detailedItem ?? baseItem,

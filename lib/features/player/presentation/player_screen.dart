@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:media_kit/media_kit.dart' hide PlayerState;
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:video_view/video_view.dart' as vv;
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../core/domain/entity/multimedia_item.dart';
@@ -37,7 +38,8 @@ class PlayerScreen extends ConsumerStatefulWidget {
 class _PlayerScreenState extends ConsumerState<PlayerScreen>
     with WidgetsBindingObserver {
   late final Player _player;
-  late final VideoController _videoController;
+  late final VideoController _videoController;  // media_kit renderer
+  late final vv.VideoController _videoViewController; // video_view (ExoPlayer/AVPlayer)
 
   final ValueNotifier<BoxFit> _videoFit = ValueNotifier(BoxFit.contain);
   final ValueNotifier<bool> _controlsVisible = ValueNotifier(true);
@@ -62,7 +64,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _isTv = deviceProfile?.isTv ?? false;
     _isTablet = deviceProfile?.isTablet ?? false;
 
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    if (Platform.isAndroid || Platform.isIOS) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
     WakelockPlus.enable();
 
     // Initialize player with larger buffer for torrent streaming
@@ -79,6 +83,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       native.setProperty('force-seekable', 'yes');
     }
     _videoController = VideoController(_player);
+
+    // Phase 8: Initialize video_view engine (ExoPlayer on Android, AVPlayer on iOS/macOS)
+    _videoViewController = vv.VideoController(autoPlay: true);
 
     ref.listenManual<AsyncValue<PlayerSettings>>(playerSettingsProvider, (
       _,
@@ -101,6 +108,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         item: widget.item,
         videoUrl: widget.videoUrl,
         episode: widget.episode,
+        videoViewController: _videoViewController,
       );
     });
   }
@@ -133,26 +141,20 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _playerController.disposeController();
 
     _player.dispose();
+    _videoViewController.dispose();
     _skipFocusNode.dispose();
     _controlsVisible.dispose();
     _forceShowControls.dispose();
     _videoFit.dispose();
 
     WakelockPlus.disable();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-
-    if (_isTv) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-    } else if (_isTablet) {
-      // For tablets, allow system default orientation (usually follows sensor)
-      // This prevents forcing portrait mode when the user is holding it in landscape
-      SystemChrome.setPreferredOrientations([]);
-    } else {
-      // For phones, typically reset to portrait
-      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    if ((Platform.isAndroid || Platform.isIOS) && !_isTv) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      if (_isTablet) {
+        SystemChrome.setPreferredOrientations([]);
+      } else {
+        SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      }
     }
     if (!Platform.isAndroid && !Platform.isIOS) {
       try {
@@ -200,7 +202,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         event.logicalKey == LogicalKeyboardKey.select ||
         event.logicalKey == LogicalKeyboardKey.enter ||
         event.logicalKey == LogicalKeyboardKey.mediaPlayPause) {
-      _player.playOrPause();
+      _controlsKeyFinal.currentState?.togglePlayPause();
       if (!_controlsVisible.value) {
         _forceShowControls.value = true;
         Future.delayed(
@@ -255,6 +257,22 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     return KeyEventResult.ignored;
   }
 
+  Future<void> _handleBack() async {
+    if (!mounted) return;
+
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      try {
+        await windowManager.setFullScreen(false);
+        // Small delay to allow macOS/Windows to settle layout
+        await Future.delayed(const Duration(milliseconds: 150));
+      } catch (e) {
+        if (kDebugMode) debugPrint('PlayerScreen._handleBack: $e');
+      }
+    }
+
+    if (mounted) context.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final errorMessage = ref.watch(
@@ -293,11 +311,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       valueListenable: _controlsVisible,
       builder: (context, controlsVisible, _) {
         return PopScope(
-          canPop: !controlsVisible,
+          canPop: false,
           onPopInvokedWithResult: (didPop, result) async {
             if (didPop) return;
-            if (controlsVisible) {
+            if (_controlsVisible.value) {
               _controlsKeyFinal.currentState?.hideControls();
+            } else {
+              await _handleBack();
             }
           },
           child: Scaffold(
@@ -310,12 +330,28 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                     child: ValueListenableBuilder<BoxFit>(
                       valueListenable: _videoFit,
                       builder: (_, fit, child) => Center(
-                        child: Video(
-                          controller: _videoController,
-                          fit: fit,
-                          subtitleViewConfiguration:
-                              const SubtitleViewConfiguration(visible: false),
-                          controls: (state) => const SizedBox.shrink(),
+                        // Phase 8: Switch engine based on stream type
+                        child: Consumer(
+                          builder: (context, ref, _) {
+                            final useExoPlayer = ref.watch(
+                              playerControllerProvider
+                                  .select((s) => s.useExoPlayer),
+                            );
+                            if (useExoPlayer) {
+                              return vv.VideoView(
+                                controller: _videoViewController,
+                                videoFit: fit,
+                              );
+                            }
+                            return Video(
+                              controller: _videoController,
+                              fit: fit,
+                              subtitleViewConfiguration:
+                                  const SubtitleViewConfiguration(
+                                      visible: false),
+                              controls: (state) => const SizedBox.shrink(),
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -361,11 +397,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                           isLoading: isLoading,
                           forceShowControls: forceShow,
                           player: _player,
+                          videoViewController: _videoViewController,
                           title: widget.item.title,
                           subtitle: ref
                               .read(playerControllerProvider)
                               .streamSubtitle,
                           onResize: _updateResizeMode,
+                          onBackPointer: _handleBack,
                           onVisibilityChanged: (v) {
                             if (mounted) {
                               _controlsVisible.value = v;

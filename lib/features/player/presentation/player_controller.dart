@@ -10,6 +10,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
+import 'package:video_view/video_view.dart' show VideoController, SubtitleTrackConfig, VideoControllerPlaybackState;
 
 import '../../../../core/services/download_service.dart';
 import '../../../../core/domain/entity/multimedia_item.dart';
@@ -22,6 +23,7 @@ import '../../library/presentation/history_provider.dart';
 import '../../../../core/providers/device_info_provider.dart';
 import '../../../../core/utils/app_utils.dart';
 import '../../settings/presentation/player_settings_provider.dart';
+import '../../../../core/services/local_proxy_service.dart';
 
 class PlayerState {
   final bool isLoading;
@@ -48,6 +50,9 @@ class PlayerState {
   final double subtitleDelay;
   final String? imdbId;
   final int? tmdbId;
+  /// Whether the active engine is video_view (ExoPlayer/AVPlayer) instead of media_kit.
+  final bool useExoPlayer;
+  final bool isSeekable;
 
   const PlayerState({
     this.isLoading = true,
@@ -71,9 +76,11 @@ class PlayerState {
     this.showEpisodeList = false,
     this.playbackSpeed = 1.0,
     this.isLive = false,
+    this.isSeekable = false,
     this.subtitleDelay = 0.0,
     this.imdbId,
     this.tmdbId,
+    this.useExoPlayer = false,
   });
 
   PlayerState copyWith({
@@ -98,9 +105,11 @@ class PlayerState {
     bool? showEpisodeList,
     double? playbackSpeed,
     bool? isLive,
+    bool? isSeekable,
     double? subtitleDelay,
     String? imdbId,
     int? tmdbId,
+    bool? useExoPlayer,
   }) {
     return PlayerState(
       isLoading: isLoading ?? this.isLoading,
@@ -126,21 +135,43 @@ class PlayerState {
       showEpisodeList: showEpisodeList ?? this.showEpisodeList,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       isLive: isLive ?? this.isLive,
+      isSeekable: isSeekable ?? this.isSeekable,
       subtitleDelay: subtitleDelay ?? this.subtitleDelay,
       imdbId: imdbId ?? this.imdbId,
       tmdbId: tmdbId ?? this.tmdbId,
+      useExoPlayer: useExoPlayer ?? this.useExoPlayer,
     );
   }
 }
 
 class PlayerController extends Notifier<PlayerState> {
   late Player _player;
+  VideoController? _videoViewController;
   late MultimediaItem _item;
   late String _videoUrl;
   Episode? _episode;
   Timer? _torrentPollTimer;
   bool _isPolling = false;
   bool _isInitialized = false;
+
+  /// On Linux, video_view uses libmpv (same as media_kit) — no benefit from switching.
+  /// On other platforms, switch to ExoPlayer/AVPlayer for live/HLS streams.
+  bool get _shouldUseVideoView {
+    if (_videoViewController == null || Platform.isLinux) {
+      return false;
+    }
+
+    // On Apple platforms (macOS/iOS), AVPlayer (VideoView) doesn't support DASH (.mpd).
+    // We must use media_kit (mpv) for DASH on these platforms.
+    if (Platform.isMacOS || Platform.isIOS) {
+      final url = _videoUrl.toLowerCase();
+      if (url.contains('.mpd') || url.contains('manifest.mpd')) {
+        return false;
+      }
+    }
+
+    return state.isLive;
+  }
 
   // Track last saved position for threshold-based saving
   Duration _lastSavedPosition = Duration.zero;
@@ -154,6 +185,11 @@ class PlayerController extends Notifier<PlayerState> {
   StreamSubscription? _bufferingSub;
   StreamSubscription? _completedSub;
   StreamSubscription? _rateSub;
+
+  // Stall Watchdog state
+  Duration? _lastPosition;
+  DateTime? _lastPositionUpdateTime;
+  bool _isRecoveringFromStall = false;
 
   final List<DateTime> _bufferDepletionTimes = [];
   Timer? _retryTimer;
@@ -188,9 +224,11 @@ class PlayerController extends Notifier<PlayerState> {
     required MultimediaItem item,
     required String videoUrl,
     Episode? episode,
+    VideoController? videoViewController,
   }) async {
     state = const PlayerState(); // Reset stale state
     _player = player;
+    _videoViewController = videoViewController;
     _videoUrl = videoUrl;
     _episode = episode;
 
@@ -244,12 +282,136 @@ class PlayerController extends Notifier<PlayerState> {
     _setupVideoParamsListener();
     _setupBufferingMonitor();
     _setupRateListener();
+    _setupVideoViewListeners();
 
     state = state.copyWith(isLive: _item.contentType == MultimediaContentType.livestream || _isLiveStream(_videoUrl));
 
     _isInitialized = true;
     await _initStream();
     await applySubtitleSettings();
+  }
+
+  void _setupVideoViewListeners() {
+    if (_videoViewController == null) return;
+
+    _videoViewController!.mediaInfo.addListener(() {
+      final info = _videoViewController!.mediaInfo.value;
+      if (info != null) {
+
+        if ((info.duration > 0 || info.isLive) && state.isLoading) {
+          state = state.copyWith(isLoading: false);
+        }
+        
+        // Sync isSeekable status from the native controller to our state
+        if (info.isSeekable != state.isSeekable) {
+          state = state.copyWith(
+            isSeekable: info.isSeekable,
+          );
+        }
+        
+        // Ensure metadata-based isLive is never overridden by false engine detection
+        if (info.isLive && !state.isLive) {
+          state = state.copyWith(isLive: true);
+        }
+      }
+    });
+
+    _videoViewController!.loading.addListener(() {
+      final isBuffering = _videoViewController!.loading.value;
+      if (isBuffering) {
+        _handleBufferStall();
+        _stallTimer?.cancel();
+        _stallTimer = Timer(const Duration(milliseconds: 200), () {
+          state = state.copyWith(isBuffering: true, isLoading: false);
+        });
+      } else {
+        _stallTimer?.cancel();
+        state = state.copyWith(
+          isBuffering: false,
+          isLoading: false, // Also clear main loading when buffering finishes
+        );
+      }
+    });
+
+    _videoViewController!.error.addListener(() {
+      final error = _videoViewController!.error.value;
+      if (error != null) {
+        if (kDebugMode) debugPrint("VideoView Player Error: $error");
+        if (state.isLoading || (_videoViewController!.position.value ) == 0) {
+          if (state.isManualSwitch) {
+            revertToPreviousStream("Stream failed. Reverting...");
+          } else {
+            startRetryCountdown();
+          }
+        }
+      }
+    });
+
+    _videoViewController!.playbackState.addListener(() {
+      final playing = _videoViewController!.playbackState.value == VideoControllerPlaybackState.playing;
+      if (!playing) {
+        saveProgress();
+      } else {
+        // ALWAYS clear loading/buffering if playback starts
+        if (state.isLoading || state.isBuffering) {
+          state = state.copyWith(isLoading: false, isBuffering: false);
+        }
+      }
+    });
+
+    _videoViewController!.finishedTimes.addListener(() {
+      final completions = _videoViewController!.finishedTimes.value;
+      if (completions > 0) {
+        final isLive = _item.contentType == MultimediaContentType.livestream || _isLiveStream(_videoUrl);
+        if (isLive && state.currentStream != null) {
+          changeStream(state.currentStream!, resetPosition: true);
+        }
+      }
+    });
+
+    _videoViewController!.position.addListener(() {
+      if (!state.useExoPlayer) return;
+
+      final posMs = _videoViewController!.position.value;
+      final durationMs = _videoViewController!.mediaInfo.value?.duration ?? 0;
+      
+      // If position is advancing, we are definitely not loading anymore
+      if (posMs > 0 && state.isLoading) {
+        state = state.copyWith(isLoading: false);
+      }
+      
+      if (durationMs == 0) return;
+
+      final currentPct = posMs / durationMs;
+      final lastPct = _lastSavedPosition.inMilliseconds / durationMs;
+
+      if ((currentPct - lastPct).abs() >= _saveThresholdPercent) {
+        saveProgress();
+        _lastSavedPosition = Duration(milliseconds: posMs);
+      }
+
+      if (_item.contentType == MultimediaContentType.series) {
+        final remainingSecs = (durationMs - posMs) / 1000;
+        if (remainingSecs <= 15 && remainingSecs > 0 && !state.showNextEpisodeOverlay) {
+          int? currentIndex;
+          if (_episode != null) {
+            currentIndex = _item.episodes?.indexWhere((e) => e.url == _episode!.url);
+          } else {
+            currentIndex = _item.episodes?.indexWhere((e) => e.url == _videoUrl);
+          }
+
+          if (currentIndex != null && currentIndex != -1 && currentIndex < _item.episodes!.length - 1) {
+            final next = _item.episodes![currentIndex + 1];
+            state = state.copyWith(
+              showNextEpisodeOverlay: true,
+              nextEpisodeTitle: next.name,
+            );
+          }
+        } else if (remainingSecs > 15 && state.showNextEpisodeOverlay) {
+          state = state.copyWith(showNextEpisodeOverlay: false);
+        }
+      }
+    });
   }
 
   void _setupRateListener() {
@@ -268,6 +430,7 @@ class PlayerController extends Notifier<PlayerState> {
       }
     });
   }
+
 
   void _setupBufferingMonitor() {
     _bufferingSub?.cancel();
@@ -361,10 +524,15 @@ class PlayerController extends Notifier<PlayerState> {
         saveProgress();
         _torrentPollTimer?.cancel();
         _torrentPollTimer = null;
-      } else if (isPlaying &&
-          state.torrentStatus != null &&
-          _torrentPollTimer == null) {
-        startTorrentPolling();
+      } else {
+        // Playback started: CLEAR EVERYTHING
+        if (state.isLoading || state.isBuffering) {
+          state = state.copyWith(isLoading: false, isBuffering: false);
+        }
+
+        if (state.torrentStatus != null && _torrentPollTimer == null) {
+          startTorrentPolling();
+        }
       }
     });
 
@@ -385,6 +553,45 @@ class PlayerController extends Notifier<PlayerState> {
 
     _positionSub?.cancel();
     _positionSub = _player.stream.position.listen((pos) {
+      // Clear initial loading as soon as we have a valid position update
+      if (pos.inMilliseconds > 0 && state.isLoading) {
+        state = state.copyWith(isLoading: false);
+      }
+      
+      final now = DateTime.now();
+
+      // --- Stall Watchdog Logic ---
+      if (_player.state.playing && !state.isBuffering && !state.isLoading) {
+        if (_lastPosition != null && _lastPosition == pos) {
+          final stallDuration =
+              _lastPositionUpdateTime != null ? now.difference(_lastPositionUpdateTime!) : Duration.zero;
+
+          if (stallDuration.inSeconds >= 5 && !_isRecoveringFromStall) {
+            if (kDebugMode) debugPrint("Watchdog: Silent stall detected (5s). Kicking engine...");
+            _isRecoveringFromStall = true;
+            
+            // Recovery: Toggle play/pause or trigger a re-sync
+            if (state.isLive && state.currentStream != null) {
+               changeStream(state.currentStream!, resetPosition: false);
+            } else {
+               _player.play(); // Simple kick
+            }
+
+            // prevent multi-trigger
+            Future.delayed(const Duration(seconds: 10), () {
+              _isRecoveringFromStall = false;
+            });
+          }
+        } else {
+          _lastPosition = pos;
+          _lastPositionUpdateTime = now;
+        }
+      } else {
+        _lastPosition = pos;
+        _lastPositionUpdateTime = now;
+      }
+      // -----------------------------
+
       final duration = _player.state.duration;
       if (duration == Duration.zero) return;
 
@@ -583,6 +790,7 @@ class PlayerController extends Notifier<PlayerState> {
       isLoading: true,
       streamSubtitle: "$providerName - ${stream.source}",
       externalSubtitles: stream.subtitles ?? [],
+      isLive: _item.contentType == MultimediaContentType.livestream || _isLiveStream(stream.url),
     );
 
     try {
@@ -602,7 +810,45 @@ class PlayerController extends Notifier<PlayerState> {
       final headers = stream.headers ?? {};
       await _applyPlaybackProperties(headers, stream);
 
-      await _player.open(Media(playUrl, httpHeaders: headers));
+      // Phase 7: Route to correct engine
+      if (_shouldUseVideoView) {
+        String finalUrl = playUrl;
+        // JIO BD / play.php Fix: If we are using the native engine and the URL is a known 
+        // non-standard redirector (like play.php or index.php), wrap it in our LocalProxyService.
+        // This ensures the content is sniffed/rewritten as HLS and served with a .m3u8 extension.
+        if (finalUrl.contains('play.php') || finalUrl.contains('index.php')) {
+          finalUrl = LocalProxyService.instance.getProxyUrl(finalUrl, headers: headers, forceM3u8Extension: true);
+          if (kDebugMode) debugPrint("[PLAYER] Proxied non-standard HLS: $finalUrl");
+        }
+
+        final subs = state.externalSubtitles;
+        if (subs.isNotEmpty) {
+          _videoViewController!.openWithSubtitles(
+            finalUrl,
+            headers: headers,
+            subtitles: subs.map((s) => SubtitleTrackConfig(
+              uri: s.url,
+              mimeType: s.url.toLowerCase().endsWith('.vtt')
+                  ? 'text/vtt'
+                  : 'application/x-subrip',
+              language: s.lang ?? 'und',
+            )).toList(),
+            drmKey: stream.drmKey,
+            drmKid: stream.drmKid,
+          );
+        } else {
+          _videoViewController!.open(
+            finalUrl,
+            headers: headers,
+            drmKey: stream.drmKey,
+            drmKid: stream.drmKid,
+          );
+        }
+        state = state.copyWith(useExoPlayer: true);
+      } else {
+        await _player.open(Media(playUrl, httpHeaders: headers));
+        state = state.copyWith(useExoPlayer: false);
+      }
 
       final historyRepo = ref.read(historyRepositoryProvider);
       final isSeries = _item.contentType == MultimediaContentType.series;
@@ -641,11 +887,14 @@ class PlayerController extends Notifier<PlayerState> {
       );
     }
 
+    final playUrl = await _resolveStreamUrl(stream);
+    if (playUrl == null) throw Exception("Failed to resolve stream URL");
+
     state = state.copyWith(
       isLoading: true,
       currentStream: stream,
       externalSubtitles: stream.subtitles ?? [],
-      isLive: _item.contentType == MultimediaContentType.livestream || _isLiveStream(stream.url),
+      isLive: _item.contentType == MultimediaContentType.livestream || _isLiveStream(playUrl),
     );
 
     final rawPName =
@@ -673,7 +922,44 @@ class PlayerController extends Notifier<PlayerState> {
       final headers = stream.headers ?? {};
       await _applyPlaybackProperties(headers, stream);
 
-      await _player.open(Media(playUrl, httpHeaders: headers));
+      // Phase 7: Route to correct engine
+      if (_shouldUseVideoView) {
+        String finalUrl = playUrl;
+        // JIO BD / play.php Fix: If we are using the native engine and the URL is a known 
+        // non-standard redirector (like play.php or index.php), wrap it in our LocalProxyService.
+        // This ensures the content is sniffed/rewritten as HLS and served with a .m3u8 extension.
+        if (finalUrl.contains('play.php') || finalUrl.contains('index.php')) {
+          finalUrl = LocalProxyService.instance.getProxyUrl(finalUrl, headers: headers, forceM3u8Extension: true);
+        }
+
+        final subs = state.externalSubtitles;
+        if (subs.isNotEmpty) {
+          _videoViewController!.openWithSubtitles(
+            finalUrl,
+            headers: headers,
+            subtitles: subs.map((s) => SubtitleTrackConfig(
+              uri: s.url,
+              mimeType: s.url.toLowerCase().endsWith('.vtt')
+                  ? 'text/vtt'
+                  : 'application/x-subrip',
+              language: s.lang ?? 'und',
+            )).toList(),
+            drmKey: stream.drmKey,
+            drmKid: stream.drmKid,
+          );
+        } else {
+          _videoViewController!.open(
+            finalUrl,
+            headers: headers,
+            drmKey: stream.drmKey,
+            drmKid: stream.drmKid,
+          );
+        }
+        state = state.copyWith(useExoPlayer: true);
+      } else {
+        await _player.open(Media(playUrl, httpHeaders: headers));
+        state = state.copyWith(useExoPlayer: false);
+      }
 
       if (oldPos > Duration.zero && !resetPosition) {
         await _safeSeekTo(oldPos.inMilliseconds);
@@ -1270,13 +1556,18 @@ class PlayerController extends Notifier<PlayerState> {
         // It's usually the 32-character hex KEY.
         if (kDebugMode) {
           debugPrint(
-            '[DRM] Injecting cenc_decryption_key via setProperty: $keyHex',
+            '[DRM] Injecting cenc_decryption_key via demuxer-lavf-o: $keyHex',
           );
         }
-        await native.setProperty(
-          'demuxer-lavf-o',
-          'cenc_decryption_key=$keyHex',
-        );
+
+        if (!_shouldUseVideoView) {
+          await native.setProperty(
+            'demuxer-lavf-o',
+            'cenc_decryption_key=$keyHex',
+          );
+        } else {
+          // If using VideoView on Android, we'd pass DRM keys to the native side here.
+        }
       }
 
       try {
@@ -1387,7 +1678,9 @@ class PlayerController extends Notifier<PlayerState> {
     if (lower.contains('/live/') ||
         lower.contains('/iptv/') ||
         lower.contains('stream.m3u8') ||
-        lower.contains('chunklist')) {
+        lower.contains('chunklist') ||
+        lower.contains('play.php') ||
+        lower.contains('index.php')) {
       return true;
     }
 

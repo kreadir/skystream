@@ -379,35 +379,36 @@ class ExtensionsController extends Notifier<ExtensionsState> {
   }
 
   Future<void> installPlugin(ExtensionPlugin plugin) async {
+    await installPlugins([plugin]);
+  }
+
+  Future<void> installPlugins(List<ExtensionPlugin> plugins) async {
     state = state.copyWith(isLoading: true);
     try {
-      File? savedFile;
+      for (final plugin in plugins) {
+        File? savedFile;
 
-      // Standard HTTP Download
-      savedFile = await _repositoryService.downloadPlugin(plugin.sourceUrl);
+        // Standard HTTP Download
+        savedFile = await _repositoryService.downloadPlugin(plugin.sourceUrl);
 
-      if (savedFile != null) {
-        await _storageService.installPlugin(
-          savedFile.path,
-          plugin.repositoryId,
-        );
-        await loadInstalledPlugins();
+        if (savedFile != null) {
+          await _storageService.installPlugin(
+            savedFile.path,
+            plugin.repositoryId,
+          );
 
-        // Clear this plugin from availableUpdates so the green Update button disappears
-        final newUpdates = Map<String, ExtensionPlugin>.from(
-          state.availableUpdates,
-        )..remove(plugin.packageName);
-        state = state.copyWith(availableUpdates: newUpdates);
+          // Clear this plugin from availableUpdates so the green Update button disappears
+          final newUpdates = Map<String, ExtensionPlugin>.from(
+            state.availableUpdates,
+          )..remove(plugin.packageName);
+          state = state.copyWith(availableUpdates: newUpdates);
 
-        if (await savedFile.exists()) {
-          await savedFile.delete();
+          if (await savedFile.exists()) {
+            await savedFile.delete();
+          }
         }
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          error: "Failed to download plugin",
-        );
       }
+      await loadInstalledPlugins();
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }

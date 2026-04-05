@@ -76,6 +76,7 @@ class LocalProxyService {
     String targetUrl, {
     Map<String, String>? headers,
     ProxyOptions? options,
+    bool forceM3u8Extension = false,
   }) {
     if (_server == null) startServer();
     final encoded = Uri.encodeComponent(targetUrl);
@@ -95,6 +96,10 @@ class LocalProxyService {
       });
       final optB64 = base64Url.encode(utf8.encode(optJson));
       url += "&o=$optB64";
+    }
+
+    if (forceM3u8Extension) {
+      url += "&extension=.m3u8";
     }
 
     return url;
@@ -157,7 +162,7 @@ class LocalProxyService {
       return;
     }
 
-    // debugPrint("[PROXY] Incoming Request for: $targetUrl");
+    if (kDebugMode) debugPrint("[PROXY] Incoming Request for: $targetUrl");
 
     final Map<String, String> stickyHeaders = {};
     final hBase64 = request.uri.queryParameters['h'];
@@ -261,7 +266,10 @@ class LocalProxyService {
         targetUrl,
         options,
       );
-      // debugPrint("[PROXY] Response Status: ${response.statusCode}, Content-Type: ${response.headers.contentType}");
+      if (kDebugMode)
+        debugPrint(
+          "[PROXY] Response Status: ${response.statusCode}, Content-Type: ${response.headers.contentType}",
+        );
 
       request.response.statusCode = response.statusCode;
 
@@ -282,16 +290,23 @@ class LocalProxyService {
         response.headers.contentType?.mimeType,
         targetUrl,
       );
-      // debugPrint("[PROXY] Detected isM3u8: $isResponseM3u8 for $targetUrl");
+      if (kDebugMode)
+        debugPrint("[PROXY] Detected isM3u8: $isResponseM3u8 for $targetUrl");
 
       // Allow rewriting for 200 (OK) and 206 (Partial) if it's an M3U8
       if (isResponseM3u8 &&
           (response.statusCode == 200 || response.statusCode == 206)) {
-        // debugPrint("[PROXY] Triggering M3U8 rewrite for: $targetUrl");
+        if (kDebugMode)
+          debugPrint("[PROXY] Triggering M3U8 rewrite for: $targetUrl");
         // If rewriting, we must remove content-encoding and content-length
         // because the modified body will have different length/type.
         request.response.headers.removeAll('content-encoding');
         request.response.headers.removeAll('content-length');
+        request.response.statusCode = 200; // Force 200 for rewritten content
+        request.response.headers.contentType = ContentType(
+          "application",
+          "vnd.apple.mpegurl",
+        );
         await _rewriteM3u8Response(
           response,
           request,
@@ -434,12 +449,16 @@ class LocalProxyService {
   }
 
   bool _isM3u8(String? mimeType, String url) {
+    final lowerUrl = url.toLowerCase();
     return (mimeType == "application/vnd.apple.mpegurl" ||
         mimeType == "application/x-mpegurl" ||
         mimeType == "audio/x-mpegurl" ||
         mimeType == "video/x-mpegurl" ||
-        url.contains(".m3u8") ||
-        url.contains(".m3u"));
+        lowerUrl.contains(".m3u8") ||
+        lowerUrl.contains(".m3u") ||
+        lowerUrl.contains("play.php") ||
+        lowerUrl.contains("index.php") ||
+        lowerUrl.contains("playlist.php"));
   }
 
   Future<void> _rewriteM3u8Response(
@@ -504,12 +523,10 @@ class LocalProxyService {
 
   bool _isValidM3u8(List<int> bytes) {
     try {
-      if (bytes.length > 7) {
-        // final prefix = utf8.decode(bytes.take(20).toList(), allowMalformed: true).trim();
-        // debugPrint("[PROXY] M3U8 Prefix Check: '$prefix'");
-        return utf8
-            .decode(bytes.take(7).toList(), allowMalformed: true)
-            .contains("#EXT");
+      if (bytes.length > 4) {
+        final content = utf8.decode(bytes.take(50).toList(), allowMalformed: true).trim();
+        if (kDebugMode) debugPrint("[PROXY] M3U8 Validation Check: '${content.substring(0, content.length > 10 ? 10 : content.length)}...'");
+        return content.contains("#EXT");
       }
     } catch (e) {
       if (kDebugMode) debugPrint('LocalProxyService._isValidM3u8: $e');
