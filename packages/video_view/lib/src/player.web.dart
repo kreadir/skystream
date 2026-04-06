@@ -26,6 +26,7 @@ class VideoControllerImplementation extends VideoController {
         }
       } else if (eventName == 'mediaInfo') {
         if (_source != null && _translateSource(_source!) == e['source']) {
+          final inferredIsLive = e['isLive'] ?? (e['duration'] == 0);
           loading.value = false;
           playbackState.value = .paused;
           mediaInfo.value = VideoControllerMediaInfo(
@@ -33,8 +34,8 @@ class VideoControllerImplementation extends VideoController {
             VideoControllerAudioInfo.batchFromMap(e['audioTracks']),
             VideoControllerSubtitleInfo.batchFromMap(e['subtitleTracks']),
             _source!,
-            isLive: e['isLive'] ?? (e['duration'] == 0),
-            isSeekable: e['isSeekable'] ?? true,
+            isLive: inferredIsLive,
+            isSeekable: e['isSeekable'] ?? !inferredIsLive,
           );
           if (mediaInfo.value!.duration == 0) {
             speed.value = 1;
@@ -135,12 +136,7 @@ class VideoControllerImplementation extends VideoController {
   }
 
   @override
-  open(
-    source, {
-    Map<String, String>? headers,
-    String? drmKey,
-    String? drmKid,
-  }) {
+  open(source, {Map<String, String>? headers, String? drmKey, String? drmKid}) {
     // Note: custom headers are not supported in browser HtmlVideoElement
     if (!disposed) {
       _source = source;
@@ -162,7 +158,6 @@ class VideoControllerImplementation extends VideoController {
     // Web: subtitle merging not supported natively, fall back to open()
     open(source, headers: headers, drmKey: drmKey, drmKid: drmKid);
   }
-
 
   @override
   play() {

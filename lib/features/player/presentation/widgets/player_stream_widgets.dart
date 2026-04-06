@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
@@ -56,7 +55,8 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
   }
 
   void _onVvMediaInfo() {
-    _vvDurationNotifier.value = widget.videoViewController?.mediaInfo.value?.duration ?? 0;
+    _vvDurationNotifier.value =
+        widget.videoViewController?.mediaInfo.value?.duration ?? 0;
   }
 
   @override
@@ -84,14 +84,17 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
     final useExoPlayer = ref.watch(
       playerControllerProvider.select((s) => s.useExoPlayer),
     );
+    final canSeek = ref.watch(
+      playerControllerProvider.select((s) => s.canSeek),
+    );
 
     if (useExoPlayer && widget.videoViewController != null) {
-      return _buildVideoViewBar();
+      return _buildVideoViewBar(canSeek: canSeek);
     }
-    return _buildMediaKitBar();
+    return _buildMediaKitBar(canSeek: canSeek);
   }
 
-  Widget _buildVideoViewBar() {
+  Widget _buildVideoViewBar({required bool canSeek}) {
     final isLive = ref.watch(playerControllerProvider.select((s) => s.isLive));
 
     return ValueListenableBuilder<int>(
@@ -114,7 +117,10 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
               displayValue: displayValue,
               displayDuration: displayDuration,
               bufferWidget: null,
-              onSeekEnd: (val) => widget.videoViewController!.seekTo(val.toInt()),
+              canSeek: canSeek,
+              onSeekEnd: (val) => ref
+                  .read(playerControllerProvider.notifier)
+                  .seekTo(Duration(milliseconds: val.toInt())),
               isLive: isLive,
             );
           },
@@ -123,7 +129,9 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
     );
   }
 
-  Widget _buildMediaKitBar() {
+  Widget _buildMediaKitBar({required bool canSeek}) {
+    final isLive = ref.watch(playerControllerProvider.select((s) => s.isLive));
+
     return StreamBuilder<Duration>(
       stream: widget.player.stream.duration,
       initialData: widget.player.state.duration,
@@ -171,9 +179,11 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
               displayValue: displayValue,
               displayDuration: displayDuration,
               bufferWidget: bufferWidget,
-              onSeekEnd: (val) =>
-                  widget.player.seek(Duration(milliseconds: val.toInt())),
-              isLive: ref.watch(playerControllerProvider).isLive,
+              canSeek: canSeek,
+              onSeekEnd: (val) => ref
+                  .read(playerControllerProvider.notifier)
+                  .seekTo(Duration(milliseconds: val.toInt())),
+              isLive: isLive,
             );
           },
         );
@@ -187,6 +197,7 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
     required double displayValue,
     required Duration displayDuration,
     required Widget? bufferWidget,
+    required bool canSeek,
     required void Function(double val) onSeekEnd,
     bool isLive = false,
   }) {
@@ -210,7 +221,7 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              if (bufferWidget != null) bufferWidget,
+              ?bufferWidget,
               SliderTheme(
                 data: SliderThemeData(
                   trackHeight: 4,
@@ -234,16 +245,22 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
                   min: 0.0,
                   max: durationMs > 0 ? durationMs : 1.0,
                   step: 5000,
-                  onChanged: (val) => setState(() => _dragValue = val),
-                  onChangeStart: (val) {
-                    widget.onSeekStart?.call();
-                    setState(() => _dragValue = val);
-                  },
-                  onChangeEnd: (val) {
-                    onSeekEnd(val);
-                    widget.onSeekEnd?.call();
-                    setState(() => _dragValue = null);
-                  },
+                  onChanged: canSeek
+                      ? (val) => setState(() => _dragValue = val)
+                      : null,
+                  onChangeStart: canSeek
+                      ? (val) {
+                          widget.onSeekStart?.call();
+                          setState(() => _dragValue = val);
+                        }
+                      : null,
+                  onChangeEnd: canSeek
+                      ? (val) {
+                          onSeekEnd(val);
+                          widget.onSeekEnd?.call();
+                          setState(() => _dragValue = null);
+                        }
+                      : null,
                 ),
               ),
             ],

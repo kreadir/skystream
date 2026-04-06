@@ -38,8 +38,9 @@ class PlayerScreen extends ConsumerStatefulWidget {
 class _PlayerScreenState extends ConsumerState<PlayerScreen>
     with WidgetsBindingObserver {
   late final Player _player;
-  late final VideoController _videoController;  // media_kit renderer
-  late final vv.VideoController _videoViewController; // video_view (ExoPlayer/AVPlayer)
+  late final VideoController _videoController; // media_kit renderer
+  late final vv.VideoController
+  _videoViewController; // video_view (ExoPlayer/AVPlayer)
 
   final ValueNotifier<BoxFit> _videoFit = ValueNotifier(BoxFit.contain);
   final ValueNotifier<bool> _controlsVisible = ValueNotifier(true);
@@ -49,6 +50,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
   bool _isTv = false;
   bool _isTablet = false;
+  bool _wasPlayingBeforeBackground = false;
   late final FocusNode _skipFocusNode;
 
   late final PlayerController _playerController;
@@ -115,10 +117,18 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.hidden) {
+    if (state == AppLifecycleState.paused) {
+      final ctrl = ref.read(playerControllerProvider);
+      _wasPlayingBeforeBackground = ctrl.useExoPlayer
+          ? _videoViewController.playbackState.value ==
+                vv.VideoControllerPlaybackState.playing
+          : _player.state.playing;
       _playerController.saveProgress();
+      _playerController.pause();
+    } else if (state == AppLifecycleState.resumed &&
+        _wasPlayingBeforeBackground) {
+      _wasPlayingBeforeBackground = false;
+      _playerController.play();
     }
   }
 
@@ -334,8 +344,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                         child: Consumer(
                           builder: (context, ref, _) {
                             final useExoPlayer = ref.watch(
-                              playerControllerProvider
-                                  .select((s) => s.useExoPlayer),
+                              playerControllerProvider.select(
+                                (s) => s.useExoPlayer,
+                              ),
                             );
                             if (useExoPlayer) {
                               return vv.VideoView(
@@ -348,7 +359,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                               fit: fit,
                               subtitleViewConfiguration:
                                   const SubtitleViewConfiguration(
-                                      visible: false),
+                                    visible: false,
+                                  ),
                               controls: (state) => const SizedBox.shrink(),
                             );
                           },
@@ -356,37 +368,55 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                       ),
                     ),
                   ),
-                  Positioned(
-                    bottom: (controlsVisible ? 120.0 : 20.0) +
-                        ((100 - (subtitleSettings?.subtitlePosition ?? 100.0)) *
-                            (MediaQuery.sizeOf(context).height * 0.008)),
-                    left: 20,
-                    right: 20,
-                    child: SubtitleView(
-                      controller: _videoController,
-                      configuration: SubtitleViewConfiguration(
-                        style: TextStyle(
-                          fontSize: subtitleSettings?.subtitleSize ?? 22.0,
-                          color: Color(
-                            subtitleSettings?.subtitleColor ?? 0xFFFFFFFF,
-                          ),
-                          backgroundColor: Color(
-                            subtitleSettings?.subtitleBackgroundColor ??
-                                0x00000000,
-                          ).withOpacity(
-                            subtitleSettings?.subtitleBackgroundOpacity ?? 0.0,
-                          ),
-                          shadows: const [
-                            Shadow(
-                              offset: Offset(0, 1),
-                              blurRadius: 2,
-                              color: Colors.black,
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final useExoPlayer = ref.watch(
+                        playerControllerProvider.select((s) => s.useExoPlayer),
+                      );
+                      if (useExoPlayer) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return Positioned(
+                        bottom:
+                            (controlsVisible ? 120.0 : 20.0) +
+                            ((100 -
+                                    (subtitleSettings?.subtitlePosition ??
+                                        100.0)) *
+                                (MediaQuery.sizeOf(context).height * 0.008)),
+                        left: 20,
+                        right: 20,
+                        child: SubtitleView(
+                          controller: _videoController,
+                          configuration: SubtitleViewConfiguration(
+                            style: TextStyle(
+                              fontSize: subtitleSettings?.subtitleSize ?? 22.0,
+                              color: Color(
+                                subtitleSettings?.subtitleColor ?? 0xFFFFFFFF,
+                              ),
+                              backgroundColor:
+                                  Color(
+                                    subtitleSettings?.subtitleBackgroundColor ??
+                                        0x00000000,
+                                  ).withValues(
+                                    alpha:
+                                        subtitleSettings
+                                            ?.subtitleBackgroundOpacity ??
+                                        0.0,
+                                  ),
+                              shadows: const [
+                                Shadow(
+                                  offset: Offset(0, 1),
+                                  blurRadius: 2,
+                                  color: Colors.black,
+                                ),
+                              ],
                             ),
-                          ],
+                            padding: EdgeInsets.zero,
+                          ),
                         ),
-                        padding: EdgeInsets.zero,
-                      ),
-                    ),
+                      );
+                    },
                   ),
                   Positioned.fill(
                     child: RepaintBoundary(

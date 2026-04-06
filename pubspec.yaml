@@ -85,6 +85,7 @@ dependencies:
   background_downloader: ^9.5.4
   flutter_hooks: ^0.21.3+1
   hooks_riverpod: ^3.1.0
+  pointycastle: ^3.6.2
 
 
 dev_dependencies:

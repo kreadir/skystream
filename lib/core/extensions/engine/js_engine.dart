@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' as io;
 import 'package:flutter/foundation.dart'; // For kDebugMode
 import 'package:flutter_js/flutter_js.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:cookie_jar/cookie_jar.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart' as wv;
 import '../../storage/extension_repository.dart';
 import '../../network/cloudflare_bypass.dart';
 import 'package:encrypt/encrypt.dart' as encrypt_lib;
@@ -49,6 +51,12 @@ class JsEngineService {
   // Persistent callback registry to prevent memory leaks from dynamic listeners
   final Map<String, Completer<dynamic>> _pendingCallbacks = {};
   final Map<String, dynamic> _domRegistry = {};
+
+  // Cancel token for the currently executing invokeAsync invocation.
+  // When a long-running JS function (e.g. getHome) times out on the Dart side,
+  // cancelling this token causes any subsequent Dio requests from that JS
+  // execution to fail immediately instead of spawning more CF bypass WebViews.
+  CancelToken? _currentCancelToken;
 
   // Monotonic counter for callback IDs — avoids Windows clock-resolution collisions
   // where DateTime.now().microsecondsSinceEpoch returns the same value for concurrent calls.
@@ -408,8 +416,9 @@ class JsEngineService {
         final keyToken = encrypt_lib.Key.fromBase64(keyB64);
         final ivToken = encrypt_lib.IV.fromBase64(ivB64);
 
-        final encrypt_lib.AESMode aesMode =
-            mode == 'gcm' ? encrypt_lib.AESMode.gcm : encrypt_lib.AESMode.cbc;
+        final encrypt_lib.AESMode aesMode = mode == 'gcm'
+            ? encrypt_lib.AESMode.gcm
+            : encrypt_lib.AESMode.cbc;
 
         final encrypter = encrypt_lib.Encrypter(
           encrypt_lib.AES(keyToken, mode: aesMode),
@@ -450,7 +459,9 @@ class JsEngineService {
         final derivator = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64))
           ..init(Pbkdf2Parameters(salt, iterations, keyLength));
 
-        final result = derivator.process(Uint8List.fromList(utf8.encode(password)));
+        final result = derivator.process(
+          Uint8List.fromList(utf8.encode(password)),
+        );
         final resultB64 = base64Encode(result);
 
         if (callbackId != null) {
@@ -827,6 +838,7 @@ class JsEngineService {
       final response = await _dio.request(
         url,
         data: body,
+        cancelToken: _currentCancelToken,
         options: Options(
           method: method,
           headers: finalHeaders,
@@ -852,7 +864,17 @@ class JsEngineService {
         responseHeaders,
         responseBody,
       )) {
-        final cfResult = await CloudflareBypass.instance.solveAndFetch(url);
+        // Check cancellation before starting a new WebView — but don't pass
+        // isCancelled into the solve loop so an in-flight bypass can finish
+        // and store CF cookies for future visits.
+        final capturedToken = _currentCancelToken;
+        if (capturedToken != null && capturedToken.isCancelled) {
+          return {'code': 0, 'statusCode': 0, 'status': 0, 'body': '', 'error': 'cancelled'};
+        }
+        final cfResult = await CloudflareBypass.instance.solveAndFetch(
+          url,
+          onSolved: (host) => _injectCfCookies(host),
+        );
         if (cfResult != null) {
           return {
             'code': cfResult.statusCode,
@@ -882,6 +904,40 @@ class JsEngineService {
         'body': '',
         'error': e.toString(),
       };
+    }
+  }
+
+  /// After a successful CF bypass, extract the WebView's cookies for [host]
+  /// and inject them into Dio's [_cookieJar]. This means subsequent Dio
+  /// requests to the same host send the CF clearance cookies and don't get
+  /// 403 — eliminating repeated WebView spawns for multi-URL providers (YTS).
+  Future<void> _injectCfCookies(String host) async {
+    try {
+      final mgr = wv.CookieManager.instance();
+      final webCookies = await mgr.getCookies(
+        url: wv.WebUri('https://$host/'),
+      );
+      if (webCookies.isEmpty) return;
+      final uri = Uri.parse('https://$host/');
+      final ioCookies = webCookies.map((c) {
+        final cookie = io.Cookie(c.name, c.value ?? '');
+        cookie.domain = c.domain ?? host;
+        cookie.path = c.path ?? '/';
+        cookie.httpOnly = c.isHttpOnly ?? false;
+        cookie.secure = c.isSecure ?? false;
+        if (c.expiresDate != null) {
+          cookie.expires = DateTime.fromMillisecondsSinceEpoch(
+            c.expiresDate!.toInt(),
+          );
+        }
+        return cookie;
+      }).toList();
+      await _cookieJar.saveFromResponse(uri, ioCookies);
+      if (kDebugMode) {
+        debugPrint('[CF Cookie] Injected ${ioCookies.length} cookies for $host into Dio');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[CF Cookie] Injection error for $host: $e');
     }
   }
 
@@ -927,6 +983,8 @@ class JsEngineService {
     final callbackId = "cb_${_callbackCounter++}";
     final completer = Completer<dynamic>();
     _pendingCallbacks[callbackId] = completer;
+    final cancelToken = CancelToken();
+    _currentCancelToken = cancelToken;
 
     final evalWrapper =
         """
@@ -972,14 +1030,23 @@ class JsEngineService {
     dynamic result;
     try {
       result = await completer.future.timeout(
-        const Duration(seconds: 60),
+        const Duration(seconds: 90),
         onTimeout: () {
           _pendingCallbacks.remove(callbackId);
+          // Cancel all in-flight Dio requests from this JS invocation so
+          // background JS code (e.g. iterating CF-protected URLs) stops
+          // spawning new network requests / WebViews after the timeout.
+          cancelToken.cancel('invokeAsync timeout: $functionName');
+          // Keep _currentCancelToken pointing at the cancelled token so
+          // subsequent _handleHttp calls for this invocation see isCancelled.
+          // It will be replaced when the next invokeAsync starts.
           throw TimeoutException('Timeout executing $functionName');
         },
       );
+      if (_currentCancelToken == cancelToken) _currentCancelToken = null;
       _decrementAsync();
     } catch (e) {
+      if (_currentCancelToken == cancelToken) _currentCancelToken = null;
       _decrementAsync();
       rethrow;
     }

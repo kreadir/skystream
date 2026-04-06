@@ -125,6 +125,14 @@ static int64_t video_view_plugin_get_pos(const VideoViewPlugin* self) {
 	return (int64_t)(pos * 1000);
 }
 
+static gboolean video_view_plugin_is_seekable(const VideoViewPlugin* self) {
+	gboolean seekable = FALSE;
+	gboolean partially_seekable = FALSE;
+	const int sk_rc = mpv_get_property(self->mpv, "seekable", MPV_FORMAT_FLAG, &seekable);
+	const int psk_rc = mpv_get_property(self->mpv, "partially-seekable", MPV_FORMAT_FLAG, &partially_seekable);
+	return (sk_rc == MPV_ERROR_SUCCESS && seekable) || (psk_rc == MPV_ERROR_SUCCESS && partially_seekable);
+}
+
 static void video_view_plugin_set_pause(const VideoViewPlugin* self, gboolean pause) {
 	mpv_set_property(self->mpv, "pause", MPV_FORMAT_FLAG, &pause);
 }
@@ -404,6 +412,7 @@ static void video_view_plugin_loaded(VideoViewPlugin* self) {
 	} else {
 		mpv_get_property(self->mpv, "duration/full", MPV_FORMAT_DOUBLE, &duration);
 	}
+	const gboolean isSeekable = self->streaming ? FALSE : video_view_plugin_is_seekable(self);
 	self->state = 2;
 	video_view_plugin_set_max_size(self);
 	video_view_plugin_set_default_track(self, 0);
@@ -411,6 +420,8 @@ static void video_view_plugin_loaded(VideoViewPlugin* self) {
 	g_autoptr(FlValue) evt = fl_value_new_map();
 	fl_value_set_string_take(evt, "event", fl_value_new_string("mediaInfo"));
 	fl_value_set_string_take(evt, "source", fl_value_new_string(self->source));
+	fl_value_set_string_take(evt, "isLive", fl_value_new_bool(self->streaming));
+	fl_value_set_string_take(evt, "isSeekable", fl_value_new_bool(isSeekable));
 	fl_value_set_string_take(evt, "duration", fl_value_new_int((int64_t)(duration * 1000)));
 	fl_value_set_string_take(evt, "audioTracks", audioTracks);
 	fl_value_set_string_take(evt, "subtitleTracks", subtitleTracks);
@@ -1217,7 +1228,7 @@ static void video_view_plugin_method_call(FlMethodChannel* channel, FlMethodCall
 			g_tree_remove(players, (void*)id);
 			g_mutex_unlock(&mutex);
 		}
-	} else if (g_str_equal(method, "open")) {
+	} else if (g_str_equal(method, "open") || g_str_equal(method, "openWithSubtitles")) {
 		VideoViewPlugin* player = video_view_plugin_get_player(args, true);
 		const gchar* value = fl_value_get_string(fl_value_lookup_string(args, "value"));
 		video_view_plugin_open(player, value);

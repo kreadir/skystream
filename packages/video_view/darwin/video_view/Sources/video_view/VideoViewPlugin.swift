@@ -46,6 +46,7 @@ class VideoController: NSObject, FlutterStreamHandler {
 	private var streaming = false
 	private var seeking = false
 	private var retryCount = 0
+	private var requestHeaders: [String: String]?
 
 	init(registrar: FlutterPluginRegistrar) {
 #if os(macOS)
@@ -112,6 +113,13 @@ class VideoController: NSObject, FlutterStreamHandler {
 	}
 
 	deinit {
+		// Stop all active resources BEFORE removing observers.
+		// DisplayLink and the periodic time observer both have strong callbacks — they must
+		// be torn down first so no callback fires on a half-dealloc'd object.
+		avPlayer.pause()
+		stopVideo()   // invalidates DisplayLink + removes videoOutput
+		stopWatcher() // removes periodic time observer (retain-cycle source)
+		NotificationCenter.default.removeObserver(self) // remove onFinish observer
 		eventSink?(FlutterEndOfEventStream)
 		eventChannel.setStreamHandler(nil)
 		avPlayer.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus))
@@ -122,7 +130,7 @@ class VideoController: NSObject, FlutterStreamHandler {
 		subtitleLayer.player = nil
 	}
 
-	func open(source: String, headers: [String: String]? = nil) {
+	private func openResolved(source: String, headers: [String: String]? = nil) {
 		close()
 		let uri: URL?
 		if source.starts(with: "asset://") {
@@ -166,6 +174,23 @@ class VideoController: NSObject, FlutterStreamHandler {
 				object: avPlayer.currentItem
 			)
 		}
+	}
+
+	func open(source: String, headers: [String: String]? = nil) {
+		requestHeaders = headers
+		openResolved(source: source, headers: headers)
+	}
+
+	func openWithSubtitles(
+		source: String,
+		headers: [String: String]? = nil,
+		subtitles: [[String: String]] = []
+	) {
+		requestHeaders = headers
+		// Keep AVPlayer on the primary video path on Apple platforms.
+		// External subtitle merging is not supported in this backend yet.
+		_ = subtitles
+		openResolved(source: source, headers: headers)
 	}
 
 	func close() {
@@ -477,7 +502,9 @@ class VideoController: NSObject, FlutterStreamHandler {
 				// and setSpeed() doesn't apply speed changes to live streams.
 				if isLive { streaming = true }
 				let seekable = item.seekableTimeRanges.last?.timeRangeValue
-				let isSeekable = isLive || seekable != nil
+				let seekableDuration = seekable?.duration.seconds ?? 0
+				let hasSeekableRange = seekableDuration.isFinite && seekableDuration > 0
+				let isSeekable = hasSeekableRange || !isLive
 				
 				var duration: Int = 0
 				if isLive {
@@ -602,10 +629,14 @@ class VideoController: NSObject, FlutterStreamHandler {
 				if state > 0 {
 					if retryCount < 3 {
 						retryCount += 1
-						DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-							if self?.state ?? 0 > 0 {
-								self?.open(source: self?.source ?? "")
-							}
+						// Exponential backoff: 2s, 4s, 8s (2^retryCount seconds)
+						let delay = Double(1 << retryCount)
+						DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+							guard let self = self, self.state > 0 else { return }
+							self.openResolved(
+								source: self.source ?? "",
+								headers: self.requestHeaders
+							)
 						}
 					} else {
 						eventSink?([
@@ -732,6 +763,13 @@ public class VideoViewPlugin: NSObject, FlutterPlugin {
 			let src = args["value"] as! String
 			let headers = args["headers"] as? [String: String]
 			player?.open(source: src, headers: headers)
+		case "openWithSubtitles":
+			let args = call.arguments as! [String: Any]
+			let player = players[args["id"] as! Int64]
+			let src = args["value"] as! String
+			let headers = args["headers"] as? [String: String]
+			let subtitles = args["subtitles"] as? [[String: String]] ?? []
+			player?.openWithSubtitles(source: src, headers: headers, subtitles: subtitles)
 		case "seekTo":
 			let args = call.arguments as! [String: Any]
 			let player = players[args["id"] as! Int64]

@@ -7,6 +7,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:media_kit/media_kit.dart';
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
@@ -89,6 +90,15 @@ class PlayerState {
     this.resumePromptPosition,
   });
 
+  bool get canSeek => !useExoPlayer || isSeekable;
+  bool get supportsPlaybackSpeed => !isLive;
+  double get maxPlaybackSpeed => useExoPlayer ? 2.0 : 3.0;
+  bool get supportsVolumeBoost => !useExoPlayer;
+  bool get supportsSubtitleDelay => !useExoPlayer;
+  bool get supportsSubtitleStyling => !useExoPlayer;
+  bool get supportsExternalSubtitleLoading =>
+      !useExoPlayer || Platform.isAndroid;
+
   PlayerState copyWith({
     bool? isLoading,
     String? errorMessage,
@@ -156,6 +166,32 @@ class PlayerState {
   }
 }
 
+class PlayerTrackOption {
+  final String id;
+  final String label;
+  final String? subtitle;
+  final bool selected;
+
+  const PlayerTrackOption({
+    required this.id,
+    required this.label,
+    this.subtitle,
+    this.selected = false,
+  });
+}
+
+class PlayerTrackSelectionSnapshot {
+  final List<PlayerTrackOption> audioTracks;
+  final List<PlayerTrackOption> subtitleTracks;
+  final bool subtitlesOffSelected;
+
+  const PlayerTrackSelectionSnapshot({
+    this.audioTracks = const [],
+    this.subtitleTracks = const [],
+    this.subtitlesOffSelected = true,
+  });
+}
+
 // Sentinel so copyWith can distinguish "not passed" from "explicitly null".
 const Object _keep = Object();
 
@@ -188,6 +224,8 @@ class PlayerController extends Notifier<PlayerState> {
     return state.isLive;
   }
 
+  bool get _videoViewSupportsMergedExternalSubtitles => Platform.isAndroid;
+
   // Track last saved position for threshold-based saving
   Duration _lastSavedPosition = Duration.zero;
   static const double _saveThresholdPercent = 0.05; // 5% of video
@@ -201,6 +239,7 @@ class PlayerController extends Notifier<PlayerState> {
   StreamSubscription? _bufferingSub;
   StreamSubscription? _completedSub;
   StreamSubscription? _rateSub;
+  StreamSubscription? _logSub;
 
   // Stall Watchdog state
   Duration? _lastPosition;
@@ -212,6 +251,10 @@ class PlayerController extends Notifier<PlayerState> {
   Timer? _stallTimer;
   int? _pendingResumeSeekPosition;
   bool _isApplyingPendingResumeSeek = false;
+  double _lastNonZeroVolumeLevel = 1.0;
+  final List<SubtitleFile> _userAddedExternalSubtitles = [];
+  Set<String>? _pendingVideoViewSubtitleIdsBeforeReload;
+  bool _selectNewestVideoViewSubtitleAfterReload = false;
 
   @override
   PlayerState build() {
@@ -230,6 +273,7 @@ class PlayerController extends Notifier<PlayerState> {
       _bufferingSub?.cancel();
       _completedSub?.cancel();
       _rateSub?.cancel();
+      _logSub?.cancel();
     });
     return const PlayerState();
   }
@@ -247,12 +291,17 @@ class PlayerController extends Notifier<PlayerState> {
     VideoController? videoViewController,
   }) async {
     state = const PlayerState(); // Reset stale state
+    _logSub?.cancel();
+    _logSub = null;
     _player = player;
     _videoViewController = videoViewController;
     _videoUrl = videoUrl;
     _episode = episode;
     _pendingResumeSeekPosition = null;
     _isApplyingPendingResumeSeek = false;
+    _userAddedExternalSubtitles.clear();
+    _pendingVideoViewSubtitleIdsBeforeReload = null;
+    _selectNewestVideoViewSubtitleAfterReload = false;
 
     _item = item;
 
@@ -337,6 +386,23 @@ class PlayerController extends Notifier<PlayerState> {
         if (info.isLive && !state.isLive) {
           state = state.copyWith(isLive: true);
         }
+
+        if (_selectNewestVideoViewSubtitleAfterReload &&
+            info.subtitleTracks.isNotEmpty) {
+          final previousIds =
+              _pendingVideoViewSubtitleIdsBeforeReload ?? const <String>{};
+          final newTrackId =
+              info.subtitleTracks.keys.firstWhereOrNull(
+                (id) => !previousIds.contains(id),
+              ) ??
+              info.subtitleTracks.keys.lastOrNull;
+          if (newTrackId != null) {
+            _videoViewController!.setShowSubtitle(true);
+            _videoViewController!.setOverrideSubtitle(newTrackId);
+          }
+          _pendingVideoViewSubtitleIdsBeforeReload = null;
+          _selectNewestVideoViewSubtitleAfterReload = false;
+        }
       }
     });
 
@@ -360,6 +426,8 @@ class PlayerController extends Notifier<PlayerState> {
     _videoViewController!.error.addListener(() {
       final error = _videoViewController!.error.value;
       if (error != null) {
+        _pendingVideoViewSubtitleIdsBeforeReload = null;
+        _selectNewestVideoViewSubtitleAfterReload = false;
         if (kDebugMode) debugPrint("VideoView Player Error: $error");
         if (state.isLoading || (_videoViewController!.position.value) == 0) {
           if (state.isManualSwitch) {
@@ -830,6 +898,381 @@ class PlayerController extends Notifier<PlayerState> {
     return _item.episodes?.firstWhereOrNull((e) => e.url == _videoUrl);
   }
 
+  List<SubtitleFile> _effectiveExternalSubtitles(
+    List<SubtitleFile>? streamSubtitles,
+  ) {
+    final merged = <SubtitleFile>[];
+    final seenUrls = <String>{};
+
+    for (final sub in [...?streamSubtitles, ..._userAddedExternalSubtitles]) {
+      if (seenUrls.add(sub.url)) {
+        merged.add(sub);
+      }
+    }
+
+    return merged;
+  }
+
+  List<SubtitleTrackConfig> _buildSubtitleConfigs(
+    List<SubtitleFile> subtitles,
+  ) {
+    return subtitles
+        .map(
+          (subtitle) => SubtitleTrackConfig(
+            uri: subtitle.url,
+            mimeType: subtitle.url.toLowerCase().endsWith('.vtt')
+                ? 'text/vtt'
+                : 'application/x-subrip',
+            language: subtitle.lang ?? 'und',
+          ),
+        )
+        .toList();
+  }
+
+  String _languageName(String code) {
+    const langMap = {
+      'en': 'English',
+      'es': 'Spanish',
+      'fr': 'French',
+      'de': 'German',
+      'it': 'Italian',
+      'ja': 'Japanese',
+      'ko': 'Korean',
+      'zh': 'Chinese',
+      'ru': 'Russian',
+      'pt': 'Portuguese',
+      'ar': 'Arabic',
+      'hi': 'Hindi',
+      'und': 'Unknown',
+    };
+
+    return langMap[code.toLowerCase()] ?? code.toUpperCase();
+  }
+
+  String _formatTrackLabel({
+    String? language,
+    String? title,
+    String? fallbackId,
+  }) {
+    final base = language != null && language.trim().isNotEmpty
+        ? _languageName(language)
+        : ((fallbackId != null && fallbackId.trim().isNotEmpty)
+              ? fallbackId
+              : 'Unknown');
+
+    if (title != null && title.trim().isNotEmpty) {
+      return '$base (${title.trim()})';
+    }
+
+    return base;
+  }
+
+  Future<void> _openResolvedStream(
+    String playUrl,
+    StreamResult stream,
+    Map<String, String> headers,
+  ) async {
+    if (_shouldUseVideoView) {
+      // Pause media_kit so it stops consuming bandwidth while video_view plays.
+      // (media_kit.open() will replace it if the user switches back.)
+      if (!state.useExoPlayer) {
+        await _player.pause();
+      }
+
+      String finalUrl = playUrl;
+      if (finalUrl.contains('play.php') || finalUrl.contains('index.php')) {
+        finalUrl = LocalProxyService.instance.getProxyUrl(
+          finalUrl,
+          headers: headers,
+          forceM3u8Extension: true,
+        );
+        if (kDebugMode) {
+          debugPrint("[PLAYER] Proxied non-standard HLS: $finalUrl");
+        }
+      }
+
+      final subs = state.externalSubtitles;
+      if (subs.isNotEmpty && _videoViewSupportsMergedExternalSubtitles) {
+        _videoViewController!.openWithSubtitles(
+          finalUrl,
+          headers: headers,
+          subtitles: _buildSubtitleConfigs(subs),
+          drmKey: stream.drmKey,
+          drmKid: stream.drmKid,
+        );
+      } else {
+        _videoViewController!.open(
+          finalUrl,
+          headers: headers,
+          drmKey: stream.drmKey,
+          drmKid: stream.drmKid,
+        );
+      }
+      state = state.copyWith(useExoPlayer: true);
+      return;
+    }
+
+    // Close video_view before handing off to media_kit so ExoPlayer/AVPlayer
+    // stops buffering and releases its surface while media_kit plays.
+    if (state.useExoPlayer) {
+      _videoViewController?.close();
+    }
+
+    await _player.open(Media(playUrl, httpHeaders: headers));
+    state = state.copyWith(useExoPlayer: false);
+  }
+
+  Future<void> seekTo(Duration position, {bool fast = false}) async {
+    if (!state.canSeek) return;
+
+    final clamped = position < Duration.zero ? Duration.zero : position;
+
+    if (state.useExoPlayer && _videoViewController != null) {
+      _videoViewController!.seekTo(clamped.inMilliseconds, fast: fast);
+      return;
+    }
+
+    await _player.seek(clamped);
+  }
+
+  Future<void> seekRelative(Duration amount, {bool fast = false}) async {
+    if (!state.canSeek) return;
+
+    final currentPosition = state.useExoPlayer
+        ? Duration(milliseconds: _videoViewController?.position.value ?? 0)
+        : _player.state.position;
+
+    await seekTo(currentPosition + amount, fast: fast);
+  }
+
+  Future<void> play() async {
+    if (state.useExoPlayer && _videoViewController != null) {
+      _videoViewController!.play();
+      return;
+    }
+
+    await _player.play();
+  }
+
+  Future<void> pause() async {
+    if (state.useExoPlayer && _videoViewController != null) {
+      _videoViewController!.pause();
+      return;
+    }
+
+    await _player.pause();
+  }
+
+  Future<void> togglePlayPause() async {
+    final isPlaying = state.useExoPlayer && _videoViewController != null
+        ? _videoViewController!.playbackState.value ==
+              VideoControllerPlaybackState.playing
+        : _player.state.playing;
+
+    if (isPlaying) {
+      await pause();
+    } else {
+      await play();
+    }
+  }
+
+  PlayerTrackSelectionSnapshot getTrackSelectionSnapshot() {
+    if (state.useExoPlayer && _videoViewController != null) {
+      final controller = _videoViewController!;
+      final info = controller.mediaInfo.value;
+      if (info == null) {
+        return const PlayerTrackSelectionSnapshot();
+      }
+
+      final overrideAudio = controller.overrideAudio.value;
+      final overrideSubtitle = controller.overrideSubtitle.value;
+      final showSubtitle = controller.showSubtitle.value;
+
+      final audioTracks = info.audioTracks.entries
+          .map(
+            (entry) => PlayerTrackOption(
+              id: entry.key,
+              label: _formatTrackLabel(
+                language: entry.value.language,
+                title: entry.value.title,
+                fallbackId: entry.key,
+              ),
+              subtitle: entry.value.format,
+              selected:
+                  overrideAudio == entry.key ||
+                  (overrideAudio == null && info.audioTracks.length == 1),
+            ),
+          )
+          .toList();
+
+      final subtitleTracks = info.subtitleTracks.entries
+          .map(
+            (entry) => PlayerTrackOption(
+              id: entry.key,
+              label: _formatTrackLabel(
+                language: entry.value.language,
+                title: entry.value.title,
+                fallbackId: entry.key,
+              ),
+              subtitle: entry.value.format,
+              selected: showSubtitle && overrideSubtitle == entry.key,
+            ),
+          )
+          .toList();
+
+      return PlayerTrackSelectionSnapshot(
+        audioTracks: audioTracks,
+        subtitleTracks: subtitleTracks,
+        subtitlesOffSelected: !showSubtitle,
+      );
+    }
+
+    final audioTracks = _player.state.tracks.audio
+        .map(
+          (track) => PlayerTrackOption(
+            id: track.id,
+            label: _formatTrackLabel(
+              language: track.language,
+              title: track.title,
+              fallbackId: track.id,
+            ),
+            selected: track == _player.state.track.audio,
+          ),
+        )
+        .toList();
+
+    final subtitleTracks = <PlayerTrackOption>[
+      ...state.externalSubtitles.map(
+        (subtitle) => PlayerTrackOption(
+          id: 'external:${subtitle.url}',
+          label: subtitle.label,
+          subtitle: subtitle.lang != null
+              ? _languageName(subtitle.lang!)
+              : null,
+          selected:
+              _player.state.track.subtitle.id == subtitle.url ||
+              _player.state.track.subtitle.title == subtitle.label,
+        ),
+      ),
+      ..._player.state.tracks.subtitle.map(
+        (track) => PlayerTrackOption(
+          id: 'embedded:${track.id}',
+          label: _formatTrackLabel(
+            language: track.language,
+            title: track.title,
+            fallbackId: track.id,
+          ),
+          selected: track == _player.state.track.subtitle,
+        ),
+      ),
+    ];
+
+    return PlayerTrackSelectionSnapshot(
+      audioTracks: audioTracks,
+      subtitleTracks: subtitleTracks,
+      subtitlesOffSelected: _player.state.track.subtitle == SubtitleTrack.no(),
+    );
+  }
+
+  Future<void> selectAudioTrack(String id) async {
+    if (state.useExoPlayer && _videoViewController != null) {
+      _videoViewController!.setOverrideAudio(id);
+      return;
+    }
+
+    final track = _player.state.tracks.audio.firstWhereOrNull(
+      (t) => t.id == id,
+    );
+    if (track != null) {
+      await _player.setAudioTrack(track);
+    }
+  }
+
+  Future<void> selectSubtitleTrack(String? id) async {
+    if (state.useExoPlayer && _videoViewController != null) {
+      if (id == null) {
+        _videoViewController!.setShowSubtitle(false);
+        if (_videoViewController!.overrideSubtitle.value != null) {
+          _videoViewController!.setOverrideSubtitle(null);
+        }
+        return;
+      }
+
+      _videoViewController!.setShowSubtitle(true);
+      _videoViewController!.setOverrideSubtitle(id);
+      return;
+    }
+
+    if (id == null) {
+      await _player.setSubtitleTrack(SubtitleTrack.no());
+      return;
+    }
+
+    if (id.startsWith('external:')) {
+      final url = id.substring('external:'.length);
+      final subtitle = state.externalSubtitles.firstWhereOrNull(
+        (sub) => sub.url == url,
+      );
+      if (subtitle != null) {
+        await _player.setSubtitleTrack(
+          SubtitleTrack.uri(
+            subtitle.url,
+            title: subtitle.label,
+            language: subtitle.lang,
+          ),
+        );
+      }
+      return;
+    }
+
+    final embeddedId = id.startsWith('embedded:')
+        ? id.substring('embedded:'.length)
+        : id;
+    final track = _player.state.tracks.subtitle.firstWhereOrNull(
+      (t) => t.id == embeddedId,
+    );
+    if (track != null) {
+      await _player.setSubtitleTrack(track);
+    }
+  }
+
+  Future<bool> _isStreamCandidateHealthy(StreamResult stream) async {
+    if (stream.url.startsWith("magnet:") ||
+        stream.url.endsWith(".torrent") ||
+        stream.url.startsWith("/")) {
+      return true;
+    }
+
+    final uri = Uri.parse(stream.url);
+    final headers = <String, String>{...?stream.headers};
+
+    try {
+      final resp = await http
+          .head(uri, headers: headers)
+          .timeout(const Duration(seconds: 3));
+      if (resp.statusCode < 400) return true;
+    } catch (_) {
+      // Fall back to a ranged GET below.
+    }
+
+    final client = http.Client();
+    try {
+      final request = http.Request('GET', uri);
+      request.headers.addAll(headers);
+      request.headers.putIfAbsent('Range', () => 'bytes=0-0');
+      final resp = await client
+          .send(request)
+          .timeout(const Duration(seconds: 3));
+      final subscription = resp.stream.listen((_) {});
+      await subscription.cancel();
+      return resp.statusCode < 400 || resp.statusCode == 416;
+    } catch (_) {
+      return false;
+    } finally {
+      client.close();
+    }
+  }
+
   Future<void> loadStreamAtIndex(int index) async {
     if (index < 0 || index >= state.streams.length) return;
 
@@ -839,13 +1282,14 @@ class PlayerController extends Notifier<PlayerState> {
         ref.read(activeProviderStateProvider)?.name ??
         "Unknown";
     final providerName = _getProviderDisplayName(rawProviderName);
+    final subtitles = _effectiveExternalSubtitles(stream.subtitles);
 
     state = state.copyWith(
       currentStreamIndex: index,
       currentStream: stream,
       isLoading: true,
       streamSubtitle: "$providerName - ${stream.source}",
-      externalSubtitles: stream.subtitles ?? [],
+      externalSubtitles: subtitles,
       isLive:
           _item.contentType == MultimediaContentType.livestream ||
           _isLiveStream(stream.url),
@@ -867,56 +1311,7 @@ class PlayerController extends Notifier<PlayerState> {
 
       final headers = stream.headers ?? {};
       await _applyPlaybackProperties(headers, stream);
-
-      // Phase 7: Route to correct engine
-      if (_shouldUseVideoView) {
-        String finalUrl = playUrl;
-        // JIO BD / play.php Fix: If we are using the native engine and the URL is a known
-        // non-standard redirector (like play.php or index.php), wrap it in our LocalProxyService.
-        // This ensures the content is sniffed/rewritten as HLS and served with a .m3u8 extension.
-        if (finalUrl.contains('play.php') || finalUrl.contains('index.php')) {
-          finalUrl = LocalProxyService.instance.getProxyUrl(
-            finalUrl,
-            headers: headers,
-            forceM3u8Extension: true,
-          );
-          if (kDebugMode) {
-            debugPrint("[PLAYER] Proxied non-standard HLS: $finalUrl");
-          }
-        }
-
-        final subs = state.externalSubtitles;
-        if (subs.isNotEmpty) {
-          _videoViewController!.openWithSubtitles(
-            finalUrl,
-            headers: headers,
-            subtitles: subs
-                .map(
-                  (s) => SubtitleTrackConfig(
-                    uri: s.url,
-                    mimeType: s.url.toLowerCase().endsWith('.vtt')
-                        ? 'text/vtt'
-                        : 'application/x-subrip',
-                    language: s.lang ?? 'und',
-                  ),
-                )
-                .toList(),
-            drmKey: stream.drmKey,
-            drmKid: stream.drmKid,
-          );
-        } else {
-          _videoViewController!.open(
-            finalUrl,
-            headers: headers,
-            drmKey: stream.drmKey,
-            drmKid: stream.drmKid,
-          );
-        }
-        state = state.copyWith(useExoPlayer: true);
-      } else {
-        await _player.open(Media(playUrl, httpHeaders: headers));
-        state = state.copyWith(useExoPlayer: false);
-      }
+      await _openResolvedStream(playUrl, stream, headers);
 
       final historyRepo = ref.read(historyRepositoryProvider);
       final isSeries = _item.contentType == MultimediaContentType.series;
@@ -990,11 +1385,12 @@ class PlayerController extends Notifier<PlayerState> {
     try {
       final playUrl = await _resolveStreamUrl(stream);
       if (playUrl == null) throw Exception("Failed to resolve stream URL");
+      final subtitles = _effectiveExternalSubtitles(stream.subtitles);
 
       state = state.copyWith(
         isLoading: true,
         currentStream: stream,
-        externalSubtitles: stream.subtitles ?? [],
+        externalSubtitles: subtitles,
         isLive:
             _item.contentType == MultimediaContentType.livestream ||
             _isLiveStream(playUrl),
@@ -1010,58 +1406,12 @@ class PlayerController extends Notifier<PlayerState> {
 
       final headers = stream.headers ?? {};
       await _applyPlaybackProperties(headers, stream);
-
-      // Phase 7: Route to correct engine
-      if (_shouldUseVideoView) {
-        String finalUrl = playUrl;
-        // JIO BD / play.php Fix: If we are using the native engine and the URL is a known
-        // non-standard redirector (like play.php or index.php), wrap it in our LocalProxyService.
-        // This ensures the content is sniffed/rewritten as HLS and served with a .m3u8 extension.
-        if (finalUrl.contains('play.php') || finalUrl.contains('index.php')) {
-          finalUrl = LocalProxyService.instance.getProxyUrl(
-            finalUrl,
-            headers: headers,
-            forceM3u8Extension: true,
-          );
-        }
-
-        final subs = state.externalSubtitles;
-        if (subs.isNotEmpty) {
-          _videoViewController!.openWithSubtitles(
-            finalUrl,
-            headers: headers,
-            subtitles: subs
-                .map(
-                  (s) => SubtitleTrackConfig(
-                    uri: s.url,
-                    mimeType: s.url.toLowerCase().endsWith('.vtt')
-                        ? 'text/vtt'
-                        : 'application/x-subrip',
-                    language: s.lang ?? 'und',
-                  ),
-                )
-                .toList(),
-            drmKey: stream.drmKey,
-            drmKid: stream.drmKid,
-          );
-        } else {
-          _videoViewController!.open(
-            finalUrl,
-            headers: headers,
-            drmKey: stream.drmKey,
-            drmKid: stream.drmKid,
-          );
-        }
-        state = state.copyWith(useExoPlayer: true);
-      } else {
-        await _player.open(Media(playUrl, httpHeaders: headers));
-        state = state.copyWith(useExoPlayer: false);
-      }
+      await _openResolvedStream(playUrl, stream, headers);
 
       if (oldPos > Duration.zero && !resetPosition) {
         await _safeSeekTo(oldPos.inMilliseconds);
       } else if (resetPosition) {
-        await _player.seek(Duration.zero);
+        await seekTo(Duration.zero, fast: true);
       }
 
       state = state.copyWith(
@@ -1181,6 +1531,7 @@ class PlayerController extends Notifier<PlayerState> {
       // Update video URL and episode, then refresh
       _videoUrl = finalUrl;
       _episode = nextEpisode;
+      _userAddedExternalSubtitles.clear();
       state = state.copyWith(
         playerTitle: "${_item.title} - ${nextEpisode.name}",
         showNextEpisodeOverlay: false,
@@ -1206,6 +1557,7 @@ class PlayerController extends Notifier<PlayerState> {
 
     _episode = episode;
     _videoUrl = episode.url;
+    _userAddedExternalSubtitles.clear();
 
     // Smart load: Check for downloaded version
     final downloadService = ref.read(downloadServiceProvider);
@@ -1397,6 +1749,7 @@ class PlayerController extends Notifier<PlayerState> {
     _bufferingSub?.cancel();
     _completedSub?.cancel();
     _rateSub?.cancel();
+    _logSub?.cancel();
 
     saveProgress();
     ref.read(torrentServiceProvider).stop();
@@ -1433,23 +1786,7 @@ class PlayerController extends Notifier<PlayerState> {
       final results = await Future.wait(
         candidates.map((idx) async {
           final s = streams[idx];
-          // Skip torrents/local files from parallel check
-          if (s.url.startsWith("magnet:") ||
-              s.url.endsWith(".torrent") ||
-              s.url.startsWith("/")) {
-            return MapEntry(idx, true);
-          }
-
-          try {
-            final uri = Uri.parse(s.url);
-            // Use a short timeout for health check
-            final resp = await http
-                .head(uri, headers: s.headers)
-                .timeout(const Duration(seconds: 3));
-            return MapEntry(idx, resp.statusCode < 400);
-          } catch (_) {
-            return MapEntry(idx, false);
-          }
+          return MapEntry(idx, await _isStreamCandidateHealthy(s));
         }),
       );
 
@@ -1593,8 +1930,8 @@ class PlayerController extends Notifier<PlayerState> {
         await native.setProperty('vd-lavc-skiploopfilter', 'nonkey');
         await native.setProperty('vd-lavc-skipframe', 'nonref');
 
-        if (kDebugMode) {
-          _player.stream.log.listen((log) {
+        if (kDebugMode && _logSub == null) {
+          _logSub = _player.stream.log.listen((log) {
             debugPrint('[MPV] ${log.level}: ${log.text}');
           });
         }
@@ -1840,11 +2177,21 @@ class PlayerController extends Notifier<PlayerState> {
   }
 
   Future<void> setPlaybackSpeed(double rate) async {
-    await _player.setRate(rate);
-    state = state.copyWith(playbackSpeed: rate);
+    final appliedRate = rate.clamp(0.5, state.maxPlaybackSpeed);
+
+    if (state.useExoPlayer && _videoViewController != null) {
+      _videoViewController!.setSpeed(appliedRate);
+      state = state.copyWith(playbackSpeed: appliedRate);
+      return;
+    }
+
+    await _player.setRate(appliedRate);
+    state = state.copyWith(playbackSpeed: appliedRate);
   }
 
   Future<void> setSubtitleDelay(double seconds) async {
+    if (!state.supportsSubtitleDelay) return;
+
     final native = _player.platform;
     if (native is NativePlayer) {
       await native.setProperty('sub-delay', seconds.toString());
@@ -1853,6 +2200,8 @@ class PlayerController extends Notifier<PlayerState> {
   }
 
   Future<void> applySubtitleSettings() async {
+    if (!state.supportsSubtitleStyling) return;
+
     final native = _player.platform;
     if (native is NativePlayer) {
       final settings =
@@ -1894,7 +2243,90 @@ class PlayerController extends Notifier<PlayerState> {
     }
   }
 
+  Future<double> _getSystemVolumeLevel() async {
+    try {
+      return ((await FlutterVolumeController.getVolume()) ?? 0.5).clamp(
+        0.0,
+        1.0,
+      );
+    } catch (_) {
+      return 0.5;
+    }
+  }
+
+  double _getEngineVolumeLevel() {
+    if (state.useExoPlayer && _videoViewController != null) {
+      return _videoViewController!.volume.value.clamp(0.0, 1.0);
+    }
+
+    return (_player.state.volume / 100).clamp(0.0, 2.0);
+  }
+
+  Future<void> _setSystemVolumeLevel(double value) async {
+    try {
+      await FlutterVolumeController.setVolume(value.clamp(0.0, 1.0));
+    } catch (_) {}
+  }
+
+  Future<void> _setEngineVolumeLevel(double value) async {
+    if (state.useExoPlayer && _videoViewController != null) {
+      _videoViewController!.setVolume(value.clamp(0.0, 1.0));
+      return;
+    }
+
+    await _player.setVolume((value * 100).clamp(0.0, 200.0));
+  }
+
+  Future<double> getVolumeLevel() async {
+    final systemVolume = await _getSystemVolumeLevel();
+    final engineVolume = _getEngineVolumeLevel();
+    final value = engineVolume > 1.0 ? engineVolume : systemVolume;
+    if (value > 0) {
+      _lastNonZeroVolumeLevel = value;
+    }
+    return value;
+  }
+
+  Future<double> setVolumeLevel(double value) async {
+    final target = value.clamp(0.0, state.supportsVolumeBoost ? 2.0 : 1.0);
+
+    if (target > 0) {
+      _lastNonZeroVolumeLevel = target;
+    }
+
+    if (target > 1.0 && state.supportsVolumeBoost) {
+      await _setSystemVolumeLevel(1.0);
+      await _setEngineVolumeLevel(target);
+      return target;
+    }
+
+    await _setEngineVolumeLevel(1.0);
+    await _setSystemVolumeLevel(target);
+    return target;
+  }
+
+  Future<double> changeVolume(double step) async {
+    final current = await getVolumeLevel();
+    final boostStep = state.supportsVolumeBoost && current >= 1.0
+        ? step * 2
+        : step;
+    return setVolumeLevel(current + boostStep);
+  }
+
+  Future<double> toggleMute() async {
+    final current = await getVolumeLevel();
+    if (current > 0) {
+      return setVolumeLevel(0.0);
+    }
+
+    return setVolumeLevel(_lastNonZeroVolumeLevel);
+  }
+
   Future<void> loadExternalSubtitleFile({String? filePath}) async {
+    if (state.useExoPlayer && !state.supportsExternalSubtitleLoading) {
+      return;
+    }
+
     String? path = filePath;
     if (path == null) {
       final result = await FilePicker.platform.pickFiles(
@@ -1907,24 +2339,47 @@ class PlayerController extends Notifier<PlayerState> {
     }
 
     if (path != null) {
-      final player = _player;
       final ext = p.extension(path).toLowerCase().replaceAll('.', '');
-
-      // Load track into media_kit
-      await player.setSubtitleTrack(
-        SubtitleTrack.uri(path, title: "External ($ext)", language: "und"),
-      );
-
-      // Add to local state
-      final newSub = SubtitleFile(
-        url: path,
-        label: "External ($ext)",
-        lang: "und",
-      );
+      final baseName = p.basenameWithoutExtension(path).trim();
+      final label = baseName.isNotEmpty ? baseName : "External ($ext)";
+      final newSub = SubtitleFile(url: path, label: label, lang: "und");
 
       state = state.copyWith(
-        externalSubtitles: [...state.externalSubtitles, newSub],
+        externalSubtitles: _effectiveExternalSubtitles(
+          state.currentStream?.subtitles,
+        ),
       );
+
+      if (!_userAddedExternalSubtitles.any((sub) => sub.url == newSub.url)) {
+        _userAddedExternalSubtitles.add(newSub);
+        state = state.copyWith(
+          externalSubtitles: _effectiveExternalSubtitles(
+            state.currentStream?.subtitles,
+          ),
+        );
+      }
+
+      if (state.useExoPlayer && state.currentStream != null) {
+        _pendingVideoViewSubtitleIdsBeforeReload = _videoViewController
+            ?.mediaInfo
+            .value
+            ?.subtitleTracks
+            .keys
+            .toSet();
+        _selectNewestVideoViewSubtitleAfterReload =
+            !(Platform.isMacOS || Platform.isIOS);
+
+        await changeStream(state.currentStream!, resetPosition: false);
+
+        if (!state.useExoPlayer) {
+          _pendingVideoViewSubtitleIdsBeforeReload = null;
+          _selectNewestVideoViewSubtitleAfterReload = false;
+          await selectSubtitleTrack('external:${newSub.url}');
+        }
+        return;
+      }
+
+      await selectSubtitleTrack('external:${newSub.url}');
     }
   }
 }

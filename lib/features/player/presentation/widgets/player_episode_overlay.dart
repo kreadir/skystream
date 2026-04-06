@@ -20,7 +20,8 @@ class PlayerEpisodeOverlay extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<PlayerEpisodeOverlay> createState() => _PlayerEpisodeOverlayState();
+  ConsumerState<PlayerEpisodeOverlay> createState() =>
+      _PlayerEpisodeOverlayState();
 }
 
 class _PlayerEpisodeOverlayState extends ConsumerState<PlayerEpisodeOverlay> {
@@ -38,7 +39,10 @@ class _PlayerEpisodeOverlayState extends ConsumerState<PlayerEpisodeOverlay> {
 
   void _extractSeasons() {
     if (widget.item.episodes == null) return;
-    final seasonSet = widget.item.episodes!.map((e) => e.season).toSet().toList();
+    final seasonSet = widget.item.episodes!
+        .map((e) => e.season)
+        .toSet()
+        .toList();
     seasonSet.sort();
     _seasons = seasonSet;
   }
@@ -47,9 +51,10 @@ class _PlayerEpisodeOverlayState extends ConsumerState<PlayerEpisodeOverlay> {
     if (_seasons.isEmpty) return;
 
     // Check currently playing episode's season
-    final currentEpUrl = ref.read(playerControllerProvider).currentStream?.url ?? 
-                        ref.read(playerControllerProvider.notifier).currentEpisodeUrl;
-    
+    final currentEpUrl =
+        ref.read(playerControllerProvider).currentStream?.url ??
+        ref.read(playerControllerProvider.notifier).currentEpisodeUrl;
+
     final currentEpisode = widget.item.episodes?.firstWhere(
       (e) => e.url == currentEpUrl,
       orElse: () => widget.item.episodes!.first,
@@ -75,8 +80,9 @@ class _PlayerEpisodeOverlayState extends ConsumerState<PlayerEpisodeOverlay> {
 
     final controller = ref.read(playerControllerProvider.notifier);
     final currentIndex = filteredEpisodes.indexWhere(
-      (e) => e.url == ref.read(playerControllerProvider).currentStream?.url || 
-             e.url == controller.currentEpisodeUrl,
+      (e) =>
+          e.url == ref.read(playerControllerProvider).currentStream?.url ||
+          e.url == controller.currentEpisodeUrl,
     );
 
     if (currentIndex != -1) {
@@ -117,7 +123,7 @@ class _PlayerEpisodeOverlayState extends ConsumerState<PlayerEpisodeOverlay> {
               color: Colors.transparent,
             ),
           ),
-        
+
         // Side Panel (Animated from right)
         AnimatedPositioned(
           duration: const Duration(milliseconds: 400),
@@ -147,8 +153,15 @@ class _PlayerEpisodeOverlayState extends ConsumerState<PlayerEpisodeOverlay> {
                     _buildHeader(context),
                     const Divider(color: Colors.white12, height: 1),
                     Expanded(
-                      child: widget.item.episodes == null || widget.item.episodes!.isEmpty
-                          ? const Center(child: Text("No episodes found", style: TextStyle(color: Colors.white54)))
+                      child:
+                          widget.item.episodes == null ||
+                              widget.item.episodes!.isEmpty
+                          ? const Center(
+                              child: Text(
+                                "No episodes found",
+                                style: TextStyle(color: Colors.white54),
+                              ),
+                            )
                           : _buildEpisodeList(context),
                     ),
                   ],
@@ -174,7 +187,11 @@ class _PlayerEpisodeOverlayState extends ConsumerState<PlayerEpisodeOverlay> {
         children: [
           Row(
             children: [
-              const Icon(Icons.video_library_rounded, color: Colors.white, size: 24),
+              const Icon(
+                Icons.video_library_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
               const SizedBox(width: 16),
               const Expanded(
                 child: Text(
@@ -197,15 +214,20 @@ class _PlayerEpisodeOverlayState extends ConsumerState<PlayerEpisodeOverlay> {
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Theme(
-                data: Theme.of(context).copyWith(
-                  canvasColor: Colors.grey[900],
-                ),
+                data: Theme.of(context).copyWith(canvasColor: Colors.grey[900]),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<int>(
                     value: _selectedSeason,
                     elevation: 16,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: Colors.white,
+                    ),
                     alignment: AlignmentDirectional.centerStart,
                     items: _seasons.map<DropdownMenuItem<int>>((int value) {
                       return DropdownMenuItem<int>(
@@ -229,10 +251,14 @@ class _PlayerEpisodeOverlayState extends ConsumerState<PlayerEpisodeOverlay> {
 
   Widget _buildEpisodeList(BuildContext context) {
     final allEpisodes = widget.item.episodes!;
-    final episodes = allEpisodes.where((e) => _selectedSeason == null || e.season == _selectedSeason).toList();
-    
+    final episodes = allEpisodes
+        .where((e) => _selectedSeason == null || e.season == _selectedSeason)
+        .toList();
+
     final historyRepo = ref.read(historyRepositoryProvider);
-    final currentEpUrl = ref.watch(playerControllerProvider).currentStream?.url;
+    final currentEpUrl = ref.watch(
+      playerControllerProvider.select((s) => s.currentStream?.url),
+    );
 
     return FocusTraversalGroup(
       child: ListView.builder(
@@ -242,9 +268,19 @@ class _PlayerEpisodeOverlayState extends ConsumerState<PlayerEpisodeOverlay> {
         itemBuilder: (context, index) {
           final ep = episodes[index];
           final isPlaying = currentEpUrl == ep.url;
-          
-          final pos = historyRepo.getEpisodePosition(ep.url, mainUrl: widget.item.url, season: ep.season, episode: ep.episode);
-          final dur = historyRepo.getEpisodeDuration(ep.url, mainUrl: widget.item.url, season: ep.season, episode: ep.episode);
+
+          final pos = historyRepo.getEpisodePosition(
+            ep.url,
+            mainUrl: widget.item.url,
+            season: ep.season,
+            episode: ep.episode,
+          );
+          final dur = historyRepo.getEpisodeDuration(
+            ep.url,
+            mainUrl: widget.item.url,
+            season: ep.season,
+            episode: ep.episode,
+          );
           final progress = (dur > 0) ? (pos / dur) : 0.0;
 
           return _EpisodeItem(
@@ -293,9 +329,11 @@ class _EpisodeItemState extends State<_EpisodeItem> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          color: widget.isPlaying 
+          color: widget.isPlaying
               ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.15)
-              : (_isHovered ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
+              : (_isHovered
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.transparent),
           child: Row(
             children: [
               // Thumbnail with progress
@@ -308,7 +346,7 @@ class _EpisodeItemState extends State<_EpisodeItem> {
                     decoration: BoxDecoration(
                       color: Colors.white10,
                       borderRadius: BorderRadius.circular(8),
-                      image: widget.episode.posterUrl != null 
+                      image: widget.episode.posterUrl != null
                           ? DecorationImage(
                               image: NetworkImage(widget.episode.posterUrl!),
                               fit: BoxFit.cover,
@@ -323,7 +361,11 @@ class _EpisodeItemState extends State<_EpisodeItem> {
                                 color: Theme.of(context).colorScheme.primary,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
+                              child: const Icon(
+                                Icons.play_arrow_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
                           )
                         : null,
@@ -332,9 +374,11 @@ class _EpisodeItemState extends State<_EpisodeItem> {
                     Container(
                       height: 3,
                       width: 120,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.white24,
-                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(8),
+                        ),
                       ),
                       child: FractionallySizedBox(
                         alignment: Alignment.centerLeft,
@@ -355,8 +399,8 @@ class _EpisodeItemState extends State<_EpisodeItem> {
                     Text(
                       "S${widget.episode.season} : E${widget.episode.episode}",
                       style: TextStyle(
-                        color: widget.isPlaying 
-                            ? Theme.of(context).colorScheme.primary 
+                        color: widget.isPlaying
+                            ? Theme.of(context).colorScheme.primary
                             : Colors.white54,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -369,7 +413,9 @@ class _EpisodeItemState extends State<_EpisodeItem> {
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
-                        fontWeight: widget.isPlaying ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: widget.isPlaying
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -384,4 +430,3 @@ class _EpisodeItemState extends State<_EpisodeItem> {
     );
   }
 }
-

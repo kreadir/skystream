@@ -34,9 +34,6 @@ class ExtensionManager extends Notifier<List<SkyStreamProvider>> {
   }
 
   Future<void> _syncPlugins(List<ExtensionPlugin> installed) async {
-    if (kDebugMode) {
-      debugPrint("ExtensionManager: Syncing ${installed.length} plugin");
-    }
     if (_engine == null || _storageService == null) return;
 
     final activePackageName = ref
@@ -117,7 +114,6 @@ class ExtensionManager extends Notifier<List<SkyStreamProvider>> {
           debugPrint("ExtensionManager: Removing ${p.packageName} (${p.name})");
         }
         newState.remove(p);
-        // Also cleanup JS resources if needed
         if (p is JsBasedProvider) {
           // _engine?.unload(p.namespace);
         }
@@ -290,11 +286,6 @@ class ActiveProviderNotifier extends Notifier<SkyStreamProvider?> {
           // Plugins have loaded (or sync completed with zero plugins)
           // but the target provider is missing (removed/uninstalled).
           // Clear the stale setting.
-          if (kDebugMode) {
-            debugPrint(
-              "ActiveProviderNotifier: Target provider '$_targetProviderId' not found after plugins loaded. Clearing.",
-            );
-          }
           _targetProviderId = null;
           ref.read(settingsRepositoryProvider).setActiveProviderId(null);
           ref.read(providerResolutionLoadingProvider.notifier).set(false);
@@ -304,11 +295,6 @@ class ActiveProviderNotifier extends Notifier<SkyStreamProvider?> {
         final found = next.where((p) => p.packageName == currentPackageName);
 
         if (found.isEmpty) {
-          if (kDebugMode) {
-            debugPrint(
-              "ActiveProviderNotifier: Active provider removed, showing provider selector.",
-            );
-          }
           state = null;
           _targetProviderId = currentPackageName;
           ref.read(providerResolutionLoadingProvider.notifier).set(false);

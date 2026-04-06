@@ -57,6 +57,7 @@ class VideoControllerImplementation extends VideoController {
               final eventName = e['event'] as String;
               if (eventName == 'mediaInfo') {
                 if (_source == e['source']) {
+                  final inferredIsLive = e['isLive'] ?? (e['duration'] == 0);
                   loading.value = false;
                   mediaInfo.value = VideoControllerMediaInfo(
                     e['duration'],
@@ -65,8 +66,8 @@ class VideoControllerImplementation extends VideoController {
                       e['subtitleTracks'],
                     ),
                     _source!,
-                    isLive: e['isLive'] ?? (e['duration'] == 0),
-                    isSeekable: e['isSeekable'] ?? true,
+                    isLive: inferredIsLive,
+                    isSeekable: e['isSeekable'] ?? !inferredIsLive,
                   );
                   if (mediaInfo.value!.duration == 0) {
                     speed.value = 1;
@@ -96,7 +97,8 @@ class VideoControllerImplementation extends VideoController {
                   final targetDuration = mediaInfo.value?.duration ?? 0;
                   final rawValue = (e['value'] as num).toInt();
 
-                  position.value = (targetDuration > 0 && rawValue > targetDuration)
+                  position.value =
+                      (targetDuration > 0 && rawValue > targetDuration)
                       ? targetDuration
                       : rawValue < 0
                       ? 0
@@ -179,8 +181,12 @@ class VideoControllerImplementation extends VideoController {
   @override
   dispose() {
     if (!disposed) {
-      super.dispose();
+      // Cancel the event subscription BEFORE super.dispose() disposes the
+      // ValueNotifier properties and notifies their listeners. If a native
+      // event arrives between super.dispose() and the cancel call it would
+      // try to write to already-disposed notifiers.
       _eventSubscription?.cancel();
+      super.dispose();
       if (_id != null) {
         _methodChannel.invokeMethod('dispose', _id);
       }
@@ -200,12 +206,7 @@ class VideoControllerImplementation extends VideoController {
   }
 
   @override
-  open(
-    source, {
-    Map<String, String>? headers,
-    String? drmKey,
-    String? drmKid,
-  }) {
+  open(source, {Map<String, String>? headers, String? drmKey, String? drmKid}) {
     if (!disposed) {
       _source = source;
       if (_id != null) {
@@ -215,8 +216,8 @@ class VideoControllerImplementation extends VideoController {
           'id': _id,
           'value': source,
           if (headers != null && headers.isNotEmpty) 'headers': headers,
-          if (drmKey != null) 'drmKey': drmKey,
-          if (drmKid != null) 'drmKid': drmKid,
+          ...drmKey == null ? const {} : {'drmKey': drmKey},
+          ...drmKid == null ? const {} : {'drmKid': drmKid},
         });
       }
       loading.value = true;
@@ -240,15 +241,14 @@ class VideoControllerImplementation extends VideoController {
           'id': _id,
           'value': source,
           if (headers != null && headers.isNotEmpty) 'headers': headers,
-          if (drmKey != null) 'drmKey': drmKey,
-          if (drmKid != null) 'drmKid': drmKid,
+          ...drmKey == null ? const {} : {'drmKey': drmKey},
+          ...drmKid == null ? const {} : {'drmKid': drmKid},
           'subtitles': subtitles?.map((s) => s.toMap()).toList() ?? [],
         });
       }
       loading.value = true;
     }
   }
-
 
   @override
   play() {

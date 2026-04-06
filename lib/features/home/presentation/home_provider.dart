@@ -5,38 +5,58 @@ import '../../../../core/extensions/extension_manager.dart';
 import '../../../../core/storage/storage_service.dart';
 import '../../../../core/extensions/base_provider.dart';
 
-final homeDataProvider = FutureProvider<Map<String, List<MultimediaItem>>>((
-  ref,
-) async {
-  final activeProvider = ref.watch(activeProviderStateProvider);
-
-  if (activeProvider == null) {
-    throw Exception(
-      'No provider selected. Please select a provider in settings.',
+final homeDataProvider =
+    AsyncNotifierProvider<HomeDataNotifier, Map<String, List<MultimediaItem>>>(
+      HomeDataNotifier.new,
+      // Disable Riverpod 3's built-in exponential-backoff retry.
+      // Home data errors should be surfaced immediately; the user retries manually.
+      retry: (_, _) => null,
     );
-  }
 
-  // Fast connectivity check
-  try {
-    final result = await InternetAddress.lookup(
-      'dns.google',
-    ).timeout(const Duration(seconds: 2));
-    if (result.isEmpty || result[0].rawAddress.isEmpty) {
+/// Uses AsyncNotifierProvider so [_keepAliveLink] is stored as an instance
+/// variable. A local variable in a FutureProvider body becomes GC-eligible
+/// after the body throws, which closes the KeepAliveLink and triggers
+/// auto-dispose — causing an infinite retry loop in Riverpod 3.
+class HomeDataNotifier
+    extends AsyncNotifier<Map<String, List<MultimediaItem>>> {
+  // ignore: unused_field — held to prevent GC from releasing the KeepAliveLink
+  Object? _keepAliveLink;
+
+  @override
+  Future<Map<String, List<MultimediaItem>>> build() async {
+    // Store on the instance so it survives even when build() throws.
+    // A local variable in a FutureProvider body becomes GC-eligible after
+    // the body throws, which closes the link and triggers auto-dispose.
+    _keepAliveLink = ref.keepAlive();
+
+    final activeProvider = ref.watch(activeProviderStateProvider);
+
+    if (activeProvider == null) {
+      throw Exception(
+        'No provider selected. Please select a provider in settings.',
+      );
+    }
+
+    // Fast connectivity check
+    try {
+      final result = await InternetAddress.lookup(
+        'dns.google',
+      ).timeout(const Duration(seconds: 2));
+      if (result.isEmpty || result[0].rawAddress.isEmpty) {
+        throw Exception('No internet connection');
+      }
+    } catch (_) {
       throw Exception('No internet connection');
     }
-  } catch (_) {
-    throw Exception('No internet connection');
-  }
 
-  final items = await activeProvider.getHome();
-  if (items.isEmpty) {
-    throw Exception('No data returned from provider.');
-  }
+    final items = await activeProvider.getHome();
+    if (items.isEmpty) {
+      throw Exception('No data returned from provider.');
+    }
 
-  // Only keep alive after successful load to allow retries on error
-  ref.keepAlive();
-  return items;
-});
+    return items;
+  }
+}
 
 final homeFilterProvider = NotifierProvider<HomeFilterNotifier, ProviderType?>(
   () {

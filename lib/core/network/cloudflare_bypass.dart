@@ -7,8 +7,11 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 ///
 /// Strategy: When a CF challenge is detected, load the URL in a headless
 /// WebView. The WebView's browser engine solves the challenge automatically.
-/// Once solved, extract the page HTML directly from the WebView DOM —
-/// avoiding TLS fingerprinting issues that occur when retrying with Dio.
+/// Once solved, extract the page HTML directly from the WebView DOM.
+///
+/// After first solve for a host, the WebView is kept alive. Subsequent
+/// requests to the same host navigate the existing WebView instead of
+/// spawning a new one — avoids repeated 5s overhead per URL.
 class CloudflareBypass {
   CloudflareBypass._();
   static final instance = CloudflareBypass._();
@@ -17,6 +20,7 @@ class CloudflareBypass {
   static const _cfErrorCodes = [403, 503];
   static const _cfServers = ['cloudflare-nginx', 'cloudflare'];
   static const _timeout = Duration(seconds: 60);
+  static const _navTimeout = Duration(seconds: 20);
   static const _pollInterval = Duration(milliseconds: 200);
 
   // ---------------------------------------------------------------------------
@@ -31,14 +35,12 @@ class CloudflareBypass {
   ) {
     if (statusCode == null || !_cfErrorCodes.contains(statusCode)) return false;
 
-    // Check server header
     final server = _headerValue(headers, 'server');
     if (server == null ||
         !_cfServers.any((s) => server.toLowerCase().contains(s))) {
       return false;
     }
 
-    // Check for CF challenge markers in body
     return body.contains('Just a moment') ||
         body.contains('cf-mitigated') ||
         body.contains('_cf_chl_opt') ||
@@ -46,24 +48,77 @@ class CloudflareBypass {
   }
 
   // ---------------------------------------------------------------------------
+  // Persistent WebViews — one per CF-protected host
+  // ---------------------------------------------------------------------------
+
+  final Map<String, _HostWebView> _hostWebViews = {};
+
+  // ---------------------------------------------------------------------------
   // Solver — returns the actual page HTML, not just cookies
   // ---------------------------------------------------------------------------
 
-  /// Whether a solve is currently in progress for a given host
+  /// Whether a fresh solve is currently in progress for a given host
   final Map<String, Completer<CfResult?>> _activeSolves = {};
 
   /// Solves the CF challenge and returns the actual page HTML + response info.
   ///
-  /// Instead of extracting cookies and retrying with Dio (which fails due to
-  /// TLS fingerprinting), we extract the HTML directly from the WebView DOM.
-  Future<CfResult?> solveAndFetch(String url) async {
+  /// On first call for [url]'s host: spins up a HeadlessInAppWebView, solves
+  /// the challenge, then keeps the WebView alive for future calls.
+  ///
+  /// On subsequent calls for the same host: navigates the existing WebView to
+  /// [url] directly — no new WebView spawned, ~1-2s instead of 5-60s.
+  Future<CfResult?> solveAndFetch(
+    String url, {
+    Future<void> Function(String host)? onSolved,
+  }) async {
     final uri = Uri.tryParse(url);
     if (uri == null) return null;
     final host = uri.host;
 
-    // If already solving for this host, wait for the existing solve
+    // ------------------------------------------------------------------
+    // Fast path: persistent WebView already exists for this host
+    // ------------------------------------------------------------------
+    final existingView = _hostWebViews[host];
+    if (existingView != null) {
+      if (kDebugMode) debugPrint('$_tag Reusing WebView for $host → $url');
+      try {
+        // Reset idle timer — this host is still active.
+        existingView.startIdleTimer(() {
+          if (kDebugMode) {
+            debugPrint('$_tag Idle timeout — disposing WebView for $host');
+          }
+          _hostWebViews.remove(host);
+          existingView.dispose();
+        });
+        final html = await existingView.navigate(url);
+        if (html != null &&
+            !html.contains('_cf_chl_opt') &&
+            !html.contains('Just a moment')) {
+          if (kDebugMode) {
+            debugPrint(
+              '$_tag Reused WebView got ${html.length} chars for $url',
+            );
+          }
+          return CfResult(body: html, statusCode: 200, finalUrl: url);
+        }
+        // CF challenge recurred (cookie expired?) — fall through to full solve
+        if (kDebugMode) {
+          debugPrint('$_tag Reused WebView hit challenge again, re-solving');
+        }
+        await existingView.dispose();
+        _hostWebViews.remove(host);
+      } catch (e) {
+        if (kDebugMode) debugPrint('$_tag Reused WebView error: $e');
+        await existingView.dispose().catchError((_) {});
+        _hostWebViews.remove(host);
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // Slow path: fresh solve needed — deduplicate concurrent requests
+    // ------------------------------------------------------------------
     if (_activeSolves.containsKey(host)) {
-      if (kDebugMode) debugPrint('$_tag Already solving for $host, waiting...');
+      if (kDebugMode) debugPrint('$_tag Already solving for $host, waiting…');
       return _activeSolves[host]!.future;
     }
 
@@ -71,11 +126,12 @@ class CloudflareBypass {
     _activeSolves[host] = completer;
 
     try {
-      final result = await _fetchViaWebView(url);
+      final result = await _fetchViaWebView(url, host);
       if (result != null) {
         if (kDebugMode) {
           debugPrint('$_tag Solved for $host, got ${result.body.length} chars');
         }
+        if (onSolved != null) await onSolved(host);
       } else {
         if (kDebugMode) debugPrint('$_tag Failed to solve for $host');
       }
@@ -91,58 +147,62 @@ class CloudflareBypass {
   }
 
   // ---------------------------------------------------------------------------
-  // HeadlessInAppWebView — solve challenge & extract HTML
+  // HeadlessInAppWebView — solve challenge & keep alive
   // ---------------------------------------------------------------------------
 
-  Future<CfResult?> _fetchViaWebView(String url) async {
+  Future<CfResult?> _fetchViaWebView(String url, String host) async {
     if (kDebugMode) debugPrint('$_tag Starting headless WebView for $url');
 
-    // Linux doesn't support HeadlessInAppWebView
     if (!kIsWeb && Platform.isLinux) {
       if (kDebugMode) debugPrint('$_tag Linux: headless WebView not supported');
       return null;
     }
 
-    HeadlessInAppWebView? headless;
+    // We use a mutable holder so the onLoadStop closure can write to it
+    // after the HeadlessInAppWebView is constructed.
+    final holder = _ViewHolder();
+
     CfResult? result;
     bool solved = false;
-    String? finalUrl;
 
-    try {
-      headless = HeadlessInAppWebView(
-        initialUrlRequest: URLRequest(url: WebUri(url)),
-        initialSettings: InAppWebViewSettings(
-          javaScriptEnabled: true,
-          domStorageEnabled: true,
-          // Don't set custom user-agent — CF checks for consistency
-          // Allow mixed content
-          mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
-        ),
-        onLoadStop: (controller, loadedUrl) async {
-          finalUrl = loadedUrl?.toString() ?? url;
+    InAppWebViewController? capturedController;
 
-          // Check if we're still on the challenge page
-          final title = await controller.getTitle();
-          if (title == 'Just a moment...' || title == null || title.isEmpty) {
-            // Still on challenge page — wait for redirect
-            if (kDebugMode) debugPrint('$_tag Still on challenge page...');
-            return;
-          }
+    final headless = HeadlessInAppWebView(
+      initialUrlRequest: URLRequest(url: WebUri(url)),
+      initialSettings: InAppWebViewSettings(
+        javaScriptEnabled: true,
+        domStorageEnabled: true,
+        mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
+      ),
+      onWebViewCreated: (controller) {
+        capturedController = controller;
+      },
+      onLoadStop: (controller, loadedUrl) async {
+        final finalUrl = loadedUrl?.toString() ?? url;
+        final title = await controller.getTitle();
 
-          // Challenge solved! Extract the page HTML from DOM
-          try {
-            final html = await controller.evaluateJavascript(
-              source: 'document.documentElement.outerHTML',
-            );
-            if (html != null && html.toString().isNotEmpty) {
-              final body = html.toString();
-              // Verify it's the real page, not the challenge
-              if (!body.contains('_cf_chl_opt') &&
-                  !body.contains('Just a moment')) {
+        if (title == 'Just a moment...' || title == null || title.isEmpty) {
+          if (kDebugMode) debugPrint('$_tag Still on challenge page…');
+          return;
+        }
+
+        try {
+          final html = await controller.evaluateJavascript(
+            source: 'document.documentElement.outerHTML',
+          );
+          if (html != null && html.toString().isNotEmpty) {
+            final body = html.toString();
+            if (!body.contains('_cf_chl_opt') &&
+                !body.contains('Just a moment')) {
+              // Notify the _HostWebView if it is already stored (for sequential
+              // navigations after the initial solve).
+              holder.hostView?.onLoaded(body);
+
+              if (!solved) {
                 result = CfResult(
                   body: body,
                   statusCode: 200,
-                  finalUrl: finalUrl ?? url,
+                  finalUrl: finalUrl,
                 );
                 solved = true;
                 if (kDebugMode) {
@@ -150,20 +210,23 @@ class CloudflareBypass {
                 }
               }
             }
-          } catch (e) {
-            if (kDebugMode) debugPrint('$_tag HTML extraction error: $e');
           }
-        },
-        onReceivedError: (controller, request, error) {
-          if (kDebugMode) {
-            debugPrint('$_tag WebView error: ${error.description}');
-          }
-        },
-      );
+        } catch (e) {
+          if (kDebugMode) debugPrint('$_tag HTML extraction error: $e');
+          holder.hostView?.onLoaded(null);
+        }
+      },
+      onReceivedError: (controller, request, error) {
+        if (kDebugMode) {
+          debugPrint('$_tag WebView error: ${error.description}');
+        }
+        holder.hostView?.onLoaded(null);
+      },
+    );
 
+    try {
       await headless.run();
 
-      // Poll until solved or timeout
       final deadline = DateTime.now().add(_timeout);
       while (!solved && DateTime.now().isBefore(deadline)) {
         await Future.delayed(_pollInterval);
@@ -173,19 +236,33 @@ class CloudflareBypass {
         if (kDebugMode) {
           debugPrint('$_tag Timed out after ${_timeout.inSeconds}s');
         }
+        await headless.dispose();
+        return null;
       }
+
+      // Keep the WebView alive for future requests to this host.
+      // The controller is set via onWebViewCreated; fall back to the one
+      // from onLoadStop if needed.
+      final hostView = _HostWebView(headless, capturedController);
+      holder.hostView = hostView;
+      _hostWebViews[host] = hostView;
+      hostView.startIdleTimer(() {
+        if (kDebugMode) {
+          debugPrint('$_tag Idle timeout — disposing WebView for $host');
+        }
+        _hostWebViews.remove(host);
+        hostView.dispose();
+      });
+
+      if (kDebugMode) debugPrint('$_tag WebView kept alive for $host');
+      return result;
     } catch (e) {
       if (kDebugMode) debugPrint('$_tag HeadlessWebView error: $e');
-    } finally {
       try {
-        await headless?.dispose();
-      } catch (e) {
-        if (kDebugMode)
-          debugPrint('CloudflareBypass: headless dispose error: $e');
-      }
+        await headless.dispose();
+      } catch (_) {}
+      return null;
     }
-
-    return result;
   }
 
   // ---------------------------------------------------------------------------
@@ -199,6 +276,81 @@ class CloudflareBypass {
     return value.toString();
   }
 }
+
+// ---------------------------------------------------------------------------
+// Persistent WebView wrapper
+// ---------------------------------------------------------------------------
+
+/// Wraps a live [HeadlessInAppWebView] for sequential URL navigation.
+///
+/// Requests are serialized: if a navigation is already in progress, the next
+/// call waits for it to complete before starting.
+class _HostWebView {
+  final HeadlessInAppWebView _headless;
+  final InAppWebViewController? _controller;
+
+  Completer<String?>? _pending;
+  bool _disposed = false;
+  Timer? _idleTimer;
+
+  static const _idleTimeout = Duration(minutes: 5);
+
+  _HostWebView(this._headless, this._controller);
+
+  /// Start (or reset) the idle timer. [onIdle] is called when the timer fires.
+  void startIdleTimer(void Function() onIdle) {
+    _idleTimer?.cancel();
+    _idleTimer = Timer(_idleTimeout, onIdle);
+  }
+
+  /// Navigate to [url] and return the page HTML.
+  Future<String?> navigate(String url) async {
+    if (_disposed || _controller == null) throw StateError('WebView disposed');
+
+    // Serialize: wait for any in-flight navigation to finish first.
+    if (_pending != null && !_pending!.isCompleted) {
+      await _pending!.future.catchError((_) => null);
+    }
+
+    _pending = Completer<String?>();
+    await _controller.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
+
+    try {
+      return await _pending!.future.timeout(CloudflareBypass._navTimeout);
+    } on TimeoutException {
+      // Complete the pending completer so the next navigate() call doesn't
+      // wait for a future that will never resolve.
+      if (!(_pending?.isCompleted ?? true)) _pending!.complete(null);
+      return null;
+    }
+  }
+
+  /// Called by the WebView's [onLoadStop] handler when a page finishes loading.
+  void onLoaded(String? html) {
+    if (_pending != null && !_pending!.isCompleted) {
+      _pending!.complete(html);
+    }
+  }
+
+  Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
+    _idleTimer?.cancel();
+    try {
+      await _headless.dispose();
+    } catch (_) {}
+  }
+}
+
+/// Mutable holder so the [HeadlessInAppWebView] closure can reference
+/// the [_HostWebView] created after construction.
+class _ViewHolder {
+  _HostWebView? hostView;
+}
+
+// ---------------------------------------------------------------------------
+// Result type
+// ---------------------------------------------------------------------------
 
 /// Result from a CF bypass — contains the actual page HTML.
 class CfResult {

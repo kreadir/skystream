@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/domain/entity/multimedia_item.dart';
 import '../../../../core/models/torrent_status.dart';
@@ -188,11 +187,10 @@ class PlayerBottomSheets {
 
   static void showTracksSelection({
     required BuildContext context,
-    required Player player,
-    required List<SubtitleFile>? externalSubtitles,
+    required WidgetRef ref,
   }) {
-    final audioTracks = player.state.tracks.audio;
-    final subTracks = player.state.tracks.subtitle;
+    final controller = ref.read(playerControllerProvider.notifier);
+    final snapshot = controller.getTrackSelectionSnapshot();
     final theme = Theme.of(context);
 
     showModalBottomSheet(
@@ -224,32 +222,35 @@ class PlayerBottomSheets {
                   ),
                 ),
                 Divider(color: theme.dividerColor),
-                ...audioTracks.map((e) {
-                  final langName = getLanguageName(e.language ?? e.id);
-                  final label = (e.title != null && e.title!.trim().isNotEmpty)
-                      ? "$langName (${e.title})"
-                      : langName;
-                  final isSelected = e == player.state.track.audio;
-
+                ...snapshot.audioTracks.map((track) {
                   return ListTile(
                     title: Text(
-                      label,
+                      track.label,
                       style: TextStyle(
                         color: theme.textTheme.bodyMedium?.color,
                       ),
                     ),
-                    onTap: () {
-                      player.setAudioTrack(e);
+                    subtitle: track.subtitle != null
+                        ? Text(
+                            track.subtitle!,
+                            style: TextStyle(
+                              color: theme.textTheme.bodySmall?.color,
+                              fontSize: 10,
+                            ),
+                          )
+                        : null,
+                    onTap: () async {
                       Navigator.pop(ctx);
+                      await controller.selectAudioTrack(track.id);
                     },
-                    selected: isSelected,
+                    selected: track.selected,
                     selectedColor: theme.colorScheme.primary,
-                    trailing: isSelected
+                    trailing: track.selected
                         ? Icon(Icons.check, color: theme.colorScheme.primary)
                         : null,
                   );
                 }),
-                if (audioTracks.isEmpty)
+                if (snapshot.audioTracks.isEmpty)
                   Text(
                     "No audio tracks found",
                     style: TextStyle(color: theme.textTheme.bodySmall?.color),
@@ -284,82 +285,48 @@ class PlayerBottomSheets {
                     "Off",
                     style: TextStyle(color: theme.textTheme.bodyMedium?.color),
                   ),
-                  onTap: () {
-                    player.setSubtitleTrack(SubtitleTrack.no());
+                  onTap: () async {
                     Navigator.pop(ctx);
+                    await controller.selectSubtitleTrack(null);
                   },
-                  selected: player.state.track.subtitle == SubtitleTrack.no(),
-                  trailing: player.state.track.subtitle == SubtitleTrack.no()
+                  selected: snapshot.subtitlesOffSelected,
+                  trailing: snapshot.subtitlesOffSelected
                       ? Icon(Icons.check, color: theme.colorScheme.primary)
                       : null,
                 ),
-                // External Subtitles
-                if (externalSubtitles != null)
-                  ...externalSubtitles.map((s) {
-                    final uriTrack = SubtitleTrack.uri(
-                      s.url,
-                      title: s.label,
-                      language: s.lang,
-                    );
-                    // Check selection by ID (url) or loose match
-                    final isSelected =
-                        player.state.track.subtitle.id == s.url ||
-                        player.state.track.subtitle.title == s.label;
-
-                    return ListTile(
-                      title: Text(
-                        s.label,
-                        style: TextStyle(
-                          color: theme.textTheme.bodyMedium?.color,
-                        ),
-                      ),
-                      subtitle: s.lang != null
-                          ? Text(
-                              getLanguageName(s.lang!),
-                              style: TextStyle(
-                                color: theme.textTheme.bodySmall?.color,
-                                fontSize: 10,
-                              ),
-                            )
-                          : null,
-                      onTap: () {
-                        player.setSubtitleTrack(uriTrack);
-                        Navigator.pop(ctx);
-                      },
-                      selected: isSelected,
-                      selectedColor: theme.colorScheme.primary,
-                      trailing: isSelected
-                          ? Icon(Icons.check, color: theme.colorScheme.primary)
-                          : null,
-                    );
-                  }),
-
-                // Embedded Subtitles
-                ...subTracks.map((e) {
-                  final langName = getLanguageName(e.language ?? e.id);
-                  final label = (e.title != null && e.title!.trim().isNotEmpty)
-                      ? "$langName (${e.title})"
-                      : langName;
-                  final isSelected = e == player.state.track.subtitle;
-
+                ...snapshot.subtitleTracks.map((track) {
                   return ListTile(
                     title: Text(
-                      label,
+                      track.label,
                       style: TextStyle(
                         color: theme.textTheme.bodyMedium?.color,
                       ),
                     ),
-                    onTap: () {
-                      player.setSubtitleTrack(e);
+                    subtitle: track.subtitle != null
+                        ? Text(
+                            track.subtitle!,
+                            style: TextStyle(
+                              color: theme.textTheme.bodySmall?.color,
+                              fontSize: 10,
+                            ),
+                          )
+                        : null,
+                    onTap: () async {
                       Navigator.pop(ctx);
+                      await controller.selectSubtitleTrack(track.id);
                     },
-                    selected: isSelected,
+                    selected: track.selected,
                     selectedColor: theme.colorScheme.primary,
-                    trailing: isSelected
+                    trailing: track.selected
                         ? Icon(Icons.check, color: theme.colorScheme.primary)
                         : null,
                   );
                 }),
+                if (snapshot.subtitleTracks.isEmpty)
+                  Text(
+                    "No subtitle tracks found",
+                    style: TextStyle(color: theme.textTheme.bodySmall?.color),
+                  ),
               ],
             );
           },
@@ -371,10 +338,23 @@ class PlayerBottomSheets {
   static void showSpeedSelection({
     required BuildContext context,
     required double currentSpeed,
+    required double maxSpeed,
     required Function(double) onSpeedSelected,
   }) {
     final theme = Theme.of(context);
-    final speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0];
+    final speeds = [
+      0.5,
+      0.75,
+      1.0,
+      1.25,
+      1.5,
+      1.75,
+      2.0,
+      2.25,
+      2.5,
+      2.75,
+      3.0,
+    ].where((speed) => speed <= maxSpeed + 0.001).toList();
 
     showModalBottomSheet(
       context: context,
@@ -445,57 +425,115 @@ class PlayerBottomSheets {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: theme.bottomSheetTheme.modalBackgroundColor ?? theme.dialogTheme.backgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      backgroundColor:
+          theme.bottomSheetTheme.modalBackgroundColor ??
+          theme.dialogTheme.backgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (ctx) {
-        return Consumer(builder: (context, ref, child) {
-          return SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(LayoutConstants.spacingMd),
-                    child: Text("Subtitle Options", style: TextStyle(color: theme.textTheme.bodyLarge?.color, fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                  Divider(color: theme.dividerColor, height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.file_open_outlined),
-                    title: const Text("Load from Device"),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      ref.read(playerControllerProvider.notifier).loadExternalSubtitleFile();
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.sync),
-                    title: const Text("Sync / Delay"),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _showSubtitleSync(context);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.style),
-                    title: const Text("Style Settings"),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _showSubtitleStyles(context);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.search),
-                    title: const Text("Search Online (Subtitle Search)"),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _showSubtitleSearch(context);
-                    },
-                  ),
-                ],
+        return Consumer(
+          builder: (context, ref, child) {
+            final supportsExternalSubtitleLoading = ref.watch(
+              playerControllerProvider.select(
+                (s) => s.supportsExternalSubtitleLoading,
               ),
-            ),
-          );
-        });
+            );
+            return SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(LayoutConstants.spacingMd),
+                      child: Text(
+                        "Subtitle Options",
+                        style: TextStyle(
+                          color: theme.textTheme.bodyLarge?.color,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Divider(color: theme.dividerColor, height: 1),
+                    if (!supportsExternalSubtitleLoading)
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.orange.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              color: Colors.orange,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                "External subtitle files are not supported on the active HLS player on this platform.",
+                                style: TextStyle(
+                                  color: Colors.orange.shade200,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ListTile(
+                      leading: const Icon(Icons.file_open_outlined),
+                      title: const Text("Load from Device"),
+                      onTap: !supportsExternalSubtitleLoading
+                          ? null
+                          : () {
+                              Navigator.pop(ctx);
+                              ref
+                                  .read(playerControllerProvider.notifier)
+                                  .loadExternalSubtitleFile();
+                            },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.sync),
+                      title: const Text("Sync / Delay"),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _showSubtitleSync(context);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.style),
+                      title: const Text("Style Settings"),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _showSubtitleStyles(context);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.search),
+                      title: const Text("Search Online (Subtitle Search)"),
+                      onTap: !supportsExternalSubtitleLoading
+                          ? null
+                          : () {
+                              Navigator.pop(ctx);
+                              _showSubtitleSearch(context);
+                            },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -504,72 +542,124 @@ class PlayerBottomSheets {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: theme.bottomSheetTheme.modalBackgroundColor ?? theme.dialogTheme.backgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      backgroundColor:
+          theme.bottomSheetTheme.modalBackgroundColor ??
+          theme.dialogTheme.backgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (ctx) {
-        return Consumer(builder: (context, ref, child) {
-          final playerState = ref.watch(playerControllerProvider);
-          final currentDelay = playerState.subtitleDelay;
-          final isExoPlayer = playerState.useExoPlayer;
+        return Consumer(
+          builder: (context, ref, child) {
+            final currentDelay = ref.watch(
+              playerControllerProvider.select((s) => s.subtitleDelay),
+            );
+            final supportsSubtitleDelay = ref.watch(
+              playerControllerProvider.select((s) => s.supportsSubtitleDelay),
+            );
 
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text("Subtitle Sync", style: TextStyle(color: theme.textTheme.bodyLarge?.color, fontSize: 18, fontWeight: FontWeight.bold)),
-                  if (isExoPlayer) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange.withValues(alpha: 0.4)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.info_outline, color: Colors.orange, size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              "Subtitle delay is not supported for HLS / live streams.",
-                              style: TextStyle(color: Colors.orange.shade200, fontSize: 13),
-                            ),
-                          ),
-                        ],
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Subtitle Sync",
+                      style: TextStyle(
+                        color: theme.textTheme.bodyLarge?.color,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: isExoPlayer ? null : () => ref.read(playerControllerProvider.notifier).setSubtitleDelay(currentDelay - 0.1),
-                        icon: const Icon(Icons.remove_circle_outline, size: 32),
-                      ),
-                      const SizedBox(width: 20),
-                      Text("${currentDelay.toStringAsFixed(1)}s", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isExoPlayer ? Colors.white38 : null)),
-                      const SizedBox(width: 20),
-                      IconButton(
-                        onPressed: isExoPlayer ? null : () => ref.read(playerControllerProvider.notifier).setSubtitleDelay(currentDelay + 0.1),
-                        icon: const Icon(Icons.add_circle_outline, size: 32),
+                    if (!supportsSubtitleDelay) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.orange.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              color: Colors.orange,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                "Subtitle delay is not supported by the active playback engine.",
+                                style: TextStyle(
+                                  color: Colors.orange.shade200,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: isExoPlayer ? null : () => ref.read(playerControllerProvider.notifier).setSubtitleDelay(0.0),
-                    child: const Text("Reset Delay"),
-                  ),
-                  const SizedBox(height: 10),
-                ],
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: !supportsSubtitleDelay
+                              ? null
+                              : () => ref
+                                    .read(playerControllerProvider.notifier)
+                                    .setSubtitleDelay(currentDelay - 0.1),
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Text(
+                          "${currentDelay.toStringAsFixed(1)}s",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: !supportsSubtitleDelay
+                                ? Colors.white38
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        IconButton(
+                          onPressed: !supportsSubtitleDelay
+                              ? null
+                              : () => ref
+                                    .read(playerControllerProvider.notifier)
+                                    .setSubtitleDelay(currentDelay + 0.1),
+                          icon: const Icon(Icons.add_circle_outline, size: 32),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    TextButton(
+                      onPressed: !supportsSubtitleDelay
+                          ? null
+                          : () => ref
+                                .read(playerControllerProvider.notifier)
+                                .setSubtitleDelay(0.0),
+                      child: const Text("Reset Delay"),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
               ),
-            ),
-          );
-        });
+            );
+          },
+        );
       },
     );
   }
@@ -578,151 +668,445 @@ class PlayerBottomSheets {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: theme.bottomSheetTheme.modalBackgroundColor ?? theme.dialogTheme.backgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      backgroundColor:
+          theme.bottomSheetTheme.modalBackgroundColor ??
+          theme.dialogTheme.backgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (ctx) {
-        return Consumer(builder: (context, ref, child) {
-          final settings = ref.watch(playerSettingsProvider).asData?.value ?? const PlayerSettings();
-          
-          return SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Subtitle Styles", style: TextStyle(color: theme.textTheme.bodyLarge?.color, fontSize: 18, fontWeight: FontWeight.bold)),
-                    IconButton(
-                      icon: const Icon(Icons.refresh),
-                      tooltip: "Reset to Default",
-                      onPressed: () {
-                        ref.read(playerSettingsProvider.notifier).resetSubtitleSettings();
-                        ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      },
+        return Consumer(
+          builder: (context, ref, child) {
+            final supportsSubtitleStyling = ref.watch(
+              playerControllerProvider.select((s) => s.supportsSubtitleStyling),
+            );
+            final settings =
+                ref.watch(playerSettingsProvider).asData?.value ??
+                const PlayerSettings();
+
+            if (!supportsSubtitleStyling) {
+              return SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Subtitle Styles",
+                        style: TextStyle(
+                          color: theme.textTheme.bodyLarge?.color,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.orange.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              color: Colors.orange,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                "Subtitle styling is only available on the media_kit player right now.",
+                                style: TextStyle(
+                                  color: Colors.orange.shade200,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return SafeArea(
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Subtitle Styles",
+                        style: TextStyle(
+                          color: theme.textTheme.bodyLarge?.color,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        tooltip: "Reset to Default",
+                        onPressed: () {
+                          ref
+                              .read(playerSettingsProvider.notifier)
+                              .resetSubtitleSettings();
+                          ref
+                              .read(playerControllerProvider.notifier)
+                              .applySubtitleSettings();
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Font Size
+                  Text(
+                    "Font Size",
+                    style: TextStyle(color: theme.textTheme.bodySmall?.color),
+                  ),
+                  Slider(
+                    value: settings.subtitleSize,
+                    min: 10,
+                    max: 60,
+                    onChanged: (v) {
+                      ref
+                          .read(playerSettingsProvider.notifier)
+                          .setSubtitleSettings(
+                            v,
+                            settings.subtitleColor,
+                            settings.subtitleBackgroundColor,
+                          );
+                      ref
+                          .read(playerControllerProvider.notifier)
+                          .applySubtitleSettings();
+                    },
+                  ),
+
+                  // Position
+                  Text(
+                    "Vertical Position",
+                    style: TextStyle(color: theme.textTheme.bodySmall?.color),
+                  ),
+                  Slider(
+                    value: settings.subtitlePosition,
+                    min: 50,
+                    max: 100,
+                    onChanged: (v) {
+                      ref
+                          .read(playerSettingsProvider.notifier)
+                          .setSubtitlePosition(v);
+                      ref
+                          .read(playerControllerProvider.notifier)
+                          .applySubtitleSettings();
+                    },
+                  ),
+
+                  // Color Presets
+                  const SizedBox(height: 10),
+                  Text(
+                    "Text Color",
+                    style: TextStyle(color: theme.textTheme.bodySmall?.color),
+                  ),
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children:
+                          [
+                                _colorCircle(
+                                  0xFFFFFFFF,
+                                  settings.subtitleColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          c,
+                                          settings.subtitleBackgroundColor,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFFFFFF00,
+                                  settings.subtitleColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          c,
+                                          settings.subtitleBackgroundColor,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFF00FFFF,
+                                  settings.subtitleColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          c,
+                                          settings.subtitleBackgroundColor,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFFFF00FF,
+                                  settings.subtitleColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          c,
+                                          settings.subtitleBackgroundColor,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFF00FF00,
+                                  settings.subtitleColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          c,
+                                          settings.subtitleBackgroundColor,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFFFF0000,
+                                  settings.subtitleColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          c,
+                                          settings.subtitleBackgroundColor,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFF2196F3,
+                                  settings.subtitleColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          c,
+                                          settings.subtitleBackgroundColor,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFFFF9800,
+                                  settings.subtitleColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          c,
+                                          settings.subtitleBackgroundColor,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                              ]
+                              .map(
+                                (w) => Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: w,
+                                ),
+                              )
+                              .toList(),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                
-                // Font Size
-                Text("Font Size", style: TextStyle(color: theme.textTheme.bodySmall?.color)),
-                Slider(
-                  value: settings.subtitleSize,
-                  min: 10,
-                  max: 60,
-                  onChanged: (v) {
-                    ref.read(playerSettingsProvider.notifier).setSubtitleSettings(v, settings.subtitleColor, settings.subtitleBackgroundColor);
-                    ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                  },
-                ),
-                
-                // Position
-                Text("Vertical Position", style: TextStyle(color: theme.textTheme.bodySmall?.color)),
-                Slider(
-                  value: settings.subtitlePosition,
-                  min: 50,
-                  max: 100,
-                  onChanged: (v) {
-                    ref.read(playerSettingsProvider.notifier).setSubtitlePosition(v);
-                    ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                  },
-                ),
-                
-                // Color Presets
-                const SizedBox(height: 10),
-                Text("Text Color", style: TextStyle(color: theme.textTheme.bodySmall?.color)),
-                const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _colorCircle(0xFFFFFFFF, settings.subtitleColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, c, settings.subtitleBackgroundColor, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFFFFFF00, settings.subtitleColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, c, settings.subtitleBackgroundColor, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFF00FFFF, settings.subtitleColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, c, settings.subtitleBackgroundColor, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFFFF00FF, settings.subtitleColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, c, settings.subtitleBackgroundColor, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFF00FF00, settings.subtitleColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, c, settings.subtitleBackgroundColor, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFFFF0000, settings.subtitleColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, c, settings.subtitleBackgroundColor, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFF2196F3, settings.subtitleColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, c, settings.subtitleBackgroundColor, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFFFF9800, settings.subtitleColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, c, settings.subtitleBackgroundColor, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                    ].map((w) => Padding(padding: const EdgeInsets.only(right: 12), child: w)).toList(),
                   ),
-                ),
-                
-                const SizedBox(height: 20),
-                Text("Background Color", style: TextStyle(color: theme.textTheme.bodySmall?.color)),
-                const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _colorCircle(0x00000000, settings.subtitleBackgroundColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, settings.subtitleColor, c, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFF000000, settings.subtitleBackgroundColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, settings.subtitleColor, c, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFF333333, settings.subtitleBackgroundColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, settings.subtitleColor, c, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFF1A1A1A, settings.subtitleBackgroundColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, settings.subtitleColor, c, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                      _colorCircle(0xFF001F3F, settings.subtitleBackgroundColor, (c) {
-                          ref.read(playerSettingsProvider.notifier).setSubtitleSettings(settings.subtitleSize, settings.subtitleColor, c, settings.subtitleBackgroundOpacity);
-                          ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                      }),
-                    ].map((w) => Padding(padding: const EdgeInsets.only(right: 12), child: w)).toList(),
+
+                  const SizedBox(height: 20),
+                  Text(
+                    "Background Color",
+                    style: TextStyle(color: theme.textTheme.bodySmall?.color),
                   ),
-                ),
-                
-                const SizedBox(height: 16),
-                Text("Background Opacity", style: TextStyle(color: theme.textTheme.bodySmall?.color)),
-                Slider(
-                  value: settings.subtitleBackgroundOpacity,
-                  min: 0,
-                  max: 1,
-                  onChanged: (v) {
-                    ref.read(playerSettingsProvider.notifier).setSubtitleBackgroundOpacity(v);
-                    ref.read(playerControllerProvider.notifier).applySubtitleSettings();
-                  },
-                ),
-              ],
-            ),
-          );
-        });
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children:
+                          [
+                                _colorCircle(
+                                  0x00000000,
+                                  settings.subtitleBackgroundColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          settings.subtitleColor,
+                                          c,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFF000000,
+                                  settings.subtitleBackgroundColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          settings.subtitleColor,
+                                          c,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFF333333,
+                                  settings.subtitleBackgroundColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          settings.subtitleColor,
+                                          c,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFF1A1A1A,
+                                  settings.subtitleBackgroundColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          settings.subtitleColor,
+                                          c,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                                _colorCircle(
+                                  0xFF001F3F,
+                                  settings.subtitleBackgroundColor,
+                                  (c) {
+                                    ref
+                                        .read(playerSettingsProvider.notifier)
+                                        .setSubtitleSettings(
+                                          settings.subtitleSize,
+                                          settings.subtitleColor,
+                                          c,
+                                          settings.subtitleBackgroundOpacity,
+                                        );
+                                    ref
+                                        .read(playerControllerProvider.notifier)
+                                        .applySubtitleSettings();
+                                  },
+                                ),
+                              ]
+                              .map(
+                                (w) => Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: w,
+                                ),
+                              )
+                              .toList(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Text(
+                    "Background Opacity",
+                    style: TextStyle(color: theme.textTheme.bodySmall?.color),
+                  ),
+                  Slider(
+                    value: settings.subtitleBackgroundOpacity,
+                    min: 0,
+                    max: 1,
+                    onChanged: (v) {
+                      ref
+                          .read(playerSettingsProvider.notifier)
+                          .setSubtitleBackgroundOpacity(v);
+                      ref
+                          .read(playerControllerProvider.notifier)
+                          .applySubtitleSettings();
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }
 
-  static Widget _colorCircle(int colorValue, int selectedColor, Function(int) onSelected) {
+  static Widget _colorCircle(
+    int colorValue,
+    int selectedColor,
+    Function(int) onSelected,
+  ) {
     final isSelected = colorValue == selectedColor;
     return GestureDetector(
       onTap: () => onSelected(colorValue),
@@ -732,9 +1116,14 @@ class PlayerBottomSheets {
         decoration: BoxDecoration(
           color: Color(colorValue),
           shape: BoxShape.circle,
-          border: Border.all(color: isSelected ? Colors.white : Colors.white24, width: isSelected ? 3 : 1),
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.white24,
+            width: isSelected ? 3 : 1,
+          ),
         ),
-        child: isSelected ? const Icon(Icons.check, color: Colors.black54) : null,
+        child: isSelected
+            ? const Icon(Icons.check, color: Colors.black54)
+            : null,
       ),
     );
   }
@@ -742,14 +1131,18 @@ class PlayerBottomSheets {
   static void _showSubtitleSearch(BuildContext context) {
     final theme = Theme.of(context);
     final TextEditingController queryController = TextEditingController();
-    
+
     final scrollController = ScrollController();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: theme.bottomSheetTheme.modalBackgroundColor ?? theme.dialogTheme.backgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      backgroundColor:
+          theme.bottomSheetTheme.modalBackgroundColor ??
+          theme.dialogTheme.backgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (ctx) {
         return Container(
           height: MediaQuery.of(context).size.height * 0.8,
@@ -762,18 +1155,21 @@ class PlayerBottomSheets {
                 builder: (context, ref, child) {
                   final playerState = ref.read(playerControllerProvider);
                   final selectedLang = ref.read(subtitleLanguageProvider);
-                  
-                  if (queryController.text.isEmpty && playerState.playerTitle.isNotEmpty) {
+
+                  if (queryController.text.isEmpty &&
+                      playerState.playerTitle.isNotEmpty) {
                     queryController.text = playerState.playerTitle;
                     // Auto-trigger search only if not already searching
                     Future.microtask(() {
                       if (ref.read(subtitleSearchProvider) is! AsyncLoading) {
-                         ref.read(subtitleSearchProvider.notifier).search(
-                           query: queryController.text,
-                           imdbId: playerState.imdbId,
-                           tmdbId: playerState.tmdbId,
-                           language: selectedLang,
-                         );
+                        ref
+                            .read(subtitleSearchProvider.notifier)
+                            .search(
+                              query: queryController.text,
+                              imdbId: playerState.imdbId,
+                              tmdbId: playerState.tmdbId,
+                              language: selectedLang,
+                            );
                       }
                     });
                   }
@@ -783,8 +1179,19 @@ class PlayerBottomSheets {
                       children: [
                         const Icon(Icons.search),
                         const SizedBox(width: 16),
-                        const Expanded(child: Text("Subtitle Search", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-                        IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
+                        const Expanded(
+                          child: Text(
+                            "Subtitle Search",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          icon: const Icon(Icons.close),
+                        ),
                       ],
                     ),
                   );
@@ -800,7 +1207,9 @@ class PlayerBottomSheets {
                       decoration: InputDecoration(
                         hintText: "Search subtitle name...",
                         prefixIcon: const Icon(Icons.video_collection_outlined),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         filled: true,
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -810,27 +1219,39 @@ class PlayerBottomSheets {
                                 icon: const Icon(Icons.clear, size: 20),
                                 onPressed: () {
                                   queryController.clear();
-                                  final playerState = ref.read(playerControllerProvider);
-                                  final selectedLang = ref.read(subtitleLanguageProvider);
-                                  ref.read(subtitleSearchProvider.notifier).search(
-                                    query: "",
-                                    imdbId: playerState.imdbId,
-                                    tmdbId: playerState.tmdbId,
-                                    language: selectedLang,
+                                  final playerState = ref.read(
+                                    playerControllerProvider,
                                   );
+                                  final selectedLang = ref.read(
+                                    subtitleLanguageProvider,
+                                  );
+                                  ref
+                                      .read(subtitleSearchProvider.notifier)
+                                      .search(
+                                        query: "",
+                                        imdbId: playerState.imdbId,
+                                        tmdbId: playerState.tmdbId,
+                                        language: selectedLang,
+                                      );
                                 },
                               ),
                             IconButton(
                               icon: const Icon(Icons.search),
                               onPressed: () {
-                                final playerState = ref.read(playerControllerProvider);
-                                final selectedLang = ref.read(subtitleLanguageProvider);
-                                ref.read(subtitleSearchProvider.notifier).search(
-                                  query: queryController.text,
-                                  imdbId: playerState.imdbId,
-                                  tmdbId: playerState.tmdbId,
-                                  language: selectedLang,
+                                final playerState = ref.read(
+                                  playerControllerProvider,
                                 );
+                                final selectedLang = ref.read(
+                                  subtitleLanguageProvider,
+                                );
+                                ref
+                                    .read(subtitleSearchProvider.notifier)
+                                    .search(
+                                      query: queryController.text,
+                                      imdbId: playerState.imdbId,
+                                      tmdbId: playerState.tmdbId,
+                                      language: selectedLang,
+                                    );
                               },
                             ),
                           ],
@@ -839,19 +1260,21 @@ class PlayerBottomSheets {
                       onSubmitted: (val) {
                         final playerState = ref.read(playerControllerProvider);
                         final selectedLang = ref.read(subtitleLanguageProvider);
-                        ref.read(subtitleSearchProvider.notifier).search(
-                          query: val,
-                          imdbId: playerState.imdbId,
-                          tmdbId: playerState.tmdbId,
-                          language: selectedLang,
-                        );
+                        ref
+                            .read(subtitleSearchProvider.notifier)
+                            .search(
+                              query: val,
+                              imdbId: playerState.imdbId,
+                              tmdbId: playerState.tmdbId,
+                              language: selectedLang,
+                            );
                       },
                     );
                   },
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Language Selector (Targeted Consumer)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -868,32 +1291,47 @@ class PlayerBottomSheets {
                           padding: EdgeInsets.zero,
                           scrollDirection: Axis.horizontal,
                           itemCount: subtitleLanguages.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          separatorBuilder: (_, _) => const SizedBox(width: 8),
                           itemBuilder: (context, index) {
-                            final entry = subtitleLanguages.entries.elementAt(index);
+                            final entry = subtitleLanguages.entries.elementAt(
+                              index,
+                            );
                             final isSelected = entry.value == selectedLang;
                             return ChoiceChip(
-                              label: Text(entry.key, style: TextStyle(
-                                fontSize: 12, 
-                                color: isSelected ? Colors.white : Colors.white70,
-                              )),
+                              label: Text(
+                                entry.key,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.white70,
+                                ),
+                              ),
                               selected: isSelected,
                               onSelected: (selected) {
                                 if (selected) {
-                                  ref.read(subtitleLanguageProvider.notifier).set(entry.value);
-                                  final playerState = ref.read(playerControllerProvider);
-                                  ref.read(subtitleSearchProvider.notifier).search(
-                                    query: queryController.text,
-                                    imdbId: playerState.imdbId,
-                                    tmdbId: playerState.tmdbId,
-                                    language: entry.value,
+                                  ref
+                                      .read(subtitleLanguageProvider.notifier)
+                                      .set(entry.value);
+                                  final playerState = ref.read(
+                                    playerControllerProvider,
                                   );
+                                  ref
+                                      .read(subtitleSearchProvider.notifier)
+                                      .search(
+                                        query: queryController.text,
+                                        imdbId: playerState.imdbId,
+                                        tmdbId: playerState.tmdbId,
+                                        language: entry.value,
+                                      );
                                 }
                               },
                               selectedColor: theme.colorScheme.primary,
                               backgroundColor: Colors.white10,
                               showCheckmark: false,
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
                             );
                           },
                         ),
@@ -903,7 +1341,7 @@ class PlayerBottomSheets {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               Expanded(
                 child: Consumer(
                   builder: (context, ref, child) {
@@ -915,9 +1353,16 @@ class PlayerBottomSheets {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.subtitles_rounded, size: 64, color: Colors.white24),
+                                Icon(
+                                  Icons.subtitles_rounded,
+                                  size: 64,
+                                  color: Colors.white24,
+                                ),
                                 SizedBox(height: 16),
-                                Text("Enter a name or search to find subtitles.", style: TextStyle(color: Colors.white38)),
+                                Text(
+                                  "Enter a name or search to find subtitles.",
+                                  style: TextStyle(color: Colors.white38),
+                                ),
                               ],
                             ),
                           );
@@ -927,9 +1372,16 @@ class PlayerBottomSheets {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.subtitles_off_rounded, size: 64, color: Colors.white24),
+                                Icon(
+                                  Icons.subtitles_off_rounded,
+                                  size: 64,
+                                  color: Colors.white24,
+                                ),
                                 SizedBox(height: 16),
-                                Text("No results found. Try another query.", style: TextStyle(color: Colors.white38)),
+                                Text(
+                                  "No results found. Try another query.",
+                                  style: TextStyle(color: Colors.white38),
+                                ),
                               ],
                             ),
                           );
@@ -937,7 +1389,12 @@ class PlayerBottomSheets {
                         return ListView.separated(
                           padding: EdgeInsets.zero,
                           itemCount: results.length,
-                          separatorBuilder: (_, __) => Divider(color: theme.dividerColor.withOpacity(0.05), height: 1, indent: 20, endIndent: 20),
+                          separatorBuilder: (_, _) => Divider(
+                            color: theme.dividerColor.withValues(alpha: 0.05),
+                            height: 1,
+                            indent: 20,
+                            endIndent: 20,
+                          ),
                           itemBuilder: (context, index) {
                             final sub = results[index];
                             return _buildSubtitleCard(
@@ -945,18 +1402,30 @@ class PlayerBottomSheets {
                               sub: sub,
                               onTap: () async {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Downloading & applying subtitle...")),
+                                  const SnackBar(
+                                    content: Text(
+                                      "Downloading & applying subtitle...",
+                                    ),
+                                  ),
                                 );
-                                
-                                final path = await ref.read(subtitleSearchProvider.notifier).downloadAndPrepare(sub);
-                                
+
+                                final path = await ref
+                                    .read(subtitleSearchProvider.notifier)
+                                    .downloadAndPrepare(sub);
+
                                 if (path != null) {
-                                  ref.read(playerControllerProvider.notifier).loadExternalSubtitleFile(filePath: path);
+                                  ref
+                                      .read(playerControllerProvider.notifier)
+                                      .loadExternalSubtitleFile(filePath: path);
                                   if (context.mounted) Navigator.pop(ctx);
                                 } else {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text("Failed to download subtitle.")),
+                                      const SnackBar(
+                                        content: Text(
+                                          "Failed to download subtitle.",
+                                        ),
+                                      ),
                                     );
                                   }
                                 }
@@ -969,7 +1438,13 @@ class PlayerBottomSheets {
                       error: (err, stack) => Center(
                         child: Padding(
                           padding: const EdgeInsets.all(20),
-                          child: Text("Failed to load subtitles. Please try again.", style: TextStyle(color: theme.colorScheme.error, fontSize: 14)),
+                          child: Text(
+                            "Failed to load subtitles. Please try again.",
+                            style: TextStyle(
+                              color: theme.colorScheme.error,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
                       ),
                     );
@@ -998,13 +1473,34 @@ class PlayerBottomSheets {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(width: 200, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                    Container(
+                      width: 200,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Container(width: 60, height: 18, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                        Container(
+                          width: 60,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Container(width: 80, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                        Container(
+                          width: 80,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -1023,9 +1519,11 @@ class PlayerBottomSheets {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    final sourceColor = sub.source.toLowerCase().contains("subsource") 
-        ? Colors.blueAccent 
-        : (sub.source.toLowerCase().contains("opensubtitles") ? Colors.orangeAccent : theme.colorScheme.primary);
+    final sourceColor = sub.source.toLowerCase().contains("subsource")
+        ? Colors.blueAccent
+        : (sub.source.toLowerCase().contains("opensubtitles")
+              ? Colors.orangeAccent
+              : theme.colorScheme.primary);
 
     return InkWell(
       onTap: onTap,
@@ -1045,15 +1543,25 @@ class PlayerBottomSheets {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: sourceColor.withOpacity(0.15),
+                    color: sourceColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: sourceColor.withOpacity(0.3), width: 1),
+                    border: Border.all(
+                      color: sourceColor.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
                   ),
                   child: Text(
                     sub.language.toUpperCase(),
-                    style: TextStyle(fontSize: 10, color: sourceColor, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: sourceColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1065,9 +1573,17 @@ class PlayerBottomSheets {
                 if (sub.isHearingImpaired)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: Icon(Icons.hearing, size: 16, color: theme.hintColor.withOpacity(0.5)),
+                    child: Icon(
+                      Icons.hearing,
+                      size: 16,
+                      color: theme.hintColor.withValues(alpha: 0.5),
+                    ),
                   ),
-                Icon(Icons.download_for_offline_outlined, size: 20, color: theme.hintColor.withOpacity(0.5)),
+                Icon(
+                  Icons.download_for_offline_outlined,
+                  size: 20,
+                  color: theme.hintColor.withValues(alpha: 0.5),
+                ),
               ],
             ),
           ],

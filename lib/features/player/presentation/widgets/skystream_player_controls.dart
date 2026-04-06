@@ -117,12 +117,14 @@ class SkyStreamPlayerControlsState
 
     _platformService = PlayerPlatformService();
     _gestureHandler = PlayerGestureHandler(
-      player: widget.player,
       getSettings: () async => await ref.read(playerSettingsProvider.future),
       isTv: _isTv,
       isDesktop: Platform.isMacOS || Platform.isWindows || Platform.isLinux,
       getDuration: () => _duration,
       getPosition: () => _position,
+      canSeek: () => ref.read(playerControllerProvider).canSeek,
+      getMaxVolumeLevel: () =>
+          ref.read(playerControllerProvider).supportsVolumeBoost ? 2.0 : 1.0,
       onInteraction: () {
         if (!_isVisible) {
           setState(() => _isVisible = true);
@@ -137,7 +139,19 @@ class SkyStreamPlayerControlsState
           widget.onVisibilityChanged?.call(false);
         }
       },
-      onSeekRelative: _seekRelative,
+      onSeekRelative: (amount) async {
+        _seekRelative(amount);
+      },
+      onSeekTo: (position) =>
+          ref.read(playerControllerProvider.notifier).seekTo(position),
+      getVolumeLevel: () =>
+          ref.read(playerControllerProvider.notifier).getVolumeLevel(),
+      setVolumeLevel: (value) =>
+          ref.read(playerControllerProvider.notifier).setVolumeLevel(value),
+      changeVolumeLevel: (step) =>
+          ref.read(playerControllerProvider.notifier).changeVolume(step),
+      toggleMuteLevel: () =>
+          ref.read(playerControllerProvider.notifier).toggleMute(),
       onDoubleTapAnimationStart: (isLeft, tapPos, seconds) {
         if (mounted) {
           setState(() {
@@ -230,20 +244,10 @@ class SkyStreamPlayerControlsState
             }
             break;
           case 'play':
-            if (ref.read(playerControllerProvider.select((s) => s.useExoPlayer)) &&
-                widget.videoViewController != null) {
-              widget.videoViewController!.play();
-            } else {
-              widget.player.play();
-            }
+            unawaited(ref.read(playerControllerProvider.notifier).play());
             break;
           case 'pause':
-            if (ref.read(playerControllerProvider.select((s) => s.useExoPlayer)) &&
-                widget.videoViewController != null) {
-              widget.videoViewController!.pause();
-            } else {
-              widget.player.pause();
-            }
+            unawaited(ref.read(playerControllerProvider.notifier).pause());
             break;
           case 'seekForward':
             _seekRelative(const Duration(seconds: 10));
@@ -282,11 +286,12 @@ class SkyStreamPlayerControlsState
     }
   }
 
-
   @override
   void dispose() {
     widget.videoViewController?.position.removeListener(_onVvPosition);
-    widget.videoViewController?.playbackState.removeListener(_onVvPlaybackState);
+    widget.videoViewController?.playbackState.removeListener(
+      _onVvPlaybackState,
+    );
     widget.videoViewController?.mediaInfo.removeListener(_onVvMediaInfo);
     widget.videoViewController?.videoSize.removeListener(_updateOrientation);
     widget.videoViewController?.orientation.removeListener(_updateOrientation);
@@ -314,21 +319,20 @@ class SkyStreamPlayerControlsState
   }
 
   void _updateOrientation() {
-    final useExo = ref.read(playerControllerProvider.select((s) => s.useExoPlayer));
+    final useExo = ref.read(
+      playerControllerProvider.select((s) => s.useExoPlayer),
+    );
     if (useExo && widget.videoViewController != null) {
       final size = widget.videoViewController!.videoSize.value;
       final orientation = widget.videoViewController!.orientation.value;
-      
+
       if (size.width > 0 && size.height > 0) {
         // Swap dimensions if orientation is 90 or 270 degrees
         final isLandscape = orientation == 1 || orientation == 3;
         final w = isLandscape ? size.height : size.width;
         final h = isLandscape ? size.width : size.height;
-        
-        _platformService.updateOrientation(
-          w.toInt(),
-          h.toInt(),
-        );
+
+        _platformService.updateOrientation(w.toInt(), h.toInt());
       }
     } else {
       _platformService.updateOrientation(
@@ -473,11 +477,13 @@ class SkyStreamPlayerControlsState
     final oldDuration = _duration;
     _duration = newDuration;
     // Show controls when media loads (same logic as media_kit duration listener)
-    if (mounted && oldDuration == Duration.zero && newDuration != Duration.zero) {
+    if (mounted &&
+        oldDuration == Duration.zero &&
+        newDuration != Duration.zero) {
       setState(() => _isVisible = true);
       _startHideTimer();
     }
-    
+
     if (widget.videoViewController != null) {
       final size = widget.videoViewController!.videoSize.value;
       if (size.width > 0 && size.height > 0) {
@@ -488,31 +494,11 @@ class SkyStreamPlayerControlsState
   // ------------------------------------
 
   void _togglePlay() {
-    final useExoPlayer = ref.read(
-      playerControllerProvider.select((s) => s.useExoPlayer),
-    );
-    if (useExoPlayer && widget.videoViewController != null) {
-      final vvc = widget.videoViewController!;
-      if (vvc.playbackState.value == vv.VideoControllerPlaybackState.playing) {
-        vvc.pause();
-      } else {
-        vvc.play();
-      }
-    } else {
-      widget.player.playOrPause();
-    }
+    unawaited(ref.read(playerControllerProvider.notifier).togglePlayPause());
   }
 
   void _seekRelative(Duration amount) {
-    final newPos = _position + amount;
-    final useExoPlayer = ref.read(
-      playerControllerProvider.select((s) => s.useExoPlayer),
-    );
-    if (useExoPlayer && widget.videoViewController != null) {
-      widget.videoViewController!.seekTo(newPos.inMilliseconds);
-    } else {
-      widget.player.seek(newPos);
-    }
+    unawaited(ref.read(playerControllerProvider.notifier).seekRelative(amount));
     _startHideTimer();
   }
 
@@ -712,8 +698,19 @@ class SkyStreamPlayerControlsState
     final showEpisodeList = ref.watch(
       playerControllerProvider.select((s) => s.showEpisodeList),
     );
+    final supportsPlaybackSpeed = ref.watch(
+      playerControllerProvider.select((s) => s.supportsPlaybackSpeed),
+    );
+    final playbackSpeed = ref.watch(
+      playerControllerProvider.select((s) => s.playbackSpeed),
+    );
+    final maxPlaybackSpeed = ref.watch(
+      playerControllerProvider.select((s) => s.maxPlaybackSpeed),
+    );
     final isSeries = ref.watch(
-      playerControllerProvider.select((s) => ref.read(playerControllerProvider.notifier).isSeries),
+      playerControllerProvider.select(
+        (s) => ref.read(playerControllerProvider.notifier).isSeries,
+      ),
     );
 
     // Guard against PiP or small window size
@@ -793,6 +790,9 @@ class SkyStreamPlayerControlsState
                     externalSubtitles: externalSubtitles,
                     showEpisodeList: showEpisodeList,
                     isSeries: isSeries,
+                    supportsPlaybackSpeed: supportsPlaybackSpeed,
+                    playbackSpeed: playbackSpeed,
+                    maxPlaybackSpeed: maxPlaybackSpeed,
                   ),
 
                 // Persistent buffering indicator
@@ -828,21 +828,25 @@ class SkyStreamPlayerControlsState
                 ),
 
                 // Resume Prompt Overlay
-                Builder(builder: (context) {
-                  final resumePos = ref.watch(
-                    playerControllerProvider.select((s) => s.resumePromptPosition),
-                  );
-                  if (resumePos == null) return const SizedBox.shrink();
-                  return ResumePromptOverlay(
-                    positionMs: resumePos,
-                    onResume: () => ref
-                        .read(playerControllerProvider.notifier)
-                        .confirmResume(),
-                    onStartOver: () => ref
-                        .read(playerControllerProvider.notifier)
-                        .dismissResumePrompt(),
-                  );
-                }),
+                Builder(
+                  builder: (context) {
+                    final resumePos = ref.watch(
+                      playerControllerProvider.select(
+                        (s) => s.resumePromptPosition,
+                      ),
+                    );
+                    if (resumePos == null) return const SizedBox.shrink();
+                    return ResumePromptOverlay(
+                      positionMs: resumePos,
+                      onResume: () => ref
+                          .read(playerControllerProvider.notifier)
+                          .confirmResume(),
+                      onStartOver: () => ref
+                          .read(playerControllerProvider.notifier)
+                          .dismissResumePrompt(),
+                    );
+                  },
+                ),
 
                 // Next Episode Overlay (Persistent when triggered)
                 if (showNextEpOverlay && nextEpTitle != null)
@@ -896,10 +900,15 @@ class SkyStreamPlayerControlsState
                         ),
                       ),
                     ),
-                    
-                  if (ref.read(playerControllerProvider.notifier).multimediaItem != null)
+
+                  if (ref
+                          .read(playerControllerProvider.notifier)
+                          .multimediaItem !=
+                      null)
                     PlayerEpisodeOverlay(
-                      item: ref.read(playerControllerProvider.notifier).multimediaItem!,
+                      item: ref
+                          .read(playerControllerProvider.notifier)
+                          .multimediaItem!,
                       isVisible: showEpisodeList,
                       isTv: _isTv,
                       onDismiss: () => ref
@@ -956,6 +965,9 @@ class SkyStreamPlayerControlsState
     List<SubtitleFile>? externalSubtitles,
     required bool showEpisodeList,
     required bool isSeries,
+    required bool supportsPlaybackSpeed,
+    required double playbackSpeed,
+    required double maxPlaybackSpeed,
   }) {
     return AnimatedOpacity(
       opacity: _isVisible ? 1.0 : 0.0,
@@ -1076,32 +1088,29 @@ class SkyStreamPlayerControlsState
                                         onTap: () =>
                                             PlayerBottomSheets.showTracksSelection(
                                               context: context,
-                                              player: widget.player,
-                                              externalSubtitles:
-                                                  externalSubtitles,
+                                              ref: ref,
                                             ),
                                       ),
                                     ),
-                                    if (!ref.watch(playerControllerProvider).isLive)
+                                    if (supportsPlaybackSpeed)
                                       FocusTraversalOrder(
                                         order: const NumericFocusOrder(3),
                                         child: _buildActionButton(
                                           icon: Icons.speed,
                                           label:
-                                              "${ref.watch(playerControllerProvider).playbackSpeed.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), '')}x",
+                                              "${playbackSpeed.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), '')}x",
                                           onTap: () =>
                                               PlayerBottomSheets.showSpeedSelection(
-                                            context: context,
-                                            currentSpeed: ref
-                                                .read(playerControllerProvider)
-                                                .playbackSpeed,
-                                            onSpeedSelected: (s) => ref
-                                                .read(
-                                                  playerControllerProvider
-                                                      .notifier,
-                                                )
-                                                .setPlaybackSpeed(s),
-                                          ),
+                                                context: context,
+                                                currentSpeed: playbackSpeed,
+                                                maxSpeed: maxPlaybackSpeed,
+                                                onSpeedSelected: (s) => ref
+                                                    .read(
+                                                      playerControllerProvider
+                                                          .notifier,
+                                                    )
+                                                    .setPlaybackSpeed(s),
+                                              ),
                                         ),
                                       ),
                                     if (torrentStatus != null)

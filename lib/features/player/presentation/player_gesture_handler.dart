@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:screen_brightness/screen_brightness.dart';
-import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import '../../settings/presentation/player_settings_provider.dart';
 
 class PlayerGestureHandler extends ChangeNotifier {
-  final Player player;
   final Future<PlayerSettings> Function() getSettings;
   final bool isTv;
   final bool isDesktop;
@@ -14,11 +11,18 @@ class PlayerGestureHandler extends ChangeNotifier {
   // State from player
   Duration Function() getDuration;
   Duration Function() getPosition;
+  bool Function() canSeek;
+  double Function() getMaxVolumeLevel;
 
   // Callbacks to interact with UI
   final VoidCallback onInteraction;
   final VoidCallback onHideControls;
-  final void Function(Duration) onSeekRelative;
+  final Future<void> Function(Duration) onSeekRelative;
+  final Future<void> Function(Duration) onSeekTo;
+  final Future<double> Function() getVolumeLevel;
+  final Future<double> Function(double value) setVolumeLevel;
+  final Future<double> Function(double step) changeVolumeLevel;
+  final Future<double> Function() toggleMuteLevel;
   final void Function(bool isLeft, Offset tapPos, int seekSeconds)
   onDoubleTapAnimationStart;
 
@@ -36,15 +40,21 @@ class PlayerGestureHandler extends ChangeNotifier {
   PlayerSettings? _cachedSettings;
 
   PlayerGestureHandler({
-    required this.player,
     required this.getSettings,
     required this.isTv,
     required this.isDesktop,
     required this.getDuration,
     required this.getPosition,
+    required this.canSeek,
+    required this.getMaxVolumeLevel,
     required this.onInteraction,
     required this.onHideControls,
     required this.onSeekRelative,
+    required this.onSeekTo,
+    required this.getVolumeLevel,
+    required this.setVolumeLevel,
+    required this.changeVolumeLevel,
+    required this.toggleMuteLevel,
     required this.onDoubleTapAnimationStart,
   });
 
@@ -117,8 +127,8 @@ class PlayerGestureHandler extends ChangeNotifier {
         startVal = 0.5;
       }
     } else {
-      startVal = (await FlutterVolumeController.getVolume()) ?? 0.5;
-      if (_boostLevel > 1.0) startVal = _boostLevel;
+      startVal = await getVolumeLevel();
+      _boostLevel = startVal > 1.0 ? startVal : 1.0;
     }
 
     showOSD = true;
@@ -138,7 +148,9 @@ class PlayerGestureHandler extends ChangeNotifier {
     final double min = (currentGesture == PlayerGesture.brightness)
         ? -0.05
         : 0.0;
-    final double max = (currentGesture == PlayerGesture.brightness) ? 1.0 : 2.0;
+    final double max = (currentGesture == PlayerGesture.brightness)
+        ? 1.0
+        : getMaxVolumeLevel();
 
     final double newVal = ((osdValue ?? 0.0) + delta).clamp(min, max);
 
@@ -154,14 +166,8 @@ class PlayerGestureHandler extends ChangeNotifier {
         osdLabel = "Brightness";
       }
     } else {
-      if (newVal > 1.0) {
-        _boostLevel = newVal;
-        player.setVolume(newVal * 100);
-      } else {
-        _boostLevel = 1.0;
-        player.setVolume(100);
-        FlutterVolumeController.setVolume(newVal);
-      }
+      _boostLevel = newVal > 1.0 ? newVal : 1.0;
+      unawaited(setVolumeLevel(newVal));
     }
     notifyListeners();
   }
@@ -177,7 +183,7 @@ class PlayerGestureHandler extends ChangeNotifier {
     double screenHeight,
     double bottomPadding,
   ) async {
-    if (getDuration() == Duration.zero) return;
+    if (getDuration() == Duration.zero || !canSeek()) return;
 
     final swipeSettings = await getSettings();
     if (!swipeSettings.swipeSeekEnabled) return;
@@ -207,9 +213,10 @@ class PlayerGestureHandler extends ChangeNotifier {
 
   void handleHorizontalDragEnd(DragEndDetails details) {
     if (swipeSeekValue == null) return;
-    player.seek(swipeSeekValue!);
+    final target = swipeSeekValue!;
     swipeSeekValue = null;
     notifyListeners();
+    unawaited(onSeekTo(target));
   }
 
   Future<void> handleDoubleTap(Offset tapPosition, double screenWidth) async {
@@ -224,58 +231,36 @@ class PlayerGestureHandler extends ChangeNotifier {
     onDoubleTapAnimationStart(isLeft, tapPosition, seconds);
 
     if (isLeft) {
-      onSeekRelative(Duration(seconds: -seconds));
+      unawaited(onSeekRelative(Duration(seconds: -seconds)));
     } else {
-      onSeekRelative(Duration(seconds: seconds));
+      unawaited(onSeekRelative(Duration(seconds: seconds)));
     }
   }
 
   Future<void> toggleMute() async {
-    final currentVol = player.state.volume;
-    if (currentVol > 0) {
-      player.setVolume(0);
+    final value = await toggleMuteLevel();
+    if (value <= 0) {
       showToast("Mute", Icons.volume_off);
     } else {
-      player.setVolume(100);
-      changeVolume(0);
+      _showVolumeOsd(value);
     }
   }
 
   Future<void> changeVolume(double step) async {
-    double current = (await FlutterVolumeController.getVolume()) ?? 0.5;
+    final value = await changeVolumeLevel(step);
+    _showVolumeOsd(value);
+  }
 
-    if (step > 0) {
-      if (current >= 1.0) {
-        _boostLevel = (_boostLevel + step * 2).clamp(1.0, 2.0);
-        player.setVolume(_boostLevel * 100);
-      } else {
-        _boostLevel = 1.0;
-        player.setVolume(100);
-        await FlutterVolumeController.setVolume(
-          (current + step).clamp(0.0, 1.0),
-        );
-      }
-    } else {
-      if (_boostLevel > 1.0) {
-        _boostLevel = (_boostLevel + step * 2).clamp(1.0, 2.0);
-        player.setVolume(_boostLevel * 100);
-      } else {
-        await FlutterVolumeController.setVolume(
-          (current + step).clamp(0.0, 1.0),
-        );
-      }
-    }
-
-    current = (await FlutterVolumeController.getVolume()) ?? 0.5;
-
+  void _showVolumeOsd(double value) {
+    _boostLevel = value > 1.0 ? value : 1.0;
     showOSD = true;
-    osdIcon = _getIconForValue(PlayerGesture.volume, current);
+    osdIcon = _getIconForValue(PlayerGesture.volume, value);
     if (_boostLevel > 1.0) {
       osdValue = _boostLevel;
       osdLabel = "Volume ${(_boostLevel * 100).toInt()}%";
     } else {
-      osdValue = current;
-      osdLabel = "Volume ${(current * 100).toInt()}%";
+      osdValue = value;
+      osdLabel = "Volume ${(value * 100).toInt()}%";
     }
     notifyListeners();
     _triggerOSDTimer();

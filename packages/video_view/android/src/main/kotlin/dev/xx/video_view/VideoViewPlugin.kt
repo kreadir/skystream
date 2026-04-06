@@ -231,6 +231,7 @@ class VideoController(
 			} else {
 				exoPlayer.setMediaSource(videoSource)
 			}
+			exoPlayer.prepare()
 			state = 1U
 			this.source = source
 		} catch (e: Exception) {
@@ -441,7 +442,7 @@ class VideoController(
 		eventSink?.success(mapOf(
 			"event" to "mediaInfo",
 			"isLive" to exoPlayer.isCurrentMediaItemLive,
-			"isSeekable" to (exoPlayer.isCurrentMediaItemSeekable || exoPlayer.isCurrentMediaItemLive),
+			"isSeekable" to exoPlayer.isCurrentMediaItemSeekable,
 			"duration" to duration,
 			"audioTracks" to audioTracks,
 			"subtitleTracks" to subtitleTracks,
@@ -550,15 +551,17 @@ class VideoController(
 					exoPlayer.prepare()
 					return // do NOT close the player
 				}
-				// Phase 4: Transient network error — retry up to 3 times with a 2s delay
+				// Phase 4: Transient network error — retry up to 3 times with exponential backoff
+				// Delays: 2s, 4s, 8s  (2000 << (retryCount-1) after increment)
 				PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> {
 					if (state > 1U && retryCount < 3) {
 						retryCount++
+						val delayMs = 2000L shl (retryCount - 1)
 						handler.postDelayed({
 							if (state > 1U) {
 								exoPlayer.prepare()
 							}
-						}, 2000)
+						}, delayMs)
 						return
 					}
 				}
@@ -812,7 +815,7 @@ class VideoViewPlugin : FlutterPlugin, ActivityAware {
 					val height = call.argument<Double>("height")
 					result.success(player?.setMaxResolution(width!!, height!!))
 				}
-				"setMaxBitrate" -> {
+				"setMaxBitrate", "setMaxBitRate" -> {
 					val player = players[call.argument<Int>("id")!!]
 					val bitrate = call.argument<Int>("value")
 					result.success(player?.setMaxBitrate(bitrate!!))
