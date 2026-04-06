@@ -40,10 +40,20 @@ class ContinueWatchingCard extends ConsumerWidget {
     final providerName = providerObj?.name ?? item.provider;
 
     return FocusableItem(
-      onTap: () => context.push(
-        '/details',
-        extra: DetailsRouteExtra(item: item, autoPlay: true),
-      ),
+      onTap: () {
+        if (item.contentType == MultimediaContentType.livestream) {
+          context.push(
+            '/player',
+            extra: PlayerRouteExtra(item: item, videoUrl: item.url),
+          );
+          return;
+        }
+
+        context.push(
+          '/details',
+          extra: DetailsRouteExtra(item: item, autoPlay: true),
+        );
+      },
       onLongPress: () {
         showModalBottomSheet(
           context: context,
@@ -107,7 +117,9 @@ class ContinueWatchingCard extends ConsumerWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+              ),
             ),
             child: Row(
               children: [

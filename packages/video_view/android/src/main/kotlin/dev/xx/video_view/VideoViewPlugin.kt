@@ -499,9 +499,9 @@ class VideoController(
 
 	private fun startWatcher() {
 		watching = true
-		// Live streams need less frequent position updates (UI shows elapsed time, not scrubbing).
-		// 250ms is imperceptible for live; VOD keeps 10ms for smooth progress bar scrubbing.
-		val intervalMs = if (exoPlayer.isCurrentMediaItemLive) 250L else 10L
+		// 100ms is visually smooth for scrubbing while avoiding the high CPU wakeup
+		// cost of 100Hz position events on lower-end devices.
+		val intervalMs = if (exoPlayer.isCurrentMediaItemLive) 250L else 100L
 		handler.postDelayed({
 			if (state > 2U) {
 				startWatcher()

@@ -51,6 +51,7 @@ class PlayerOSDVolumeOverlay extends StatelessWidget {
               osdLabel: handler.osdLabel,
               osdIcon: handler.osdIcon,
               osdAlignment: handler.osdAlignment,
+              supportsVolumeBoost: handler.supportsVolumeBoost,
             ),
           ],
         );
@@ -65,6 +66,7 @@ class PlayerOsdOverlay extends StatelessWidget {
   final String osdLabel;
   final IconData osdIcon;
   final Alignment osdAlignment;
+  final bool supportsVolumeBoost;
 
   const PlayerOsdOverlay({
     super.key,
@@ -73,14 +75,19 @@ class PlayerOsdOverlay extends StatelessWidget {
     required this.osdLabel,
     required this.osdIcon,
     required this.osdAlignment,
+    required this.supportsVolumeBoost,
   });
 
   @override
   Widget build(BuildContext context) {
     if (!showOSD) return const SizedBox.shrink();
+    final bool showBoostState =
+        supportsVolumeBoost &&
+        (osdValue ?? 0) > 1.0 &&
+        !(osdLabel == "Brightness" || osdLabel == "Auto");
 
     if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
-      return _buildDesktopHorizontalOSD();
+      return _buildDesktopHorizontalOSD(showBoostState);
     }
 
     return Align(
@@ -103,9 +110,7 @@ class PlayerOsdOverlay extends StatelessWidget {
                   children: [
                     Icon(
                       osdIcon,
-                      color: ((osdValue ?? 0) > 1.0)
-                          ? Colors.orange
-                          : Colors.white,
+                      color: showBoostState ? Colors.orange : Colors.white,
                       size: 24,
                     ),
                     const SizedBox(width: 12),
@@ -136,9 +141,7 @@ class PlayerOsdOverlay extends StatelessWidget {
                           ? "Auto"
                           : "${((osdValue ?? 0) * 100).toInt()}",
                       style: TextStyle(
-                        color: ((osdValue ?? 0) > 1.0)
-                            ? Colors.orange
-                            : Colors.white,
+                        color: showBoostState ? Colors.orange : Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -162,13 +165,13 @@ class PlayerOsdOverlay extends StatelessWidget {
                                   final bool isBrightness =
                                       osdLabel == "Brightness" ||
                                       osdLabel == "Auto";
-                                  // Brightness 0-1 maps to 1.0 height
-                                  // Volume 0-2 maps to 0.5 * Val height
                                   final double val = (osdValue ?? 0).clamp(
                                     0.0,
                                     1.0,
                                   );
-                                  final double scale = isBrightness ? 1.0 : 0.5;
+                                  final double scale = isBrightness
+                                      ? 1.0
+                                      : (supportsVolumeBoost ? 0.5 : 1.0);
 
                                   return Align(
                                     alignment: Alignment.bottomCenter,
@@ -179,15 +182,11 @@ class PlayerOsdOverlay extends StatelessWidget {
                                   );
                                 },
                               ),
-                              // Orange Bar (Volume Boost only)
-                              if ((osdValue ?? 0) > 1.0 &&
-                                  !(osdLabel == "Brightness" ||
-                                      osdLabel == "Auto"))
+                              if (showBoostState)
                                 LayoutBuilder(
                                   builder: (ctx, constraints) {
                                     final double boost = (osdValue! - 1.0)
                                         .clamp(0.0, 1.0);
-                                    // Boost percentage determines height of orange bar (max 50% of total)
                                     final double orangeHeight =
                                         constraints.maxHeight * (boost * 0.5);
                                     final double bottomOffset =
@@ -219,9 +218,7 @@ class PlayerOsdOverlay extends StatelessWidget {
                       child: Icon(
                         osdIcon,
                         key: ValueKey(osdIcon),
-                        color: ((osdValue ?? 0) > 1.0)
-                            ? Colors.orange
-                            : Colors.white,
+                        color: showBoostState ? Colors.orange : Colors.white,
                         size: 24,
                       ),
                     ),
@@ -232,7 +229,7 @@ class PlayerOsdOverlay extends StatelessWidget {
     );
   }
 
-  Widget _buildDesktopHorizontalOSD() {
+  Widget _buildDesktopHorizontalOSD(bool showBoostState) {
     final bool isLevel = osdValue != null;
     return Positioned(
       top: 80,
@@ -251,7 +248,7 @@ class PlayerOsdOverlay extends StatelessWidget {
             children: [
               Icon(
                 osdIcon,
-                color: ((osdValue ?? 0) > 1.0) ? Colors.orange : Colors.white,
+                color: showBoostState ? Colors.orange : Colors.white,
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -288,15 +285,16 @@ class PlayerOsdOverlay extends StatelessWidget {
                                 0.0,
                                 1.0,
                               );
-                              final double scale = isBrightness ? 1.0 : 0.5;
+                              final double scale = isBrightness
+                                  ? 1.0
+                                  : (supportsVolumeBoost ? 0.5 : 1.0);
                               return FractionallySizedBox(
                                 widthFactor: val * scale,
                                 child: Container(color: Colors.white),
                               );
                             },
                           ),
-                          // Boost indicator
-                          if ((osdValue ?? 0) > 1.0)
+                          if (showBoostState)
                             LayoutBuilder(
                               builder: (context, constraints) {
                                 final double boost = (osdValue! - 1.0).clamp(
@@ -327,9 +325,7 @@ class PlayerOsdOverlay extends StatelessWidget {
                     "${((osdValue! * 100).toInt())}%",
                     textAlign: TextAlign.right,
                     style: TextStyle(
-                      color: ((osdValue ?? 0) > 1.0)
-                          ? Colors.orange
-                          : Colors.white,
+                      color: showBoostState ? Colors.orange : Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       fontFeatures: const [FontFeature.tabularFigures()],

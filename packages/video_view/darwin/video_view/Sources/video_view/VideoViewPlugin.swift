@@ -343,30 +343,29 @@ class VideoController: NSObject, FlutterStreamHandler {
 		}
 	}
 
-	private func justPlay() {
-		if streaming {
-			avPlayer.rate = 1
-		} else if position == avPlayer.currentItem!.duration {
-			avPlayer.seek(to: .zero) { [weak self] finished in
-				if finished && self != nil {
-					self!.setPosition(time: .zero)
-					self!.justPlay()
-				}
-			}
-		} else {
-			if watcher == nil && avPlayer.currentItem != nil {
-				watcher = avPlayer.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.01, preferredTimescale: 1000), queue: nil) { [weak self] time in
-					if self != nil {
-						if self!.avPlayer.rate == 0 || self!.avPlayer.error != nil {
-							self!.stopWatcher()
-						}
-						self!.setPosition(time: time)
+		private func justPlay() {
+			if position == avPlayer.currentItem!.duration && !streaming {
+				avPlayer.seek(to: .zero) { [weak self] finished in
+					if finished && self != nil {
+						self!.setPosition(time: .zero)
+						self!.justPlay()
 					}
 				}
+			} else {
+				if watcher == nil && avPlayer.currentItem != nil {
+					let intervalSeconds = streaming ? 0.25 : 0.1
+					watcher = avPlayer.addPeriodicTimeObserver(forInterval: CMTime(seconds: intervalSeconds, preferredTimescale: 1000), queue: nil) { [weak self] time in
+						if self != nil {
+							if self!.state <= 2 || self!.avPlayer.error != nil {
+								self!.stopWatcher()
+							}
+							self!.setPosition(time: time)
+						}
+					}
+				}
+				avPlayer.rate = streaming ? 1 : speed
 			}
-			avPlayer.rate = speed
 		}
-	}
 
 	private func createOutput() {
 		let ioSurfaceProps: [String: Any] = [:]
@@ -438,39 +437,96 @@ class VideoController: NSObject, FlutterStreamHandler {
 			"end": safeTimeToMilliseconds(bufferPosition)
 		])
 	}
-	
+
+	private func loadSelectionTracks() async -> (
+		audioTracks: NSMutableDictionary,
+		subtitleTracks: NSMutableDictionary
+	) {
+		let audioTracks = NSMutableDictionary()
+		let subtitleTracks = NSMutableDictionary()
+		mediaGroups.removeAll()
+
+		guard let item = avPlayer.currentItem,
+			  let characteristics = try? await item.asset.load(
+				.availableMediaCharacteristicsWithMediaSelectionOptions
+			  ) else {
+			return (audioTracks, subtitleTracks)
+		}
+
+		for characteristic in characteristics {
+			let tracks: NSMutableDictionary? = if characteristic == .audible {
+				audioTracks
+			} else if characteristic == .legible {
+				subtitleTracks
+			} else {
+				nil
+			}
+			guard let tracks else {
+				continue
+			}
+			if let group = try? await item.asset.loadMediaSelectionGroup(
+				for: characteristic
+			) {
+				let i = mediaGroups.count
+				for j in 0..<group.options.count {
+					if mediaGroups.count == i {
+						mediaGroups.append(group)
+					}
+					tracks["\(i).\(j)"] = [
+						"title": group.options[j].displayName,
+						"language":
+							group.options[j].locale?.identifier ??
+							group.options[j].extendedLanguageTag,
+					]
+				}
+			}
+		}
+
+		return (audioTracks, subtitleTracks)
+	}
+
+	private func emitMediaInfo(
+		audioTracks: NSMutableDictionary,
+		subtitleTracks: NSMutableDictionary
+	) {
+		guard let item = avPlayer.currentItem, let source else {
+			return
+		}
+
+		let isLive = item.duration == .indefinite ||
+			(item.seekableTimeRanges.isEmpty && item.loadedTimeRanges.isEmpty == false)
+		if isLive { streaming = true }
+		let seekable = item.seekableTimeRanges.last?.timeRangeValue
+		let seekableDuration = seekable?.duration.seconds ?? 0
+		let hasSeekableRange = seekableDuration.isFinite && seekableDuration > 0
+		let isSeekable = hasSeekableRange || !isLive
+
+		var duration: Int = 0
+		if isLive {
+			if let range = seekable {
+				duration = Int(range.duration.seconds * 1000)
+			} else {
+				duration = safeTimeToMilliseconds(item.duration)
+			}
+		} else {
+			duration = safeTimeToMilliseconds(item.duration)
+		}
+
+		eventSink?([
+			"event": "mediaInfo",
+			"isLive": isLive,
+			"isSeekable": isSeekable,
+			"duration": duration,
+			"audioTracks": audioTracks,
+			"subtitleTracks": subtitleTracks,
+			"source": source
+		])
+	}
+
 	private func loadEnd() {
 		Task { @MainActor in
 			if state == 1 && avPlayer.currentItem?.status == .readyToPlay {
-				let audioTracks = NSMutableDictionary()
-				let subtitleTracks = NSMutableDictionary()
-				if let characteristics = try? await avPlayer.currentItem!.asset.load(.availableMediaCharacteristicsWithMediaSelectionOptions) {
-					for characteristic in characteristics {
-						if let group = try? await avPlayer.currentItem!.asset.loadMediaSelectionGroup(for: characteristic) {
-							let i = mediaGroups.count
-							for j in 0..<group.options.count {
-								if group.options[j].isPlayable {
-									let tracks: NSMutableDictionary? = if group.options[j].mediaType == .audio {
-										audioTracks
-									} else if group.options[j].mediaType == .subtitle || group.options[j].mediaType == .closedCaption || group.options[j].mediaType == .text {
-										subtitleTracks
-									} else {
-										nil
-									}
-									if tracks != nil {
-										if mediaGroups.count == i {
-											mediaGroups.append(group)
-										}
-										tracks!["\(i).\(j)"] = [
-											"title": group.options[j].displayName,
-											"language": group.options[j].locale?.identifier ?? group.options[j].extendedLanguageTag
-										]
-									}
-								}
-							}
-						}
-					}
-				}
+				let tracks = await loadSelectionTracks()
 				if let videos = try? await avPlayer.currentItem!.asset.loadTracks(withMediaType: .video) {
 					if let transform = videos.first?.preferredTransform {
 					 	switch (transform.a, transform.b, transform.c, transform.d) {
@@ -491,42 +547,14 @@ class VideoController: NSObject, FlutterStreamHandler {
 					 	default:
 						 	break
 					 	}
-				 	}
+					}
 				}
 				avPlayer.volume = volume
 				state = 2
-				let item = avPlayer.currentItem!
-				let isLive = item.duration == .indefinite ||
-					(item.seekableTimeRanges.isEmpty && item.loadedTimeRanges.isEmpty == false)
-				// Set streaming flag so justPlay() uses the live path (avPlayer.rate = 1)
-				// and setSpeed() doesn't apply speed changes to live streams.
-				if isLive { streaming = true }
-				let seekable = item.seekableTimeRanges.last?.timeRangeValue
-				let seekableDuration = seekable?.duration.seconds ?? 0
-				let hasSeekableRange = seekableDuration.isFinite && seekableDuration > 0
-				let isSeekable = hasSeekableRange || !isLive
-				
-				var duration: Int = 0
-				if isLive {
-					if let range = seekable {
-						duration = Int(range.duration.seconds * 1000)
-					} else {
-						// Fallback: use item duration if calculated, or 0
-						duration = safeTimeToMilliseconds(item.duration)
-					}
-				} else {
-					duration = safeTimeToMilliseconds(item.duration)
-				}
-				
-				eventSink?([
-					"event": "mediaInfo",
-					"isLive": isLive,
-					"isSeekable": isSeekable,
-					"duration": duration,
-					"audioTracks": audioTracks,
-					"subtitleTracks": subtitleTracks,
-					"source": source!
-				])
+				emitMediaInfo(
+					audioTracks: tracks.audioTracks,
+					subtitleTracks: tracks.subtitleTracks
+				)
 				if !streaming {
 					let time = avPlayer.currentTime()
 					if time != .zero {

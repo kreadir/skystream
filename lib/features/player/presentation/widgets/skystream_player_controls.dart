@@ -197,7 +197,6 @@ class SkyStreamPlayerControlsState
           ).invokeMethod('setPipState', {'isPlaying': val});
         }
       }),
-      widget.player.stream.buffering.listen((val) {}),
       // Position: No setState needed - StreamBuilder in PlayerProgressBar handles UI
       widget.player.stream.position.listen((val) {
         _position = val; // Update local cache for seek calculations

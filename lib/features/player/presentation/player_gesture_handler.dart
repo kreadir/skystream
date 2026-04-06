@@ -39,6 +39,8 @@ class PlayerGestureHandler extends ChangeNotifier {
   Timer? _osdTimer;
   PlayerSettings? _cachedSettings;
 
+  bool get supportsVolumeBoost => getMaxVolumeLevel() > 1.0;
+
   PlayerGestureHandler({
     required this.getSettings,
     required this.isTv,
@@ -128,7 +130,7 @@ class PlayerGestureHandler extends ChangeNotifier {
       }
     } else {
       startVal = await getVolumeLevel();
-      _boostLevel = startVal > 1.0 ? startVal : 1.0;
+      _boostLevel = supportsVolumeBoost && startVal > 1.0 ? startVal : 1.0;
     }
 
     showOSD = true;
@@ -166,7 +168,7 @@ class PlayerGestureHandler extends ChangeNotifier {
         osdLabel = "Brightness";
       }
     } else {
-      _boostLevel = newVal > 1.0 ? newVal : 1.0;
+      _boostLevel = supportsVolumeBoost && newVal > 1.0 ? newVal : 1.0;
       unawaited(setVolumeLevel(newVal));
     }
     notifyListeners();
@@ -252,10 +254,10 @@ class PlayerGestureHandler extends ChangeNotifier {
   }
 
   void _showVolumeOsd(double value) {
-    _boostLevel = value > 1.0 ? value : 1.0;
+    _boostLevel = supportsVolumeBoost && value > 1.0 ? value : 1.0;
     showOSD = true;
     osdIcon = _getIconForValue(PlayerGesture.volume, value);
-    if (_boostLevel > 1.0) {
+    if (supportsVolumeBoost && _boostLevel > 1.0) {
       osdValue = _boostLevel;
       osdLabel = "Volume ${(_boostLevel * 100).toInt()}%";
     } else {
@@ -276,8 +278,8 @@ class PlayerGestureHandler extends ChangeNotifier {
       if (value <= 0.0) return Icons.volume_off;
       if (value < 0.3) return Icons.volume_mute;
       if (value < 0.7) return Icons.volume_down;
-      if (value <= 1.0) return Icons.volume_up;
-      return Icons.campaign; // Boost icon
+      if (!supportsVolumeBoost || value <= 1.0) return Icons.volume_up;
+      return Icons.campaign;
     }
     return Icons.settings;
   }

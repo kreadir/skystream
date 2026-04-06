@@ -15,7 +15,9 @@
 #include <winrt/Windows.Web.Http.h>
 #include <winrt/Windows.Web.Http.Headers.h>
 #include <DispatcherQueue.h>
+#include <chrono>
 #include <mutex>
+#include <thread>
 
 #undef max //we want to use std::max
 
@@ -781,14 +783,26 @@ public:
 			queueWork([weakThis, message, err]() {
 				auto sharedThis = weakThis.lock();
 				if (sharedThis && sharedThis->state > 0) {
-					if (err == MediaPlayerError::NetworkError && sharedThis->retryCount < 3) {
+					if (err == MediaPlayerError::NetworkError &&
+						sharedThis->retryCount < 3) {
 						sharedThis->retryCount++;
-						sharedThis->dispatcherQueue.TryEnqueue(DispatcherQueueHandler([weakThis]() {
+						auto delayMs = 2000 << (sharedThis->retryCount - 1);
+						std::thread([weakThis, delayMs]() {
+							std::this_thread::sleep_for(
+								std::chrono::milliseconds(delayMs));
 							auto sharedThis = weakThis.lock();
 							if (sharedThis && sharedThis->state > 0) {
-								sharedThis->open(sharedThis->source, sharedThis->requestHeaders);
+								sharedThis->dispatcherQueue.TryEnqueue(
+									DispatcherQueueHandler([weakThis]() {
+										auto sharedThis = weakThis.lock();
+										if (sharedThis && sharedThis->state > 0) {
+											sharedThis->open(
+												sharedThis->source,
+												sharedThis->requestHeaders);
+										}
+									}));
 							}
-						}));
+						}).detach();
 					} else {
 						sharedThis->sendError(message);
 					}

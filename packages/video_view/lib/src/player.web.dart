@@ -54,9 +54,20 @@ class VideoControllerImplementation extends VideoController {
         }
       } else if (eventName == 'position') {
         if (mediaInfo.value != null) {
+          final rawDuration = e['duration'];
+          if (rawDuration is num) {
+            final nextDuration = rawDuration.toInt();
+            if (nextDuration >= 0 &&
+                nextDuration != mediaInfo.value!.duration) {
+              mediaInfo.value = mediaInfo.value!.copyWith(
+                duration: nextDuration,
+              );
+            }
+          }
           final v = (e['value'] as double).toInt();
-          position.value = v > mediaInfo.value!.duration
-              ? mediaInfo.value!.duration
+          final targetDuration = mediaInfo.value!.duration;
+          position.value = v > targetDuration
+              ? targetDuration
               : v < 0
               ? 0
               : v;

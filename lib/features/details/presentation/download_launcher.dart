@@ -254,10 +254,11 @@ class DownloadLauncher {
                   filename = "$sanitizedTitle$extension";
                 }
 
-                if (kDebugMode)
+                if (kDebugMode) {
                   debugPrint(
                     '[DownloadLauncher] Final Path: $saveDir/$filename',
                   );
+                }
 
                 final started = await downloadService.startDownload(
                   url: stream.url,

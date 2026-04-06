@@ -205,23 +205,44 @@ class PlayerController extends Notifier<PlayerState> {
   bool _isPolling = false;
   bool _isInitialized = false;
 
-  /// On Linux, video_view uses libmpv (same as media_kit) — no benefit from switching.
-  /// On other platforms, switch to ExoPlayer/AVPlayer for live/HLS streams.
-  bool get _shouldUseVideoView {
-    if (_videoViewController == null || Platform.isLinux) {
+  bool _isDashStreamUrl(String url) {
+    final lower = url.toLowerCase();
+    return lower.contains('.mpd') || lower.contains('manifest.mpd');
+  }
+
+  bool _streamRequiresNativeDrm(StreamResult stream) {
+    return stream.drmKey != null ||
+        stream.drmKid != null ||
+        stream.licenseUrl != null;
+  }
+
+  bool _detectResolvedLiveState(String url) {
+    return _item.contentType == MultimediaContentType.livestream ||
+        _isLiveStream(url);
+  }
+
+  bool _canUseVideoViewForStream(
+    String playUrl,
+    StreamResult stream, {
+    required bool isLive,
+  }) {
+    // Preserve the current product behavior: video_view is the native live path.
+    if (_videoViewController == null || Platform.isLinux || !isLive) {
       return false;
     }
 
-    // On Apple platforms (macOS/iOS), AVPlayer (VideoView) doesn't support DASH (.mpd).
-    // We must use media_kit (mpv) for DASH on these platforms.
-    if (Platform.isMacOS || Platform.isIOS || Platform.isWindows) {
-      final url = _videoUrl.toLowerCase();
-      if (url.contains('.mpd') || url.contains('manifest.mpd')) {
-        return false;
-      }
+    // AVPlayer/Windows native backends do not handle DASH playback reliably here.
+    if ((Platform.isMacOS || Platform.isIOS || Platform.isWindows) &&
+        _isDashStreamUrl(playUrl)) {
+      return false;
     }
 
-    return state.isLive;
+    // Only Android currently implements the video_view DRM path end-to-end.
+    if (!Platform.isAndroid && _streamRequiresNativeDrm(stream)) {
+      return false;
+    }
+
+    return true;
   }
 
   bool get _videoViewSupportsMergedExternalSubtitles => Platform.isAndroid;
@@ -377,14 +398,16 @@ class PlayerController extends Notifier<PlayerState> {
           state = state.copyWith(isLoading: false);
         }
 
-        // Sync isSeekable status from the native controller to our state
-        if (info.isSeekable != state.isSeekable) {
-          state = state.copyWith(isSeekable: info.isSeekable);
-        }
-
-        // Ensure metadata-based isLive is never overridden by false engine detection
-        if (info.isLive && !state.isLive) {
-          state = state.copyWith(isLive: true);
+        final detectedIsLive =
+            _item.contentType == MultimediaContentType.livestream
+            ? true
+            : info.isLive;
+        if (info.isSeekable != state.isSeekable ||
+            detectedIsLive != state.isLive) {
+          state = state.copyWith(
+            isSeekable: info.isSeekable,
+            isLive: detectedIsLive,
+          );
         }
 
         if (_selectNewestVideoViewSubtitleAfterReload &&
@@ -970,9 +993,10 @@ class PlayerController extends Notifier<PlayerState> {
   Future<void> _openResolvedStream(
     String playUrl,
     StreamResult stream,
-    Map<String, String> headers,
-  ) async {
-    if (_shouldUseVideoView) {
+    Map<String, String> headers, {
+    required bool useVideoView,
+  }) async {
+    if (useVideoView) {
       // Pause media_kit so it stops consuming bandwidth while video_view plays.
       // (media_kit.open() will replace it if the user switches back.)
       if (!state.useExoPlayer) {
@@ -1008,7 +1032,7 @@ class PlayerController extends Notifier<PlayerState> {
           drmKid: stream.drmKid,
         );
       }
-      state = state.copyWith(useExoPlayer: true);
+      state = state.copyWith(useExoPlayer: true, isSeekable: false);
       return;
     }
 
@@ -1019,7 +1043,7 @@ class PlayerController extends Notifier<PlayerState> {
     }
 
     await _player.open(Media(playUrl, httpHeaders: headers));
-    state = state.copyWith(useExoPlayer: false);
+    state = state.copyWith(useExoPlayer: false, isSeekable: true);
   }
 
   Future<void> seekTo(Duration position, {bool fast = false}) async {
@@ -1305,13 +1329,30 @@ class PlayerController extends Notifier<PlayerState> {
         stopTorrentPolling();
       }
 
+      final resolvedIsLive = _detectResolvedLiveState(playUrl);
+      final useVideoView = _canUseVideoViewForStream(
+        playUrl,
+        stream,
+        isLive: resolvedIsLive,
+      );
       state = state.copyWith(
         streamSubtitle: "$providerName - ${stream.source}",
+        isLive: resolvedIsLive,
+        isSeekable: !useVideoView,
       );
 
       final headers = stream.headers ?? {};
-      await _applyPlaybackProperties(headers, stream);
-      await _openResolvedStream(playUrl, stream, headers);
+      await _applyPlaybackProperties(
+        headers,
+        stream,
+        useVideoView: useVideoView,
+      );
+      await _openResolvedStream(
+        playUrl,
+        stream,
+        headers,
+        useVideoView: useVideoView,
+      );
 
       final historyRepo = ref.read(historyRepositoryProvider);
       final isSeries = _item.contentType == MultimediaContentType.series;
@@ -1387,13 +1428,18 @@ class PlayerController extends Notifier<PlayerState> {
       if (playUrl == null) throw Exception("Failed to resolve stream URL");
       final subtitles = _effectiveExternalSubtitles(stream.subtitles);
 
+      final resolvedIsLive = _detectResolvedLiveState(playUrl);
+      final useVideoView = _canUseVideoViewForStream(
+        playUrl,
+        stream,
+        isLive: resolvedIsLive,
+      );
       state = state.copyWith(
         isLoading: true,
         currentStream: stream,
         externalSubtitles: subtitles,
-        isLive:
-            _item.contentType == MultimediaContentType.livestream ||
-            _isLiveStream(playUrl),
+        isLive: resolvedIsLive,
+        isSeekable: !useVideoView,
       );
 
       state = state.copyWith(streamSubtitle: "$pName - ${stream.source}");
@@ -1405,8 +1451,17 @@ class PlayerController extends Notifier<PlayerState> {
       }
 
       final headers = stream.headers ?? {};
-      await _applyPlaybackProperties(headers, stream);
-      await _openResolvedStream(playUrl, stream, headers);
+      await _applyPlaybackProperties(
+        headers,
+        stream,
+        useVideoView: useVideoView,
+      );
+      await _openResolvedStream(
+        playUrl,
+        stream,
+        headers,
+        useVideoView: useVideoView,
+      );
 
       if (oldPos > Duration.zero && !resetPosition) {
         await _safeSeekTo(oldPos.inMilliseconds);
@@ -1838,8 +1893,9 @@ class PlayerController extends Notifier<PlayerState> {
   /// Applies per-playback MPV properties (headers, cookies, DRM).
   Future<void> _applyPlaybackProperties(
     Map<String, String> headers,
-    StreamResult stream,
-  ) async {
+    StreamResult stream, {
+    required bool useVideoView,
+  }) async {
     // Debug: log what DRM fields the stream has so failures are traceable.
     if (kDebugMode) {
       debugPrint(
@@ -1985,7 +2041,7 @@ class PlayerController extends Notifier<PlayerState> {
           );
         }
 
-        if (!_shouldUseVideoView) {
+        if (!useVideoView) {
           await native.setProperty(
             'demuxer-lavf-o',
             'cenc_decryption_key=$keyHex',
