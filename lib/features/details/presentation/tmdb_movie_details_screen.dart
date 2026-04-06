@@ -110,6 +110,8 @@ class _TmdbMovieDetailsScreenState
     final deviceProfileAsync = ref.watch(deviceProfileProvider);
 
     final content = detailsAsync.when(
+      skipLoadingOnReload: false,
+      skipLoadingOnRefresh: false,
       data: (data) {
         if (data == null) {
           return Center(

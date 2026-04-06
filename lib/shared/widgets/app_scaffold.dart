@@ -91,11 +91,17 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
           // Wrap with VirtualMouse only on TV
           if (profile.isTv) {
+            // Focus wrapper ensures the remote's back key is delivered to Flutter
+            // after returning from the player (which captures all key events itself).
+            // Without this, back key goes to the OS with nothing focused and is swallowed.
             return VirtualMouse(
               visible: true,
               velocity: 3,
               pointerColor: Theme.of(context).colorScheme.primary,
-              child: sideNavScaffold,
+              child: Focus(
+                autofocus: true,
+                child: sideNavScaffold,
+              ),
             );
           }
 

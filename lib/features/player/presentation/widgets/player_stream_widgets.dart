@@ -28,8 +28,10 @@ class PlayerProgressBar extends ConsumerStatefulWidget {
 
 class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
   double? _dragValue;
-  int _vvPositionMs = 0;
-  int _vvDurationMs = 0;
+
+  // ValueNotifiers so position/duration updates don't setState the whole widget.
+  final _vvPositionNotifier = ValueNotifier<int>(0);
+  final _vvDurationNotifier = ValueNotifier<int>(0);
 
   @override
   void initState() {
@@ -50,19 +52,19 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
   }
 
   void _onVvPosition() {
-    final ms = widget.videoViewController?.position.value ?? 0;
-    if (mounted) setState(() => _vvPositionMs = ms);
+    _vvPositionNotifier.value = widget.videoViewController?.position.value ?? 0;
   }
 
   void _onVvMediaInfo() {
-    final ms = widget.videoViewController?.mediaInfo.value?.duration ?? 0;
-    if (mounted) setState(() => _vvDurationMs = ms);
+    _vvDurationNotifier.value = widget.videoViewController?.mediaInfo.value?.duration ?? 0;
   }
 
   @override
   void dispose() {
     widget.videoViewController?.position.removeListener(_onVvPosition);
     widget.videoViewController?.mediaInfo.removeListener(_onVvMediaInfo);
+    _vvPositionNotifier.dispose();
+    _vvDurationNotifier.dispose();
     super.dispose();
   }
 
@@ -90,25 +92,34 @@ class _PlayerProgressBarState extends ConsumerState<PlayerProgressBar> {
   }
 
   Widget _buildVideoViewBar() {
-    final playerState = ref.watch(playerControllerProvider);
-    final durationMs = _vvDurationMs.toDouble();
-    final positionMs = _vvPositionMs.toDouble();
-    final displayValue = _dragValue ?? positionMs;
-    final displayDuration = Duration(
-      milliseconds: (_dragValue ?? positionMs).toInt(),
-    );
-    final duration = Duration(milliseconds: _vvDurationMs);
+    final isLive = ref.watch(playerControllerProvider.select((s) => s.isLive));
 
-    final isLive = playerState.isLive;
+    return ValueListenableBuilder<int>(
+      valueListenable: _vvDurationNotifier,
+      builder: (context, durationMs, _) {
+        return ValueListenableBuilder<int>(
+          valueListenable: _vvPositionNotifier,
+          builder: (context, positionMs, _) {
+            final durationMsD = durationMs.toDouble();
+            final positionMsD = positionMs.toDouble();
+            final displayValue = _dragValue ?? positionMsD;
+            final displayDuration = Duration(
+              milliseconds: (_dragValue ?? positionMsD).toInt(),
+            );
+            final duration = Duration(milliseconds: durationMs);
 
-    return _buildRow(
-      duration: duration,
-      durationMs: durationMs,
-      displayValue: displayValue,
-      displayDuration: displayDuration,
-      bufferWidget: null,
-      onSeekEnd: (val) => widget.videoViewController!.seekTo(val.toInt()),
-      isLive: isLive,
+            return _buildRow(
+              duration: duration,
+              durationMs: durationMsD,
+              displayValue: displayValue,
+              displayDuration: displayDuration,
+              bufferWidget: null,
+              onSeekEnd: (val) => widget.videoViewController!.seekTo(val.toInt()),
+              isLive: isLive,
+            );
+          },
+        );
+      },
     );
   }
 

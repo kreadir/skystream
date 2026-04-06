@@ -10,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:video_view/video_view.dart' as vv;
 import '../player_controller.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import '../../../../core/domain/entity/multimedia_item.dart';
 import '../../../../core/models/torrent_status.dart';
 import '../components/torrent_info_widget.dart';
@@ -20,6 +19,7 @@ import '../../../../core/utils/responsive_breakpoints.dart';
 import 'player_stream_widgets.dart';
 import 'player_control_components.dart';
 import 'next_episode_overlay.dart';
+import 'resume_prompt_overlay.dart';
 import 'player_bottom_sheets.dart';
 import 'player_loading_overlay.dart';
 import 'player_osd_overlay.dart';
@@ -111,7 +111,9 @@ class SkyStreamPlayerControlsState
   @override
   void initState() {
     super.initState();
-    _isTv = ref.read(deviceProfileProvider).asData?.value.isTv ?? false;
+    final deviceProfile = ref.read(deviceProfileProvider).asData?.value;
+    _isTv = deviceProfile?.isTv ?? false;
+    _isIpad = Platform.isIOS && (deviceProfile?.isTablet ?? false);
 
     _platformService = PlayerPlatformService();
     _gestureHandler = PlayerGestureHandler(
@@ -153,7 +155,6 @@ class SkyStreamPlayerControlsState
     } catch (e) {
       if (kDebugMode) debugPrint("VolumeUI Error: $e");
     }
-    _checkIpad();
     _isPlaying = widget.player.state.playing;
     _position = widget.player.state.position;
     _duration = widget.player.state.duration;
@@ -281,18 +282,6 @@ class SkyStreamPlayerControlsState
     }
   }
 
-  Future<void> _checkIpad() async {
-    if (Platform.isIOS) {
-      try {
-        final iosInfo = await DeviceInfoPlugin().iosInfo;
-        if (iosInfo.model.toLowerCase().contains("ipad")) {
-          if (mounted) setState(() => _isIpad = true);
-        }
-      } catch (e) {
-        if (kDebugMode) debugPrint('SkyStreamPlayerControls._checkIpad: $e');
-      }
-    }
-  }
 
   @override
   void dispose() {
@@ -837,6 +826,23 @@ class SkyStreamPlayerControlsState
                   getDuration: () => _duration,
                   formatDuration: _formatDuration,
                 ),
+
+                // Resume Prompt Overlay
+                Builder(builder: (context) {
+                  final resumePos = ref.watch(
+                    playerControllerProvider.select((s) => s.resumePromptPosition),
+                  );
+                  if (resumePos == null) return const SizedBox.shrink();
+                  return ResumePromptOverlay(
+                    positionMs: resumePos,
+                    onResume: () => ref
+                        .read(playerControllerProvider.notifier)
+                        .confirmResume(),
+                    onStartOver: () => ref
+                        .read(playerControllerProvider.notifier)
+                        .dismissResumePrompt(),
+                  );
+                }),
 
                 // Next Episode Overlay (Persistent when triggered)
                 if (showNextEpOverlay && nextEpTitle != null)

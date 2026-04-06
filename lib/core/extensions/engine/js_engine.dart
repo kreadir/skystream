@@ -9,6 +9,7 @@ import 'package:cookie_jar/cookie_jar.dart';
 import '../../storage/extension_repository.dart';
 import '../../network/cloudflare_bypass.dart';
 import 'package:encrypt/encrypt.dart' as encrypt_lib;
+import 'package:pointycastle/export.dart';
 import '../services/plugin_storage_service.dart';
 import '../providers.dart';
 
@@ -402,12 +403,18 @@ class JsEngineService {
         final String encryptedB64 = normalizeB64(data['data']);
         final String keyB64 = normalizeB64(data['key']);
         final String ivB64 = normalizeB64(data['iv']);
+        final String mode = (data['mode'] ?? 'cbc').toString().toLowerCase();
 
         final keyToken = encrypt_lib.Key.fromBase64(keyB64);
         final ivToken = encrypt_lib.IV.fromBase64(ivB64);
+
+        final encrypt_lib.AESMode aesMode =
+            mode == 'gcm' ? encrypt_lib.AESMode.gcm : encrypt_lib.AESMode.cbc;
+
         final encrypter = encrypt_lib.Encrypter(
-          encrypt_lib.AES(keyToken, mode: encrypt_lib.AESMode.cbc),
+          encrypt_lib.AES(keyToken, mode: aesMode),
         );
+
         final decrypted = encrypter.decrypt64(encryptedB64, iv: ivToken);
 
         if (callbackId != null) {
@@ -416,6 +423,43 @@ class JsEngineService {
           );
         }
       } catch (e) {
+        debugPrint("Crypto Error (AES): $e");
+        if (callbackId != null) {
+          _runtime.evaluate(
+            "_resolveDartAsync('$callbackId', ${jsonEncode(e.toString())}, true)",
+          );
+        }
+      }
+      return null;
+    });
+
+    _runtime.onMessage('crypto_pbkdf2', (dynamic args) {
+      final Map<String, dynamic> data = args is Map
+          ? Map<String, dynamic>.from(args)
+          : jsonDecode(args.toString());
+      final String? callbackId = data['id'];
+
+      try {
+        final String password = data['password'];
+        final String saltB64 = data['salt'];
+        final int iterations = data['iterations'] ?? 10000;
+        final int keyLength = data['keyLength'] ?? 32; // In bytes
+
+        final salt = base64Decode(saltB64);
+
+        final derivator = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64))
+          ..init(Pbkdf2Parameters(salt, iterations, keyLength));
+
+        final result = derivator.process(Uint8List.fromList(utf8.encode(password)));
+        final resultB64 = base64Encode(result);
+
+        if (callbackId != null) {
+          _runtime.evaluate(
+            "_resolveDartAsync('$callbackId', ${jsonEncode(resultB64)}, false)",
+          );
+        }
+      } catch (e) {
+        debugPrint("Crypto Error (PBKDF2): $e");
         if (callbackId != null) {
           _runtime.evaluate(
             "_resolveDartAsync('$callbackId', ${jsonEncode(e.toString())}, true)",
@@ -618,8 +662,21 @@ class JsEngineService {
       };
 
       globalThis.crypto = {
-         decryptAES: function(data, key, iv) {
-            return _dartAsyncCall('crypto_decrypt_aes', { data: data, key: key, iv: iv });
+         decryptAES: function(data, key, iv, options) {
+            return _dartAsyncCall('crypto_decrypt_aes', { 
+               data: data, 
+               key: key, 
+               iv: iv,
+               mode: (options && options.mode) || 'cbc'
+            });
+         },
+         pbkdf2: function(password, salt, iterations, keyLength) {
+            return _dartAsyncCall('crypto_pbkdf2', {
+               password: password,
+               salt: salt,
+               iterations: iterations || 10000,
+               keyLength: keyLength || 32
+            });
          }
       };
 

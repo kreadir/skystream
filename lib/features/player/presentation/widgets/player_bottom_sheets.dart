@@ -510,7 +510,8 @@ class PlayerBottomSheets {
         return Consumer(builder: (context, ref, child) {
           final playerState = ref.watch(playerControllerProvider);
           final currentDelay = playerState.subtitleDelay;
-          
+          final isExoPlayer = playerState.useExoPlayer;
+
           return SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -518,26 +519,49 @@ class PlayerBottomSheets {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text("Subtitle Sync", style: TextStyle(color: theme.textTheme.bodyLarge?.color, fontSize: 18, fontWeight: FontWeight.bold)),
+                  if (isExoPlayer) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.orange, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "Subtitle delay is not supported for HLS / live streams.",
+                              style: TextStyle(color: Colors.orange.shade200, fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        onPressed: () => ref.read(playerControllerProvider.notifier).setSubtitleDelay(currentDelay - 0.1),
+                        onPressed: isExoPlayer ? null : () => ref.read(playerControllerProvider.notifier).setSubtitleDelay(currentDelay - 0.1),
                         icon: const Icon(Icons.remove_circle_outline, size: 32),
                       ),
                       const SizedBox(width: 20),
-                      Text("${currentDelay.toStringAsFixed(1)}s", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                      Text("${currentDelay.toStringAsFixed(1)}s", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isExoPlayer ? Colors.white38 : null)),
                       const SizedBox(width: 20),
                       IconButton(
-                        onPressed: () => ref.read(playerControllerProvider.notifier).setSubtitleDelay(currentDelay + 0.1),
+                        onPressed: isExoPlayer ? null : () => ref.read(playerControllerProvider.notifier).setSubtitleDelay(currentDelay + 0.1),
                         icon: const Icon(Icons.add_circle_outline, size: 32),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
                   TextButton(
-                    onPressed: () => ref.read(playerControllerProvider.notifier).setSubtitleDelay(0.0),
+                    onPressed: isExoPlayer ? null : () => ref.read(playerControllerProvider.notifier).setSubtitleDelay(0.0),
                     child: const Text("Reset Delay"),
                   ),
                   const SizedBox(height: 10),

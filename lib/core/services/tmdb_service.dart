@@ -15,10 +15,7 @@ class TmdbService {
   Future<List<TmdbGenre>> getGenres({String language = 'en-US'}) async {
     final response = await _dio.get(
       '/genre/movie/list',
-      queryParameters: {
-        'api_key': TmdbConfig.apiKey,
-        'language': language,
-      }, // Always English per user request
+      queryParameters: {'api_key': TmdbConfig.apiKey, 'language': language},
     );
     if (response.statusCode == 200) {
       return (response.data['genres'] as List)
@@ -26,6 +23,55 @@ class TmdbService {
           .toList();
     }
     return [];
+  }
+
+  Future<List<TmdbGenre>> getTvGenres({String language = 'en-US'}) async {
+    final response = await _dio.get(
+      '/genre/tv/list',
+      queryParameters: {'api_key': TmdbConfig.apiKey, 'language': language},
+    );
+    if (response.statusCode == 200) {
+      return (response.data['genres'] as List)
+          .map((i) => TmdbGenre.fromJson(i))
+          .toList();
+    }
+    return [];
+  }
+
+  /// Lightweight detail fetch for the hero carousel — only appends images,
+  /// skipping credits/videos/translations to keep the call fast.
+  Future<Map<String, dynamic>?> getDetailsForCarousel(
+    int id,
+    String mediaType, {
+    String language = 'en-US',
+  }) async {
+    final langCode = language.split('-')[0];
+    final response = await _dio.get(
+      '/$mediaType/$id',
+      queryParameters: {
+        'api_key': TmdbConfig.apiKey,
+        'language': 'en-US',
+        'append_to_response': 'images',
+        'include_image_language': '$langCode,null,en',
+      },
+    );
+    if (response.statusCode == 200) return response.data;
+    return null;
+  }
+
+  /// Returns a language-appropriate minimum vote count to avoid empty results
+  /// for regional languages that have fewer TMDB entries.
+  static int minVoteCount(String fullLanguageCode) {
+    final iso = fullLanguageCode.split('-')[0].toLowerCase();
+    const regional = {'kn', 'ml', 'bn', 'mr', 'pa', 'gu', 'or', 'as'};
+    const major = {
+      'hi', 'ta', 'te', 'es', 'fr', 'de', 'it', 'ja', 'ko', 'ru', 'pt',
+      'zh', 'tr', 'ar', 'pl', 'nl', 'sv'
+    };
+    if (iso == 'en') return 100;
+    if (major.contains(iso)) return 25;
+    if (regional.contains(iso)) return 10;
+    return 25;
   }
 
   /// Shared pattern: use discover endpoint when filters are active, otherwise
@@ -400,7 +446,7 @@ class TmdbService {
       'sort_by': sortBy,
       'page': page,
       'include_null_first_air_dates': false,
-      'vote_count.gte': 100, // Basic filter to avoid garbage with 1 vote
+      'vote_count.gte': minVoteCount(fullLanguageCode),
       // Content Filter: Original Language
       if (fullLanguageCode != 'en-US') 'with_original_language': isoCode,
       // Content Filter: Released Only (Fix for user request)

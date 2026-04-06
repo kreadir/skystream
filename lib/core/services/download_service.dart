@@ -123,6 +123,10 @@ class DownloadService {
 
   Stream<TaskUpdate> get updates => _updatesController.stream;
 
+  void dispose() {
+    _updatesController.close();
+  }
+
   Future<void> init() async {
     // 1. Configure the downloader (chainable API)
     await FileDownloader()

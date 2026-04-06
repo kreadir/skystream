@@ -471,7 +471,11 @@ class VideoController: NSObject, FlutterStreamHandler {
 				avPlayer.volume = volume
 				state = 2
 				let item = avPlayer.currentItem!
-				let isLive = streaming || item.duration == .indefinite
+				let isLive = item.duration == .indefinite ||
+					(item.seekableTimeRanges.isEmpty && item.loadedTimeRanges.isEmpty == false)
+				// Set streaming flag so justPlay() uses the live path (avPlayer.rate = 1)
+				// and setSpeed() doesn't apply speed changes to live streams.
+				if isLive { streaming = true }
 				let seekable = item.seekableTimeRanges.last?.timeRangeValue
 				let isSeekable = isLive || seekable != nil
 				

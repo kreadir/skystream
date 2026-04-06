@@ -7,6 +7,8 @@ class TmdbGenre {
 
   const TmdbGenre({required this.id, required this.name});
 
+  TmdbGenre withName(String newName) => TmdbGenre(id: id, name: newName);
+
   factory TmdbGenre.fromJson(Map<String, dynamic> json) {
     return TmdbGenre(
       id: json['id'] as int,

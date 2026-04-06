@@ -20,9 +20,6 @@ class DiscoverScreen extends ConsumerStatefulWidget {
   ConsumerState<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-/// Opacity bands to avoid rebuilding the AppBar overlay every frame.
-const _opacityBands = [0.0, 0.25, 0.5, 0.75, 1.0];
-
 class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
     with AutomaticKeepAliveClientMixin {
   late ScrollController _scrollController;
@@ -43,12 +40,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
     if (!_scrollController.hasClients) return;
     final offset = _scrollController.offset * 0.8;
     final opacity = (offset / 300).clamp(0.0, 1.0);
-    final band = _opacityBands.lastWhere(
-      (b) => b <= opacity,
-      orElse: () => _opacityBands.first,
-    );
-    if (band != _appBarOpacityNotifier.value) {
-      _appBarOpacityNotifier.value = band;
+    if (opacity != _appBarOpacityNotifier.value) {
+      _appBarOpacityNotifier.value = opacity;
     }
     final isScrolled = _scrollController.offset > 200;
     if (isScrolled != _isScrolledNotifier.value) {
@@ -187,6 +180,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                       discoverHeroMovieProvider,
                     );
                     return heroMoviesAsync.when(
+                      skipLoadingOnReload: false,
+                      skipLoadingOnRefresh: false,
                       data: (movies) {
                         if (movies.isEmpty) return const SizedBox.shrink();
                         return DiscoverCarousel(

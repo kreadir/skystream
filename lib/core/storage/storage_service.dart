@@ -42,16 +42,40 @@ class StorageService {
     } catch (e) {
       if (kDebugMode) {
         debugPrint(
-          "Error opening Hive box '$boxName': $e. Deleting and recreating...",
+          "Error opening Hive box '$boxName': $e. Attempting recovery before deleting...",
         );
       }
-      // If the box is corrupted or has unknown type IDs, delete it.
+
+      // Attempt to salvage any readable entries before wiping the box.
+      Map<dynamic, dynamic> salvaged = {};
+      try {
+        final recoveryBox = await Hive.openBox(boxName, crashRecovery: true);
+        for (var i = 0; i < recoveryBox.length; i++) {
+          final key = recoveryBox.keyAt(i);
+          salvaged[key] = recoveryBox.get(key);
+        }
+        await recoveryBox.close();
+      } catch (_) {
+        // Box is unreadable even with crash recovery — salvaged stays empty.
+      }
+
       try {
         await Hive.deleteBoxFromDisk(boxName);
-      } catch (_) {
-        // Ignore delete errors, maybe file doesn't exist or lock issue
+      } catch (_) {}
+
+      final fresh = await Hive.openBox(boxName);
+
+      // Re-insert recovered entries.
+      if (salvaged.isNotEmpty) {
+        await fresh.putAll(salvaged);
+        if (kDebugMode) {
+          debugPrint(
+            "Hive box '$boxName': recovered ${salvaged.length} entries after corruption.",
+          );
+        }
       }
-      return await Hive.openBox(boxName);
+
+      return fresh;
     }
   }
 
@@ -209,6 +233,8 @@ class StorageService {
 
   static const String kHistoryBox = 'history_box';
   late Box _historyBox;
+  List<Map<String, dynamic>>? _cachedHistory;
+  bool _historyCacheDirty = true;
 
   Future<void> initHistory() async {
     _historyBox = await _safeOpenBox(kHistoryBox);
@@ -251,6 +277,8 @@ class StorageService {
       final episodeKey = "EP_${_getKey(lastEpisodeUrl)}";
       await _historyBox.put(episodeKey, entry);
     }
+
+    _historyCacheDirty = true;
   }
 
   Future<void> removeFromHistory(String url) async {
@@ -272,13 +300,20 @@ class StorageService {
     for (final k in keysToDelete) {
       await _historyBox.delete(k);
     }
+
+    _historyCacheDirty = true;
   }
 
   Future<void> clearAllHistory() async {
     await _historyBox.clear();
+    _historyCacheDirty = true;
   }
 
   List<Map<String, dynamic>> getWatchHistory() {
+    if (!_historyCacheDirty && _cachedHistory != null) {
+      return _cachedHistory!;
+    }
+
     final items = <Map<String, dynamic>>[];
     for (var i = 0; i < _historyBox.length; i++) {
       final key = _historyBox.keyAt(i) as String;
@@ -292,6 +327,9 @@ class StorageService {
     items.sort(
       (a, b) => (b['timestamp'] as int).compareTo(a['timestamp'] as int),
     );
+
+    _cachedHistory = items;
+    _historyCacheDirty = false;
     return items;
   }
 

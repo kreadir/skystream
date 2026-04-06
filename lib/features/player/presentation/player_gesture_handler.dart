@@ -33,6 +33,7 @@ class PlayerGestureHandler extends ChangeNotifier {
 
   double _boostLevel = 1.0;
   Timer? _osdTimer;
+  PlayerSettings? _cachedSettings;
 
   PlayerGestureHandler({
     required this.player,
@@ -89,7 +90,11 @@ class PlayerGestureHandler extends ChangeNotifier {
     if (isTv || isDesktop) return;
 
     final x = details.globalPosition.dx;
-    final settings = await getSettings();
+    // Use cached settings to avoid async gap on every swipe start.
+    // Refresh the cache in the background after each use.
+    final settings = _cachedSettings ?? await getSettings();
+    _cachedSettings ??= settings;
+    getSettings().then((s) => _cachedSettings = s);
 
     PlayerGesture type = PlayerGesture.none;
     if (x < screenWidth / 2) {

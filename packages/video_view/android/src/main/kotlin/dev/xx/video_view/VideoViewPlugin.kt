@@ -498,6 +498,9 @@ class VideoController(
 
 	private fun startWatcher() {
 		watching = true
+		// Live streams need less frequent position updates (UI shows elapsed time, not scrubbing).
+		// 250ms is imperceptible for live; VOD keeps 10ms for smooth progress bar scrubbing.
+		val intervalMs = if (exoPlayer.isCurrentMediaItemLive) 250L else 10L
 		handler.postDelayed({
 			if (state > 2U) {
 				startWatcher()
@@ -505,7 +508,7 @@ class VideoController(
 				watching = false
 			}
 			watchPosition()
-		}, 10)
+		}, intervalMs)
 	}
 
 	private fun watchPosition() {
@@ -588,11 +591,19 @@ class VideoController(
 				} else {
 					justSetSpeed(speed)
 				}
-				
+
 				// Initial snap for live streams now happens in onTimelineChanged
 				// which is more reliable for DASH manifest resolving.
 				loadEnd()
 				retryCount = 0
+				eventSink?.success(mapOf(
+					"event" to "loading",
+					"value" to false
+				))
+			} else if (state > 1U) {
+				// Recovery from mid-playback buffering: STATE_BUFFERING sends loading=true
+				// but loading=false is only sent above for the initial load path.
+				// Without this, the buffering spinner hangs forever after any network hiccup.
 				eventSink?.success(mapOf(
 					"event" to "loading",
 					"value" to false

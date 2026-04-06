@@ -16,6 +16,7 @@ import 'package:skystream/core/extensions/extension_manager.dart';
 import 'package:skystream/core/extensions/base_provider.dart';
 import 'package:skystream/core/domain/entity/multimedia_item.dart';
 import 'package:skystream/core/router/app_router.dart';
+import '../../../core/utils/error_messages.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -245,6 +246,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // Main content
     return homeDataAsync.when(
       skipLoadingOnReload: false,
+      skipLoadingOnRefresh: false,
       data: (data) {
         final filteredEntries = data.entries
             .where((e) => e.key != 'Trending')
@@ -296,20 +298,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 delegate: SliverChildBuilderDelegate((context, index) {
                   if (index >= filteredEntries.length) return null;
                   final entry = filteredEntries[index];
-                  return RepaintBoundary(
-                    child: MediaHorizontalList(
-                      title: entry.key,
-                      mediaList: entry.value,
-                      category: ViewAllCategory.trending,
-                      showViewAll: false,
-                      onTap: (item) {
-                        context.push(
-                          '/details',
-                          extra: DetailsRouteExtra(item: item),
-                        );
-                      },
-                      heroTagPrefix: 'home',
-                    ),
+                  return MediaHorizontalList(
+                    title: entry.key,
+                    mediaList: entry.value,
+                    category: ViewAllCategory.trending,
+                    showViewAll: false,
+                    onTap: (item) {
+                      context.push(
+                        '/details',
+                        extra: DetailsRouteExtra(item: item),
+                      );
+                    },
+                    heroTagPrefix: 'home',
                   );
                 }, childCount: filteredEntries.length),
               ),
@@ -321,7 +321,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => _buildErrorState(context, err.toString(), ref),
+      error: (err, stack) => _buildErrorState(context, AppErrorMessages.from(err), ref),
     );
   }
 
