@@ -123,6 +123,23 @@ class AppLocalizationsVi extends AppLocalizations {
   String get disabled => 'Đã tắt';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'Tham gia máy chủ của chúng tôi';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'Tham gia kênh của chúng tôi';
+
+  @override
+  String developedBy(String name) {
+    return 'Được phát triển bởi $name';
+  }
+
+  @override
   String get system => 'Hệ thống';
 
   @override

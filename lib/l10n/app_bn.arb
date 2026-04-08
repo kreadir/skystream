@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "ডেভেলপার অপশন",
   "debugTools": "ডিবাগ সরঞ্জাম",
   "playLocalVideo": "স্থানীয় ভিডিও ফাইল চালান",
   "playLocalVideoSubtitle": "ডিভাইস থেকে যেকোনো ভিডিও চালান",
@@ -374,7 +373,6 @@
   "fit": "ফিট",
   "zoom": "জুম",
   "stretch": "স্ট্রেচ",
-  "confirmDownload": "ডাউনলোড নিশ্চিত করুন",
   "titleWithParam": "শিরোনাম: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "এখনই ডাউনলোড করুন",
-  "downloadUnavailable": "ডাউনলোড উপলব্ধ নয়",
-  "selectAnotherSource": "অন্য উৎস নির্বাচন করুন",
   "usingInternalPlayerError": "ত্রুটি: {error}। অভ্যন্তরীণ প্লেয়ার ব্যবহার করা হচ্ছে।",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "কিছু ভুল হয়েছে। দয়া করে আবার চেষ্টা করুন।",
   "skip": "এড়িয়ে যান",
   "goLive": "লাইভে যান",
-  "goBack": "ফিরে যান",
   "dismiss": "বাতিল করুন",
   "nextUp": "পরবর্তী",
   "sourceAttempt": "{total} এর মধ্যে {index} উৎস",
@@ -524,5 +518,17 @@
   "failed": "ব্যর্থ",
   "selected": "নির্বাচিত",
   "playing": "চলছে",
-  "pending": "অপেক্ষমান"
+  "pending": "অপেক্ষমান",
+  "discord": "Discord",
+  "discordSubtitle": "আমাদের সার্ভারে যোগ দিন",
+  "telegram": "Telegram",
+  "telegramSubtitle": "আমাদের চ্যানেলে যোগ দিন",
+  "developedBy": "{name} দ্বারা তৈরী",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "開発者向けオプション",
   "debugTools": "デバッグツール",
   "playLocalVideo": "ローカル動画ファイルを再生",
   "playLocalVideoSubtitle": "デバイス内の動画を再生",
@@ -374,7 +373,6 @@
   "fit": "フィット",
   "zoom": "ズーム",
   "stretch": "ストレッチ",
-  "confirmDownload": "ダウンロードの確認",
   "titleWithParam": "タイトル: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "今すぐダウンロード",
-  "downloadUnavailable": "ダウンロード不可",
-  "selectAnotherSource": "別のソースを選択",
   "usingInternalPlayerError": "エラー: {error}. 内部プレイヤーを使用中。",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "問題が発生しました。",
   "skip": "スキップ",
   "goLive": "ライブへ移動",
-  "goBack": "戻る",
   "dismiss": "閉じる",
   "nextUp": "次のエピソード",
   "sourceAttempt": "ソース {index} / {total}",
@@ -524,5 +518,17 @@
   "failed": "失敗",
   "selected": "選択済み",
   "playing": "再生中",
-  "pending": "保留中"
+  "pending": "保留中",
+  "discord": "Discord",
+  "discordSubtitle": "サーバーに参加する",
+  "telegram": "Telegram",
+  "telegramSubtitle": "チャンネルに参加する",
+  "developedBy": "{name} によって開発されました",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Opsi Pengembang",
   "debugTools": "Alat Debug",
   "playLocalVideo": "Putar file video lokal",
   "playLocalVideoSubtitle": "Putar video apapun dari perangkat",
@@ -374,7 +373,6 @@
   "fit": "Pas",
   "zoom": "Perbesar",
   "stretch": "Regangkan",
-  "confirmDownload": "Konfirmasi Unduhan",
   "titleWithParam": "Judul: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Unduh Sekarang",
-  "downloadUnavailable": "Unduhan Tidak Tersedia",
-  "selectAnotherSource": "Pilih Sumber Lain",
   "usingInternalPlayerError": "Kesalahan: {error}. Menggunakan pemutar internal.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Terjadi kesalahan. Silakan coba lagi.",
   "skip": "Lewati",
   "goLive": "Siaran Langsung",
-  "goBack": "Kembali",
   "dismiss": "Tutup",
   "nextUp": "Berikutnya",
   "sourceAttempt": "Sumber {index} dari {total}",
@@ -524,5 +518,17 @@
   "failed": "Gagal",
   "selected": "Dipilih",
   "playing": "Memutar",
-  "pending": "Menunggu"
+  "pending": "Menunggu",
+  "discord": "Discord",
+  "discordSubtitle": "Bergabunglah dengan server kami",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Bergabunglah dengan saluran kami",
+  "developedBy": "Dikembangkan oleh {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

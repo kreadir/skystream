@@ -123,6 +123,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get disabled => '关闭';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => '加入我们的服务器';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => '加入我们的频道';
+
+  @override
+  String developedBy(String name) {
+    return '由 $name 开发';
+  }
+
+  @override
   String get system => '跟随系统';
 
   @override
@@ -1168,6 +1185,23 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get disabled => '停用';
+
+  @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => '加入我們的伺服器';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => '加入我們的頻道';
+
+  @override
+  String developedBy(String name) {
+    return '由 $name 開發';
+  }
 
   @override
   String get system => '跟隨系統';

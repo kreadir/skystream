@@ -55,8 +55,8 @@
   "confirmDownload": "Download bevestigen",
   "downloadNow": "Nu downloaden",
   "selectSource": "Bron selecteren",
-  "downloadUnavailable": "Download niet beschikbaar",
-  "selectAnotherSource": "Selecteer een andere bron",
+  "downloadUnavailable": "Niet beschikbaar",
+  "selectAnotherSource": "Selecteer andere bron",
   "watchHistoryCleared": "Kijkgeschiedenis gewist",
   "downloadingUpdate": "Update downloaden...",
   "errorPrefix": "Fout: {message}",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Ontwikkelaarsopties",
   "debugTools": "Debug-tools",
   "playLocalVideo": "Lokale video",
   "playLocalVideoSubtitle": "Speel bestand van apparaat af",
@@ -374,7 +373,6 @@
   "fit": "Passend",
   "zoom": "Zoom",
   "stretch": "Uitrekken",
-  "confirmDownload": "Download bevestigen",
   "titleWithParam": "Titel: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Nu downloaden",
-  "downloadUnavailable": "Niet beschikbaar",
-  "selectAnotherSource": "Selecteer andere bron",
   "usingInternalPlayerError": "Fout: {error}. Gebruik interne speler.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Fout.",
   "skip": "Overslaan",
   "goLive": "Ga live",
-  "goBack": "Terug",
   "dismiss": "Sluiten",
   "nextUp": "Volgende",
   "sourceAttempt": "Poging {index} van {total}",
@@ -524,5 +518,17 @@
   "failed": "Mislukt",
   "selected": "Geselecteerd",
   "playing": "Speelt af",
-  "pending": "Wachtend"
+  "pending": "Wachtend",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

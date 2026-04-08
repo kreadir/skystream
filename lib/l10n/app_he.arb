@@ -55,7 +55,7 @@
   "confirmDownload": "אשר הורדה",
   "downloadNow": "הורד עכשיו",
   "selectSource": "בחר מקור",
-  "downloadUnavailable": "הורדה לא זמינה",
+  "downloadUnavailable": "לא זמין",
   "selectAnotherSource": "בחר מקור אחר",
   "watchHistoryCleared": "היסטוריית צפייה נמחקה",
   "downloadingUpdate": "מוריד עדכון...",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "אפשרויות מפתח",
   "debugTools": "כלי ניפוי שגיאות",
   "playLocalVideo": "וידאו מקומי",
   "playLocalVideoSubtitle": "נגן קובץ מהמכשיר",
@@ -374,7 +373,6 @@
   "fit": "התאמה",
   "zoom": "זום",
   "stretch": "מתיחה",
-  "confirmDownload": "אשר הורדה",
   "titleWithParam": "כותרת: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "הורד עכשיו",
-  "downloadUnavailable": "לא זמין",
-  "selectAnotherSource": "בחר מקור אחר",
   "usingInternalPlayerError": "שגיאה: {error}. משתמש בנגן פנימי.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "משהו השתבש.",
   "skip": "דלג",
   "goLive": "לשידור חי",
-  "goBack": "חזור",
   "dismiss": "סגור",
   "nextUp": "הבא",
   "sourceAttempt": "מקור {index} מתוך {total}",
@@ -524,5 +518,17 @@
   "failed": "נכשל",
   "selected": "נבחר",
   "playing": "מנגן",
-  "pending": "ממתין"
+  "pending": "ממתין",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

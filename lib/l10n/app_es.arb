@@ -285,7 +285,7 @@
   "extensionsUpdated": "{count, plural, =1{1 extensión actualizada} other{{count} extensiones actualizadas}}",
   "invalidNavigation": "Navegación no válida. Por favor, vuelve atrás.",
   "startOver": "Empezar de nuevo",
-  "goBack": "Vuelve atrás",
+  "goBack": "Atrás",
   "resolving": "Resolviendo...",
   "downloaded": "Descargado",
   "download": "Descargar",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Opciones de desarrollador",
   "debugTools": "Herramientas de depuración",
   "playLocalVideo": "Reproducir archivo de vídeo local",
   "playLocalVideoSubtitle": "Reproducir cualquier vídeo del dispositivo",
@@ -374,7 +373,6 @@
   "fit": "Ajustar",
   "zoom": "Zoom",
   "stretch": "Estirar",
-  "confirmDownload": "Confirmar descarga",
   "titleWithParam": "Título: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Descargar ahora",
-  "downloadUnavailable": "Descarga no disponible",
-  "selectAnotherSource": "Seleccionar otra fuente",
   "usingInternalPlayerError": "Error: {error}. Usando reproductor interno.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Algo salió mal. Por favor, inténtalo de nuevo.",
   "skip": "Omitir",
   "goLive": "En directo",
-  "goBack": "Atrás",
   "dismiss": "Cerrar",
   "nextUp": "Siguiente",
   "sourceAttempt": "Fuente {index} de {total}",
@@ -524,5 +518,17 @@
   "failed": "Fallido",
   "selected": "Seleccionado",
   "playing": "Reproduciendo",
-  "pending": "Pendiente"
+  "pending": "Pendiente",
+  "discord": "Discord",
+  "discordSubtitle": "Únete a nuestro servidor",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Únete a nuestro canal",
+  "developedBy": "Desarrollado por {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

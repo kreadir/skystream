@@ -55,7 +55,7 @@
   "confirmDownload": "Potvrdit stahování",
   "downloadNow": "Stáhnout nyní",
   "selectSource": "Vybrat zdroj",
-  "downloadUnavailable": "Stahování není k dispozici",
+  "downloadUnavailable": "Nedostupné",
   "selectAnotherSource": "Vybrat jiný zdroj",
   "watchHistoryCleared": "Historie sledování byla vymazána",
   "downloadingUpdate": "Stahování aktualizace...",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Možnosti pro vývojáře",
   "debugTools": "Nástroje pro ladění",
   "playLocalVideo": "Místní video",
   "playLocalVideoSubtitle": "Přehrát soubor ze zařízení",
@@ -374,7 +373,6 @@
   "fit": "Přizpůsobit",
   "zoom": "Přiblížit",
   "stretch": "Roztáhnout",
-  "confirmDownload": "Potvrdit stahování",
   "titleWithParam": "Název: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Stáhnout nyní",
-  "downloadUnavailable": "Nedostupné",
-  "selectAnotherSource": "Vybrat jiný zdroj",
   "usingInternalPlayerError": "Chyba: {error}. Použit interní přehrávač.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Chyba.",
   "skip": "Přeskočit",
   "goLive": "Živě",
-  "goBack": "Zpět",
   "dismiss": "Zavřít",
   "nextUp": "Další",
   "sourceAttempt": "Pokus {index} z {total}",
@@ -524,5 +518,17 @@
   "failed": "Selhalo",
   "selected": "Vybráno",
   "playing": "Přehrává se",
-  "pending": "Čeká"
+  "pending": "Čeká",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

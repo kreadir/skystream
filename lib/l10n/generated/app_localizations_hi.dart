@@ -123,6 +123,23 @@ class AppLocalizationsHi extends AppLocalizations {
   String get disabled => 'अक्षम';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'हमारे सर्वर से जुड़ें';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'हमारे चैनल से जुड़ें';
+
+  @override
+  String developedBy(String name) {
+    return '$name द्वारा विकसित';
+  }
+
+  @override
   String get system => 'सिस्टम';
 
   @override

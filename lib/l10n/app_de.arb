@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Entwickleroptionen",
   "debugTools": "Debug-Tools",
   "playLocalVideo": "Lokale Videodatei abspielen",
   "playLocalVideoSubtitle": "Beliebiges Video vom Gerät abspielen",
@@ -374,7 +373,6 @@
   "fit": "Passend",
   "zoom": "Zoom",
   "stretch": "Strecken",
-  "confirmDownload": "Download bestätigen",
   "titleWithParam": "Titel: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Jetzt herunterladen",
-  "downloadUnavailable": "Download nicht verfügbar",
-  "selectAnotherSource": "Andere Quelle wählen",
   "usingInternalPlayerError": "Fehler: {error}. Interner Player wird verwendet.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
   "skip": "Überspringen",
   "goLive": "Live gehen",
-  "goBack": "Zurück",
   "dismiss": "Schließen",
   "nextUp": "Als Nächstes",
   "sourceAttempt": "Quelle {index} von {total}",
@@ -524,5 +518,17 @@
   "failed": "Fehlgeschlagen",
   "selected": "Ausgewählt",
   "playing": "Wiedergabe",
-  "pending": "Ausstehend"
+  "pending": "Ausstehend",
+  "discord": "Discord",
+  "discordSubtitle": "Tritt unserem Server bei",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Tritt unserem Kanal bei",
+  "developedBy": "Entwickelt von {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

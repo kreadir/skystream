@@ -33,7 +33,7 @@
   "appData": "Dữ liệu ứng dụng",
   "resetDataKeepExtensions": "Xóa dữ liệu (Giữ lại tiện ích)",
   "developer": "Nhà phát triển",
-  "developerOptions": "Tùy chọn cho nhà phát triển",
+  "developerOptions": "Tùy chọn nhà phát triển",
   "about": "Giới thiệu",
   "version": "Phiên bản",
   "enabled": "Đã bật",
@@ -53,9 +53,9 @@
   "all": "Tất cả",
   "none": "Không có",
   "confirmDownload": "Xác nhận tải xuống",
-  "downloadNow": "Tải xuống ngay",
+  "downloadNow": "Tải ngay",
   "selectSource": "Chọn nguồn",
-  "downloadUnavailable": "Tải xuống không khả dụng",
+  "downloadUnavailable": "Không khả dụng",
   "selectAnotherSource": "Chọn nguồn khác",
   "watchHistoryCleared": "Đã xóa lịch sử xem",
   "downloadingUpdate": "Đang tải bản cập nhật...",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Tùy chọn nhà phát triển",
   "debugTools": "Công cụ gỡ lỗi",
   "playLocalVideo": "Phát video cục bộ",
   "playLocalVideoSubtitle": "Phát bất kỳ video nào từ thiết bị",
@@ -374,7 +373,6 @@
   "fit": "Vừa vặn",
   "zoom": "Thu phóng",
   "stretch": "Kéo giãn",
-  "confirmDownload": "Xác nhận tải xuống",
   "titleWithParam": "Tiêu đề: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Tải ngay",
-  "downloadUnavailable": "Không khả dụng",
-  "selectAnotherSource": "Chọn nguồn khác",
   "usingInternalPlayerError": "Lỗi: {error}. Đang sử dụng trình phát nội bộ.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Đã xảy ra lỗi.",
   "skip": "Bỏ qua",
   "goLive": "Xem trực tiếp",
-  "goBack": "Quay lại",
   "dismiss": "Bỏ qua",
   "nextUp": "Tiếp theo",
   "sourceAttempt": "Nguồn {index} trên {total}",
@@ -524,5 +518,17 @@
   "failed": "Thất bại",
   "selected": "Đã chọn",
   "playing": "Đang phát",
-  "pending": "Đang chờ"
+  "pending": "Đang chờ",
+  "discord": "Discord",
+  "discordSubtitle": "Tham gia máy chủ của chúng tôi",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Tham gia kênh của chúng tôi",
+  "developedBy": "Được phát triển bởi {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

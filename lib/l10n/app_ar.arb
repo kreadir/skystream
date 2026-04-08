@@ -347,12 +347,10 @@
       }
     }
   },
-  "developerOptions": "خيارات المطور",
   "debugTools": "أدوات التصحيح",
-  "playLocalVideo": "تشغيل ملف فيديو محلي",
+  "playLocalVideo": "تشغيل فيديو محلي",
   "playLocalVideoSubtitle": "تشغيل أي فيديو من الجهاز",
   "streamUrlSubtitle": "التشغيل من رابط شبكة",
-  "playLocalVideo": "تشغيل فيديو محلي",
   "streamTorrent": "بث تورنت",
   "streamTorrentSubtitle": "اختر ملف تورنت محلي للتشغيل",
   "loadPluginFromAssets": "تحميل الإضافة من الأصول",
@@ -375,7 +373,6 @@
   "fit": "ملاءمة",
   "zoom": "تغيير الحجم والتركيز",
   "stretch": "تمطيط",
-  "confirmDownload": "تأكيد التنزيل",
   "titleWithParam": "العنوان: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -400,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "تنزيل الآن",
-  "downloadUnavailable": "التنزيل غير متاح",
-  "selectAnotherSource": "اختر مصدراً آخر",
   "usingInternalPlayerError": "خطأ: {error}. يتم استخدام المشغل الداخلي.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -507,7 +501,6 @@
   "generalError": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
   "skip": "تخطي",
   "goLive": "البث المباشر",
-  "goBack": "العودة",
   "dismiss": "إغلاق",
   "nextUp": "التالي",
   "sourceAttempt": "المصدر {index} من {total}",
@@ -525,5 +518,17 @@
   "failed": "فشل",
   "selected": "مختار",
   "playing": "تشغيل",
-  "pending": "قيد الانتظار"
+  "pending": "قيد الانتظار",
+  "discord": "Discord",
+  "discordSubtitle": "انضم إلى خادمنا",
+  "telegram": "Telegram",
+  "telegramSubtitle": "انضم إلى قناتنا",
+  "developedBy": "تم التطوير بواسطة {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

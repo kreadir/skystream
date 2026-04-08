@@ -123,6 +123,23 @@ class AppLocalizationsTr extends AppLocalizations {
   String get disabled => 'Devre Dışı';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'Sunucumuza katılın';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'Kanalımıza katılın';
+
+  @override
+  String developedBy(String name) {
+    return '$name tarafından geliştirildi';
+  }
+
+  @override
   String get system => 'Sistem';
 
   @override

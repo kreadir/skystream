@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Opzioni sviluppatore",
   "debugTools": "Strumenti debug",
   "playLocalVideo": "Riproduci file video locale",
   "playLocalVideoSubtitle": "Riproduci qualsiasi video dal dispositivo",
@@ -374,7 +373,6 @@
   "fit": "Adatta",
   "zoom": "Zoom",
   "stretch": "Allunga",
-  "confirmDownload": "Conferma download",
   "titleWithParam": "Titolo: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Scarica ora",
-  "downloadUnavailable": "Download non disponibile",
-  "selectAnotherSource": "Seleziona un'altra fonte",
   "usingInternalPlayerError": "Errore: {error}. Utilizzo del lettore interno.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Si è verificato un errore. Per favore riprova.",
   "skip": "Salta",
   "goLive": "Vai in diretta",
-  "goBack": "Torna indietro",
   "dismiss": "Chiudi",
   "nextUp": "Prossimo",
   "sourceAttempt": "Fonte {index} di {total}",
@@ -524,5 +518,17 @@
   "failed": "Fallito",
   "selected": "Selezionato",
   "playing": "In riproduzione",
-  "pending": "In attesa"
+  "pending": "In attesa",
+  "discord": "Discord",
+  "discordSubtitle": "Unisciti al nostro server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Unisciti al nostro canale",
+  "developedBy": "Sviluppato da {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

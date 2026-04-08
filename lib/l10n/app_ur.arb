@@ -33,7 +33,7 @@
   "appData": "ایپ ڈیٹا",
   "resetDataKeepExtensions": "ڈیٹا ری سیٹ کریں (ایکٹینشنز رکھیں)",
   "developer": "ڈویلپر",
-  "developerOptions": "ڈویلپر کے اختیارات",
+  "developerOptions": "ڈیولپر کے اختیارات",
   "about": "ایپ کے بارے میں",
   "version": "ورژن",
   "enabled": "فعال",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "ڈیولپر کے اختیارات",
   "debugTools": "ڈی بگ ٹولز",
   "playLocalVideo": "مقامی ویڈیو فائل چلائیں",
   "playLocalVideoSubtitle": "ڈیوائس سے کوئی بھی ویڈیو چلائیں",
@@ -374,7 +373,6 @@
   "fit": "فٹ",
   "zoom": "زوم",
   "stretch": "اسٹریچ",
-  "confirmDownload": "ڈاؤن لوڈ کی تصدیق کریں",
   "titleWithParam": "عنوان: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "ابھی ڈاؤن لوڈ کریں",
-  "downloadUnavailable": "ڈاؤن لوڈ دستیاب نہیں ہے",
-  "selectAnotherSource": "دوسرا ذریعہ منتخب کریں",
   "usingInternalPlayerError": "خرابی: {error}۔ اندرونی پلیئر استعمال کیا جا رہا ہے۔",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
   "skip": "اسکپ",
   "goLive": "لائیو جائیں",
-  "goBack": "پیچھے جائیں",
   "dismiss": "خارج کریں",
   "nextUp": "اگلا",
   "sourceAttempt": "{total} میں سے ذریعہ {index}",
@@ -524,5 +518,17 @@
   "failed": "ناکام رہا",
   "selected": "منتخب شدہ",
   "playing": "چل رہا ہے",
-  "pending": "زیر التواء"
+  "pending": "زیر التواء",
+  "discord": "Discord",
+  "discordSubtitle": "ہمارے سرور میں شامل ہوں",
+  "telegram": "Telegram",
+  "telegramSubtitle": "ہمارے چینل میں شامل ہوں",
+  "developedBy": "{name} نے تیار کیا",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

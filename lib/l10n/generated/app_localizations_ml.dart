@@ -124,6 +124,23 @@ class AppLocalizationsMl extends AppLocalizations {
   String get disabled => 'പ്രവർത്തനരഹിതമാക്കി';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'ഞങ്ങളുടെ സെർവറിൽ ചേരുക';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'ഞങ്ങളുടെ ചാനലിൽ ചേരുക';
+
+  @override
+  String developedBy(String name) {
+    return '$name വികസിപ്പിച്ചത്';
+  }
+
+  @override
   String get system => 'സിസ്റ്റം';
 
   @override

@@ -55,8 +55,8 @@
   "confirmDownload": "Потвърди изтеглянето",
   "downloadNow": "Изтегли сега",
   "selectSource": "Избери източник",
-  "downloadUnavailable": "Изтеглянето е недостъпно",
-  "selectAnotherSource": "Избери друг източник",
+  "downloadUnavailable": "Недостъпно",
+  "selectAnotherSource": "Избери друг",
   "watchHistoryCleared": "Историята е изчистена",
   "downloadingUpdate": "Изтегляне на актуализация...",
   "errorPrefix": "Грешка: {message}",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Опции за разработчици",
   "debugTools": "Инструменти за дебъг",
   "playLocalVideo": "Локално видео",
   "playLocalVideoSubtitle": "Пуснете файл от устройството",
@@ -374,7 +373,6 @@
   "fit": "Побиране",
   "zoom": "Увеличение",
   "stretch": "Разтягане",
-  "confirmDownload": "Потвърди изтеглянето",
   "titleWithParam": "Заглавие: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Изтегли сега",
-  "downloadUnavailable": "Недостъпно",
-  "selectAnotherSource": "Избери друг",
   "usingInternalPlayerError": "Грешка: {error}. Използване на вътрешен плейър.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Грешка.",
   "skip": "Пропусни",
   "goLive": "На живо",
-  "goBack": "Назад",
   "dismiss": "Затвори",
   "nextUp": "Следва",
   "sourceAttempt": "Опит {index} от {total}",
@@ -524,5 +518,17 @@
   "failed": "Неуспешно",
   "selected": "Избрано",
   "playing": "Възпроизвеждане",
-  "pending": "Изчакване"
+  "pending": "Изчакване",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

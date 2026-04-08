@@ -403,6 +403,36 @@ abstract class AppLocalizations {
   /// **'Disabled'**
   String get disabled;
 
+  /// No description provided for @discord.
+  ///
+  /// In en, this message translates to:
+  /// **'Discord'**
+  String get discord;
+
+  /// No description provided for @discordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join our server'**
+  String get discordSubtitle;
+
+  /// No description provided for @telegram.
+  ///
+  /// In en, this message translates to:
+  /// **'Telegram'**
+  String get telegram;
+
+  /// No description provided for @telegramSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join our channel'**
+  String get telegramSubtitle;
+
+  /// No description provided for @developedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Developed by {name}'**
+  String developedBy(String name);
+
   /// No description provided for @system.
   ///
   /// In en, this message translates to:

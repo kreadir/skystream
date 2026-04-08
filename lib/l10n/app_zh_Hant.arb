@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "開發者選項",
   "debugTools": "偵錯工具",
   "playLocalVideo": "播放區域影片",
   "playLocalVideoSubtitle": "播放裝置上的影片",
@@ -374,7 +373,6 @@
   "fit": "適應",
   "zoom": "縮放",
   "stretch": "拉伸",
-  "confirmDownload": "確認下載",
   "titleWithParam": "標題: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "立即下載",
-  "downloadUnavailable": "目前不可下載",
-  "selectAnotherSource": "選擇其他來源",
   "usingInternalPlayerError": "錯誤: {error}，正在使用內建播放器。",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "發生錯誤，請重試。",
   "skip": "跳過",
   "goLive": "進入直播",
-  "goBack": "返回",
   "dismiss": "關閉",
   "nextUp": "下一集",
   "sourceAttempt": "播放源 {index} / {total}",
@@ -524,5 +518,17 @@
   "failed": "失敗",
   "selected": "已選擇",
   "playing": "播放中",
-  "pending": "等待中"
+  "pending": "等待中",
+  "discord": "Discord",
+  "discordSubtitle": "加入我們的伺服器",
+  "telegram": "Telegram",
+  "telegramSubtitle": "加入我們的頻道",
+  "developedBy": "由 {name} 開發",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

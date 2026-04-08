@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Options développeur",
   "debugTools": "Outils de débogage",
   "playLocalVideo": "Lire un fichier vidéo local",
   "playLocalVideoSubtitle": "Lire une vidéo depuis l'appareil",
@@ -374,7 +373,6 @@
   "fit": "Adapter",
   "zoom": "Zoom",
   "stretch": "Étirer",
-  "confirmDownload": "Confirmer le téléchargement",
   "titleWithParam": "Titre : {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Télécharger maintenant",
-  "downloadUnavailable": "Téléchargement indisponible",
-  "selectAnotherSource": "Sélectionner une autre source",
   "usingInternalPlayerError": "Erreur : {error}. Utilisation du lecteur interne.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Quelque chose s'est mal passé. Veuillez réessayer.",
   "skip": "Passer",
   "goLive": "Direct",
-  "goBack": "Retour",
   "dismiss": "Fermer",
   "nextUp": "Suivant",
   "sourceAttempt": "Source {index} sur {total}",
@@ -524,5 +518,17 @@
   "failed": "Échoué",
   "selected": "Sélectionné",
   "playing": "Lecture",
-  "pending": "En attente"
+  "pending": "En attente",
+  "discord": "Discord",
+  "discordSubtitle": "Rejoignez notre serveur",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Rejoignez notre chaîne",
+  "developedBy": "Développé par {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

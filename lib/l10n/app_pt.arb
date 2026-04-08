@@ -55,8 +55,8 @@
   "confirmDownload": "Confirmar Transferência",
   "downloadNow": "Transferir Agora",
   "selectSource": "Selecionar Fonte",
-  "downloadUnavailable": "Transferência Indisponível",
-  "selectAnotherSource": "Selecionar Outra Fonte",
+  "downloadUnavailable": "Indisponível",
+  "selectAnotherSource": "Selecionar Outro",
   "watchHistoryCleared": "Histórico de visualização limpo",
   "downloadingUpdate": "A transferir atualização...",
   "errorPrefix": "Erro: {message}",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Opções de Programador",
   "debugTools": "Ferramentas de Depuração",
   "playLocalVideo": "Vídeo Local",
   "playLocalVideoSubtitle": "Reproduzir do dispositivo",
@@ -374,7 +373,6 @@
   "fit": "Ajustar",
   "zoom": "Zoom",
   "stretch": "Esticar",
-  "confirmDownload": "Confirmar Transferência",
   "titleWithParam": "Título: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Transferir Agora",
-  "downloadUnavailable": "Indisponível",
-  "selectAnotherSource": "Selecionar Outro",
   "usingInternalPlayerError": "Erro: {error}. A usar reprodutor interno.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Ocorreu um erro.",
   "skip": "Saltar",
   "goLive": "Em Direto",
-  "goBack": "Voltar",
   "dismiss": "Fechar",
   "nextUp": "Seguinte",
   "sourceAttempt": "Fonte {index} de {total}",
@@ -524,5 +518,17 @@
   "failed": "Falhou",
   "selected": "Selecionado",
   "playing": "A reproduzir",
-  "pending": "Pendente"
+  "pending": "Pendente",
+  "discord": "Discord",
+  "discordSubtitle": "Junte-se ao nosso servidor",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Junte-se ao nosso canal",
+  "developedBy": "Desenvolvido por {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

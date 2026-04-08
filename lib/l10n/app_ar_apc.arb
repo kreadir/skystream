@@ -55,8 +55,8 @@
   "confirmDownload": "تأكيد التحميل",
   "downloadNow": "حمل هلق",
   "selectSource": "اختار المصدر",
-  "downloadUnavailable": "التحميل غير متاح",
-  "selectAnotherSource": "اختار مصدر تاني",
+  "downloadUnavailable": "مو متاح",
+  "selectAnotherSource": "اختار غيرو",
   "watchHistoryCleared": "تم مسح سجل المشاهدة",
   "downloadingUpdate": "عم يحمل التحديث...",
   "errorPrefix": "خطأ: {message}",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "خيارات المطور",
   "debugTools": "أدوات الديباغ",
   "playLocalVideo": "فيديو من الجهاز",
   "playLocalVideoSubtitle": "شغل ملف من عندك",
@@ -374,7 +373,6 @@
   "fit": "قياس",
   "zoom": "زووم",
   "stretch": "مط",
-  "confirmDownload": "تأكيد التحميل",
   "titleWithParam": "العنوان: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "حمل هلق",
-  "downloadUnavailable": "مو متاح",
-  "selectAnotherSource": "اختار غيرو",
   "usingInternalPlayerError": "خطأ: {error}. مشغل داخلي.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "صار خطأ.",
   "skip": "تخطي",
   "goLive": "مباشر",
-  "goBack": "رجوع",
   "dismiss": "تجاهل",
   "nextUp": "التالي",
   "sourceAttempt": "محاولة {index} من {total}",
@@ -524,5 +518,17 @@
   "failed": "فشل",
   "selected": "مختار",
   "playing": "عم يشتغل",
-  "pending": "ناطر"
+  "pending": "ناطر",
+  "discord": "Discord",
+  "discordSubtitle": "انضم لسيرفرنا",
+  "telegram": "Telegram",
+  "telegramSubtitle": "انضم لقناتنا",
+  "developedBy": "تم التطوير بواسطة {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

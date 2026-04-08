@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "डेव्हलपर पर्याय",
   "debugTools": "डीबग टूल्स",
   "playLocalVideo": "स्थानिक व्हिडिओ फाइल सुरू करा",
   "playLocalVideoSubtitle": "साधनावरील कोणताही व्हिडिओ सुरू करा",
@@ -374,7 +373,6 @@
   "fit": "फिट",
   "zoom": "झूम",
   "stretch": "खेचा",
-  "confirmDownload": "डाउनलोडची पुष्टी करा",
   "titleWithParam": "शीर्षक: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "आत्ता डाउनलोड करा",
-  "downloadUnavailable": "डाउनलोड उपलब्ध नाही",
-  "selectAnotherSource": "दुसरा स्रोत निवडा",
   "usingInternalPlayerError": "त्रुटी: {error}. अंतर्गत प्लेअर वापरला जात आहे.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "काहीतरी चूक झाली आहे.",
   "skip": "वगळा",
   "goLive": "थेट सुरू करा",
-  "goBack": "परत जा",
   "dismiss": "काढून टाका",
   "nextUp": "पुढील",
   "sourceAttempt": "{total} पैकी {index} स्रोत",
@@ -524,5 +518,17 @@
   "failed": "अयशस्वी",
   "selected": "निवडले",
   "playing": "सुरू आहे",
-  "pending": "प्रलंबित"
+  "pending": "प्रलंबित",
+  "discord": "Discord",
+  "discordSubtitle": "आमच्या सर्व्हरमध्ये सामील व्हा",
+  "telegram": "Telegram",
+  "telegramSubtitle": "आमच्या चॅनेलमध्ये सामील व्हा",
+  "developedBy": "{name} द्वारे विकसित",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

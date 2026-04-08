@@ -55,8 +55,8 @@
   "confirmDownload": "Potwierdź pobieranie",
   "downloadNow": "Pobierz teraz",
   "selectSource": "Wybierz źródło",
-  "downloadUnavailable": "Pobieranie niedostępne",
-  "selectAnotherSource": "Wybierz inne źródło",
+  "downloadUnavailable": "Niedostępne",
+  "selectAnotherSource": "Wybierz inne",
   "watchHistoryCleared": "Historia oglądania wyczyszczona",
   "downloadingUpdate": "Pobieranie aktualizacji...",
   "errorPrefix": "Błąd: {message}",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Opcje programistyczne",
   "debugTools": "Narzędzia debugowania",
   "playLocalVideo": "Lokalne wideo",
   "playLocalVideoSubtitle": "Odtwórz plik z urządzenia",
@@ -374,7 +373,6 @@
   "fit": "Dopasuj",
   "zoom": "Powiększ",
   "stretch": "Rozciągnij",
-  "confirmDownload": "Potwierdź pobieranie",
   "titleWithParam": "Tytuł: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Pobierz teraz",
-  "downloadUnavailable": "Niedostępne",
-  "selectAnotherSource": "Wybierz inne",
   "usingInternalPlayerError": "Błąd: {error}. Odtwarzacz wewnętrzny.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Błąd.",
   "skip": "Pomiń",
   "goLive": "Na żywo",
-  "goBack": "Wstecz",
   "dismiss": "Zamknij",
   "nextUp": "Następnie",
   "sourceAttempt": "Próba {index} z {total}",
@@ -524,5 +518,17 @@
   "failed": "Nieudane",
   "selected": "Wybrano",
   "playing": "Odtwarzanie",
-  "pending": "Oczekiwanie"
+  "pending": "Oczekiwanie",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

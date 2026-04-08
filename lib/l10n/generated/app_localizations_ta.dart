@@ -123,6 +123,23 @@ class AppLocalizationsTa extends AppLocalizations {
   String get disabled => 'முடக்கப்பட்டது';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'எங்கள் சர்வரில் சேரவும்';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'எங்கள் சேனலில் சேரவும்';
+
+  @override
+  String developedBy(String name) {
+    return '$name ஆல் உருவாக்கப்பட்டது';
+  }
+
+  @override
   String get system => 'சிஸ்டம்';
 
   @override

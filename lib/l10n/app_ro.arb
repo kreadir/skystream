@@ -55,8 +55,8 @@
   "confirmDownload": "Confirmă descărcarea",
   "downloadNow": "Descarcă acum",
   "selectSource": "Selectează sursa",
-  "downloadUnavailable": "Descărcare indisponibilă",
-  "selectAnotherSource": "Selectează altă sursă",
+  "downloadUnavailable": "Indisponibil",
+  "selectAnotherSource": "Selectează alta",
   "watchHistoryCleared": "Istoricul vizionărilor a fost șters",
   "downloadingUpdate": "Se descarcă actualizarea...",
   "errorPrefix": "Eroare: {message}",
@@ -285,7 +285,7 @@
   "extensionsUpdated": "{count, plural, one{1 extensie actualizată} few{{count} extensii actualizate} other{{count} de extensii actualizate}}",
   "invalidNavigation": "Navigare invalidă.",
   "startOver": "Reîncepe",
-  "goBack": "Mergi înapoi",
+  "goBack": "Înapoi",
   "resolving": "Se rezolvă...",
   "downloaded": "Descărcat",
   "download": "Descarcă",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Opțiuni dezvoltator",
   "debugTools": "Instrumente depanare",
   "playLocalVideo": "Video local",
   "playLocalVideoSubtitle": "Redă fișier de pe dispozitiv",
@@ -374,7 +373,6 @@
   "fit": "Potrivire",
   "zoom": "Zoom",
   "stretch": "Întinde",
-  "confirmDownload": "Confirmă descărcarea",
   "titleWithParam": "Titlu: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Descarcă acum",
-  "downloadUnavailable": "Indisponibil",
-  "selectAnotherSource": "Selectează alta",
   "usingInternalPlayerError": "Eroare: {error}. Se folosește player-ul intern.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Eroare.",
   "skip": "Sari",
   "goLive": "Direct",
-  "goBack": "Înapoi",
   "dismiss": "Închide",
   "nextUp": "Urmează",
   "sourceAttempt": "Sursa {index} din {total}",
@@ -524,5 +518,17 @@
   "failed": "Eșuat",
   "selected": "Selectat",
   "playing": "Redare",
-  "pending": "În așteptare"
+  "pending": "În așteptare",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

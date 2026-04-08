@@ -123,6 +123,23 @@ class AppLocalizationsId extends AppLocalizations {
   String get disabled => 'Nonaktif';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'Bergabunglah dengan server kami';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'Bergabunglah dengan saluran kami';
+
+  @override
+  String developedBy(String name) {
+    return 'Dikembangkan oleh $name';
+  }
+
+  @override
   String get system => 'Sistem';
 
   @override

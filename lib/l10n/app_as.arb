@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "ডেভেলপাৰ বিকল্প",
   "debugTools": "ডিবাগ সঁজুলি",
   "playLocalVideo": "স্থানীয় ভিডিঅ' ফাইল প্লে কৰক",
   "playLocalVideoSubtitle": "ডিভাইচৰ যিকোনো ভিডিঅ' প্লে কৰক",
@@ -374,7 +373,6 @@
   "fit": "ফিট",
   "zoom": "জুম",
   "stretch": "ষ্ট্ৰেচ",
-  "confirmDownload": "ডাউনলোড নিশ্চিত কৰক",
   "titleWithParam": "শিৰোনাম: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "এতিয়াই ডাউনলোড কৰক",
-  "downloadUnavailable": "ডাউনলোড উপলব্ধ নহয়",
-  "selectAnotherSource": "আন এটি উৎস নিৰ্বাচন কৰক",
   "usingInternalPlayerError": "ত্ৰুটি: {error}। অভ্যন্তৰীণ প্লেয়াৰ ব্যৱহাৰ কৰা হৈছে।",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "কিবা ভুল হৈছে। অনুগ্ৰহ কৰি আকৌ চেষ্টা কৰক।",
   "skip": "বাদ দিয়ক",
   "goLive": "লাইভলৈ যাওক",
-  "goBack": "পাছলৈ যাওক",
   "dismiss": "বাতিল কৰক",
   "nextUp": "পাছত আছে",
   "sourceAttempt": "{total} টা উৎসৰ ভিতৰত {index} নম্বৰ উৎস",
@@ -524,5 +518,17 @@
   "failed": "ব্যৰ্থ হ'ল",
   "selected": "নিৰ্বাচিত",
   "playing": "প্লে হৈ আছে",
-  "pending": "পেন্ডিং হৈ আছে"
+  "pending": "পেন্ডিং হৈ আছে",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

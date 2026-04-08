@@ -55,8 +55,8 @@
   "confirmDownload": "Подтверждение скачивания",
   "downloadNow": "Скачать сейчас",
   "selectSource": "Выберите источник",
-  "downloadUnavailable": "Скачивание недоступно",
-  "selectAnotherSource": "Выберите другой источник",
+  "downloadUnavailable": "Недоступно",
+  "selectAnotherSource": "Выбрать другой",
   "watchHistoryCleared": "История просмотров очищена",
   "downloadingUpdate": "Загрузка обновления...",
   "errorPrefix": "Ошибка: {message}",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Параметры разработчика",
   "debugTools": "Инструменты отладки",
   "playLocalVideo": "Локальное видео",
   "playLocalVideoSubtitle": "Воспроизвести файл с устройства",
@@ -374,7 +373,6 @@
   "fit": "Заполнение",
   "zoom": "Зум",
   "stretch": "Растянуть",
-  "confirmDownload": "Подтверждение скачивания",
   "titleWithParam": "Название: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Скачать сейчас",
-  "downloadUnavailable": "Недоступно",
-  "selectAnotherSource": "Выбрать другой",
   "usingInternalPlayerError": "Ошибка: {error}. Используется внутренний плеер.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Произошла ошибка.",
   "skip": "Пропустить",
   "goLive": "В эфир",
-  "goBack": "Назад",
   "dismiss": "Закрыть",
   "nextUp": "Далее",
   "sourceAttempt": "Источник {index} из {total}",
@@ -524,5 +518,17 @@
   "failed": "Ошибка",
   "selected": "Выбрано",
   "playing": "Играет",
-  "pending": "Ожидание"
+  "pending": "Ожидание",
+  "discord": "Discord",
+  "discordSubtitle": "Присоединяйтесь к нашему серверу",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Присоединяйтесь к нашему каналу",
+  "developedBy": "Разработано {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

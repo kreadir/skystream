@@ -123,6 +123,23 @@ class AppLocalizationsUk extends AppLocalizations {
   String get disabled => 'Вимкнено';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'Приєднуйтесь до нашого сервера';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'Приєднуйтесь до нашого каналу';
+
+  @override
+  String developedBy(String name) {
+    return 'Розроблено $name';
+  }
+
+  @override
   String get system => 'Система';
 
   @override

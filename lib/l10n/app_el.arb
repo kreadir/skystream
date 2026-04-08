@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Επιλογές προγραμματιστή",
   "debugTools": "Εργαλεία αποσφαλμάτωσης",
   "playLocalVideo": "Αναπαραγωγή τοπικού αρχείου βίντεο",
   "playLocalVideoSubtitle": "Αναπαραγωγή οποιουδήποτε βίντεο από τη συσκευή",
@@ -374,7 +373,6 @@
   "fit": "Προσαρμογή",
   "zoom": "Ζουμ",
   "stretch": "Επέκταση",
-  "confirmDownload": "Επιβεβαίωση λήψης",
   "titleWithParam": "Τίτλος: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Λήψη τώρα",
-  "downloadUnavailable": "Η λήψη δεν είναι διαθέσιμη",
-  "selectAnotherSource": "Επιλέξτε άλλη πηγή",
   "usingInternalPlayerError": "Σφάλμα: {error}. Χρήση εσωτερικού προγράμματος αναπαραγωγής.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Κάποιο πρόβλημα προέκυψε.",
   "skip": "Παράλειψη",
   "goLive": "Ζωντανά",
-  "goBack": "Επιστροφή",
   "dismiss": "Απόρριψη",
   "nextUp": "Επόμενο",
   "sourceAttempt": "Πηγή {index} από {total}",
@@ -524,5 +518,17 @@
   "failed": "Αποτυχία",
   "selected": "Επιλεγμένο",
   "playing": "Αναπαραγωγή",
-  "pending": "Σε εκκρεμότητα"
+  "pending": "Σε εκκρεμότητα",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

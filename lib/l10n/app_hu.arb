@@ -55,8 +55,8 @@
   "confirmDownload": "Letöltés megerősítése",
   "downloadNow": "Letöltés most",
   "selectSource": "Forrás kiválasztása",
-  "downloadUnavailable": "Letöltés nem elérhető",
-  "selectAnotherSource": "Válasszon másik forrást",
+  "downloadUnavailable": "Nem elérhető",
+  "selectAnotherSource": "Válasszon másikat",
   "watchHistoryCleared": "Megtekintési előzmények törölve",
   "downloadingUpdate": "Frissítés letöltése...",
   "errorPrefix": "Hiba: {message}",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Fejlesztői beállítások",
   "debugTools": "Hibakereső eszközök",
   "playLocalVideo": "Helyi videó",
   "playLocalVideoSubtitle": "Fájl lejátszása az eszközről",
@@ -374,7 +373,6 @@
   "fit": "Illeszkedés",
   "zoom": "Nagyítás",
   "stretch": "Nyújtás",
-  "confirmDownload": "Letöltés megerősítése",
   "titleWithParam": "Cím: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Letöltés most",
-  "downloadUnavailable": "Nem elérhető",
-  "selectAnotherSource": "Válasszon másikat",
   "usingInternalPlayerError": "Hiba: {error}. Belső lejátszó használata.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Hiba történt.",
   "skip": "Kihagyás",
   "goLive": "Élő adás",
-  "goBack": "Vissza",
   "dismiss": "Bezárás",
   "nextUp": "Következő",
   "sourceAttempt": "{index}. forrás / {total}",
@@ -524,5 +518,17 @@
   "failed": "Sikertelen",
   "selected": "Kiválasztva",
   "playing": "Lejátszás",
-  "pending": "Várakozás"
+  "pending": "Várakozás",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

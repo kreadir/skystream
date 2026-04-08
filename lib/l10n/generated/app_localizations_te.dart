@@ -124,6 +124,23 @@ class AppLocalizationsTe extends AppLocalizations {
   String get disabled => 'నిలిపివేయబడింది';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'మా సర్వర్‌లో చేరండి';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'మా ఛానెల్‌లో చేరండి';
+
+  @override
+  String developedBy(String name) {
+    return '$name అభివృద్ధి చేశారు';
+  }
+
+  @override
   String get system => 'సిస్టమ్';
 
   @override

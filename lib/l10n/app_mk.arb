@@ -55,7 +55,7 @@
   "confirmDownload": "Потврди преземање",
   "downloadNow": "Преземи сега",
   "selectSource": "Избери извор",
-  "downloadUnavailable": "Преземањето е недостапно",
+  "downloadUnavailable": "Недостапно",
   "selectAnotherSource": "Избери друг извор",
   "watchHistoryCleared": "Историјата на гледање е исчистена",
   "downloadingUpdate": "Преземање ажурирање...",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Опции за програмери",
   "debugTools": "Алатки за дебагирање",
   "playLocalVideo": "Локално видео",
   "playLocalVideoSubtitle": "Пушти датотека од уред",
@@ -374,7 +373,6 @@
   "fit": "Приспособи",
   "zoom": "Зум",
   "stretch": "Растегни",
-  "confirmDownload": "Потврди преземање",
   "titleWithParam": "Наслов: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Преземи сега",
-  "downloadUnavailable": "Недостапно",
-  "selectAnotherSource": "Избери друг извор",
   "usingInternalPlayerError": "Грешка: {error}. Се користи внатрешен плеер.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Се појави проблем.",
   "skip": "Прескокни",
   "goLive": "Оди во живо",
-  "goBack": "Назад",
   "dismiss": "Отфрли",
   "nextUp": "Следно",
   "sourceAttempt": "Извор {index} од {total}",
@@ -524,5 +518,17 @@
   "failed": "Неуспешно",
   "selected": "Избрано",
   "playing": "Репродуцира",
-  "pending": "Во исчекување"
+  "pending": "Во исчекување",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

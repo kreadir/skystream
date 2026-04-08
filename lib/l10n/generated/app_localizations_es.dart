@@ -124,6 +124,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get disabled => 'Desactivado';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'Únete a nuestro servidor';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'Únete a nuestro canal';
+
+  @override
+  String developedBy(String name) {
+    return 'Desarrollado por $name';
+  }
+
+  @override
   String get system => 'Sistema';
 
   @override

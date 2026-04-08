@@ -124,6 +124,23 @@ class AppLocalizationsHu extends AppLocalizations {
   String get disabled => 'Letiltva';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'Join our server';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'Join our channel';
+
+  @override
+  String developedBy(String name) {
+    return 'Developed by $name';
+  }
+
+  @override
   String get system => 'Rendszer';
 
   @override

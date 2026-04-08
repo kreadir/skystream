@@ -285,7 +285,7 @@
   "extensionsUpdated": "{count, plural, =1{1 eklenti güncellendi} other{{count} eklenti güncellendi}}",
   "invalidNavigation": "Geçersiz navigasyon. Lütfen geri gidin.",
   "startOver": "Yeniden Başla",
-  "goBack": "Geri Git",
+  "goBack": "Geri Dön",
   "resolving": "Çözümleniyor...",
   "downloaded": "İndirildi",
   "download": "İndir",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Geliştirici Seçenekleri",
   "debugTools": "Hata Ayıklama Araçları",
   "playLocalVideo": "Yerel video dosyasını oynat",
   "playLocalVideoSubtitle": "Cihazdan herhangi bir videoyu oynat",
@@ -374,7 +373,6 @@
   "fit": "Sığdır",
   "zoom": "Yakınlaştır",
   "stretch": "Uzat",
-  "confirmDownload": "İndirmeyi Onayla",
   "titleWithParam": "Başlık: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Şimdi İndir",
-  "downloadUnavailable": "İndirme Mevcut Değil",
-  "selectAnotherSource": "Başka Bir Kaynak Seç",
   "usingInternalPlayerError": "Hata: {error}. Dahili oynatıcı kullanılıyor.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin.",
   "skip": "Atla",
   "goLive": "Canlıya Geç",
-  "goBack": "Geri Dön",
   "dismiss": "Kapat",
   "nextUp": "Sıradaki",
   "sourceAttempt": "Kaynak {index} / {total}",
@@ -524,5 +518,17 @@
   "failed": "Başarısız",
   "selected": "Seçildi",
   "playing": "Oynatılıyor",
-  "pending": "Bekliyor"
+  "pending": "Bekliyor",
+  "discord": "Discord",
+  "discordSubtitle": "Sunucumuza katılın",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Kanalımıza katılın",
+  "developedBy": "{name} tarafından geliştirildi",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

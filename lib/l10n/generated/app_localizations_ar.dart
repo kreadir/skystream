@@ -124,6 +124,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get disabled => 'معطل';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'انضم إلى خادمنا';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'انضم إلى قناتنا';
+
+  @override
+  String developedBy(String name) {
+    return 'تم التطوير بواسطة $name';
+  }
+
+  @override
   String get system => 'النظام';
 
   @override
@@ -1197,6 +1214,23 @@ class AppLocalizationsArApc extends AppLocalizationsAr {
 
   @override
   String get disabled => 'معطل';
+
+  @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'انضم لسيرفرنا';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'انضم لقناتنا';
+
+  @override
+  String developedBy(String name) {
+    return 'تم التطوير بواسطة $name';
+  }
 
   @override
   String get system => 'النظام';

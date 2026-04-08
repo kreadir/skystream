@@ -38,6 +38,18 @@
   "version": "Version",
   "enabled": "Enabled",
   "disabled": "Disabled",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "system": "System",
   "dark": "Dark",
   "light": "Light",

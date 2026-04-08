@@ -285,7 +285,7 @@
   "extensionsUpdated": "{count, plural, =1{1 എക്സ്റ്റൻഷൻ അപ്‌ഡേറ്റ് ചെയ്തു} other{{count} എക്സ്റ്റൻഷനുകൾ അപ്‌ഡേറ്റ് ചെയ്തു}}",
   "invalidNavigation": "അസാധുവായ നാവിഗേഷൻ. ദയവായി തിരികെ പോവുക.",
   "startOver": "വീണ്ടും തുടങ്ങുക",
-  "goBack": "തിരികെ പോവുക",
+  "goBack": "തിരികെ",
   "resolving": "പരിഹരിക്കുന്നു...",
   "downloaded": "ഡൗൺലോഡ് ചെയ്തു",
   "download": "ഡൗൺലോഡ്",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "ഡെവലപ്പർ ഓപ്ഷനുകൾ",
   "debugTools": "ഡീബഗ് ടൂളുകൾ",
   "playLocalVideo": "ലോക്കൽ വീഡിയോ ഫയൽ പ്ലേ ചെയ്യുക",
   "playLocalVideoSubtitle": "ഉപകരണത്തിൽ നിന്ന് ഏതൊരു വീഡിയോയും പ്ലേ ചെയ്യുക",
@@ -374,7 +373,6 @@
   "fit": "ഫിറ്റ്",
   "zoom": "സൂം",
   "stretch": "വലിച്ചുനീട്ടുക",
-  "confirmDownload": "ഡൗൺലോഡ് സ്ഥിരീകരിക്കുക",
   "titleWithParam": "തലക്കെട്ട്: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "ഇപ്പോൾ ഡൗൺലോഡ് ചെയ്യുക",
-  "downloadUnavailable": "ഡൗൺലോഡ് ലഭ്യമല്ല",
-  "selectAnotherSource": "മറ്റൊരു ഉറവിടം തിരഞ്ഞെടുക്കുക",
   "usingInternalPlayerError": "പിശക്: {error}. ആന്തരിക പ്ലെയർ ഉപയോഗിക്കുന്നു.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "എന്തോ പിശക് സംഭവിച്ചു.",
   "skip": "ഒഴിവാക്കുക",
   "goLive": "ലൈവ്",
-  "goBack": "തിരികെ",
   "dismiss": "തള്ളിക്കളയുക",
   "nextUp": "അടുത്തത്",
   "sourceAttempt": "ഉറവിടം {index} / {total}",
@@ -524,5 +518,17 @@
   "failed": "പരാജയം",
   "selected": "തിരഞ്ഞെടുത്തു",
   "playing": "പ്ലേ ചെയ്യുന്നു",
-  "pending": "പെൻഡിംഗ്"
+  "pending": "പെൻഡിംഗ്",
+  "discord": "Discord",
+  "discordSubtitle": "ഞങ്ങളുടെ സെർവറിൽ ചേരുക",
+  "telegram": "Telegram",
+  "telegramSubtitle": "ഞങ്ങളുടെ ചാനലിൽ ചേരുക",
+  "developedBy": "{name} വികസിപ്പിച്ചത്",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

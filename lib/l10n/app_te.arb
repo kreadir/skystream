@@ -285,7 +285,7 @@
   "extensionsUpdated": "{count, plural, =1{1 ఎక్స్టెన్షన్ అప్‌డేట్ చేయబడింది} other{{count} ఎక్స్టెన్షన్స్ అప్‌డేట్ చేయబడ్డాయి}}",
   "invalidNavigation": "చెల్లని నావిగేషన్. దయచేసి వెనక్కి వెళ్ళండి.",
   "startOver": "మళ్ళీ ప్రారంభించండి",
-  "goBack": "వెనక్కి వెళ్ళండి",
+  "goBack": "వెనక్కి",
   "resolving": "పరిష్కరిస్తున్నాము...",
   "downloaded": "డౌన్‌లోడ్ చేయబడింది",
   "download": "డౌన్‌లోడ్",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "డెవలపర్ ఎంపికలు",
   "debugTools": "డీబగ్ టూల్స్",
   "playLocalVideo": "లోకల్ వీడియో ఫైల్‌ను ప్లే చేయండి",
   "playLocalVideoSubtitle": "పరికరం నుండి ఏదైనా వీడియోను ప్లే చేయండి",
@@ -374,7 +373,6 @@
   "fit": "ఫిట్ (Fit)",
   "zoom": "జూమ్ (Zoom)",
   "stretch": "స్ట్రెచ్ (Stretch)",
-  "confirmDownload": "డౌన్‌లోడ్‌ని నిర్ధారించండి",
   "titleWithParam": "శీర్షిక: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "ఇప్పుడే డౌన్‌లోడ్ చేయండి",
-  "downloadUnavailable": "డౌన్‌లోడ్ అందుబాటులో లేదు",
-  "selectAnotherSource": "మరొక మూలాన్ని ఎంచుకోండి",
   "usingInternalPlayerError": "లోపం: {error}. అంతర్గత ప్లేయర్‌ను ఉపయోగిస్తున్నాము.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "ఏదో లోపం జరిగింది.",
   "skip": "దాటవేయి",
   "goLive": "లైవ్ వెళ్ళండి",
-  "goBack": "వెనక్కి",
   "dismiss": "తిరస్కరించు",
   "nextUp": "తరువాత వచ్చేది",
   "sourceAttempt": "{total}లో {index}వ మూలం",
@@ -524,5 +518,17 @@
   "failed": "విఫలమైంది",
   "selected": "ఎంచుకోబడింది",
   "playing": "ప్లే అవుతోంది",
-  "pending": "పెండింగ్‌లో ఉంది"
+  "pending": "పెండింగ్‌లో ఉంది",
+  "discord": "Discord",
+  "discordSubtitle": "మా సర్వర్‌లో చేరండి",
+  "telegram": "Telegram",
+  "telegramSubtitle": "మా ఛానెల్‌లో చేరండి",
+  "developedBy": "{name} అభివృద్ధి చేశారు",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

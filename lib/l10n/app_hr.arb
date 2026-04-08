@@ -55,8 +55,8 @@
   "confirmDownload": "Potvrdi preuzimanje",
   "downloadNow": "Preuzmi sada",
   "selectSource": "Odaberi izvor",
-  "downloadUnavailable": "Preuzimanje nedostupno",
-  "selectAnotherSource": "Odaberi drugi izvor",
+  "downloadUnavailable": "Nedostupno",
+  "selectAnotherSource": "Odaberi drugi",
   "watchHistoryCleared": "Povijest gledanja očišćena",
   "downloadingUpdate": "Preuzimanje ažuriranja...",
   "errorPrefix": "Pogreška: {message}",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Opcije za razvijatelje",
   "debugTools": "Alati za otklanjanje pogrešaka",
   "playLocalVideo": "Lokalni video",
   "playLocalVideoSubtitle": "Pokreni s uređaja",
@@ -374,7 +373,6 @@
   "fit": "Prilagodi",
   "zoom": "Uvećaj",
   "stretch": "Rastegni",
-  "confirmDownload": "Potvrdi preuzimanje",
   "titleWithParam": "Naslov: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Preuzmi sada",
-  "downloadUnavailable": "Nedostupno",
-  "selectAnotherSource": "Odaberi drugi",
   "usingInternalPlayerError": "Pogreška: {error}. Interni reproduktor.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Greška.",
   "skip": "Preskoči",
   "goLive": "Uživo",
-  "goBack": "Natrag",
   "dismiss": "Zatvori",
   "nextUp": "Sljedeće",
   "sourceAttempt": "Pokušaj {index} od {total}",
@@ -524,5 +518,17 @@
   "failed": "Neuspjelo",
   "selected": "Odabrano",
   "playing": "Reprodukcija",
-  "pending": "Na čekanju"
+  "pending": "Na čekanju",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

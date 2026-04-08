@@ -124,6 +124,23 @@ class AppLocalizationsKn extends AppLocalizations {
   String get disabled => 'ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'ನಮ್ಮ ಸರ್ವರ್‌ಗೆ ಸೇರಿ';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'ನಮ್ಮ ಚಾನಲ್‌ಗೆ ಸೇರಿ';
+
+  @override
+  String developedBy(String name) {
+    return '$name ರಿಂದ ಅಭಿವೃದ್ಧಿಪಡಿಸಲಾಗಿದೆ';
+  }
+
+  @override
   String get system => 'ಸಿಸ್ಟಮ್';
 
   @override

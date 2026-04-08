@@ -55,8 +55,8 @@
   "confirmDownload": "Apstiprināt lejupielādi",
   "downloadNow": "Lejupielādēt tagad",
   "selectSource": "Izvēlēties avotu",
-  "downloadUnavailable": "Lejupielāde nav pieejama",
-  "selectAnotherSource": "Izvēlēties citu avotu",
+  "downloadUnavailable": "Nav pieejams",
+  "selectAnotherSource": "Izvēlēties citu",
   "watchHistoryCleared": "Skatīšanās vēsture notīrīta",
   "downloadingUpdate": "Lejupielādē atjauninājumu...",
   "errorPrefix": "Kļūda: {message}",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Izstrādātāja opcijas",
   "debugTools": "Atkļūdošanas rīki",
   "playLocalVideo": "Lokāls video",
   "playLocalVideoSubtitle": "Atskaņot failu no ierīces",
@@ -374,7 +373,6 @@
   "fit": "Ietilpināt",
   "zoom": "Tuvināt",
   "stretch": "Izstiept",
-  "confirmDownload": "Apstiprināt lejupielādi",
   "titleWithParam": "Nosaukums: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Lejupielādēt tagad",
-  "downloadUnavailable": "Nav pieejams",
-  "selectAnotherSource": "Izvēlēties citu",
   "usingInternalPlayerError": "Kļūda: {error}. Iekšējais atskaņotājs.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Kļūda.",
   "skip": "Izlaist",
   "goLive": "Tiešraide",
-  "goBack": "Atpakaļ",
   "dismiss": "Aizvērt",
   "nextUp": "Nākamais",
   "sourceAttempt": "Mēģinājums {index} no {total}",
@@ -524,5 +518,17 @@
   "failed": "Neizdevās",
   "selected": "Izvēlēts",
   "playing": "Atskaņo",
-  "pending": "Gaidāms"
+  "pending": "Gaidāms",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -123,6 +123,23 @@ class AppLocalizationsPt extends AppLocalizations {
   String get disabled => 'Desativado';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'Junte-se ao nosso servidor';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'Junte-se ao nosso canal';
+
+  @override
+  String developedBy(String name) {
+    return 'Desenvolvido por $name';
+  }
+
+  @override
   String get system => 'Sistema';
 
   @override
@@ -1193,6 +1210,23 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get disabled => 'Desativado';
+
+  @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'Junte-se ao nosso servidor';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'Junte-se ao nosso canal';
+
+  @override
+  String developedBy(String name) {
+    return 'Desenvolvido por $name';
+  }
 
   @override
   String get system => 'Sistema';

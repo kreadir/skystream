@@ -285,7 +285,7 @@
   "extensionsUpdated": "{count, plural, =1{1 நீட்டிப்பு புதுப்பிக்கப்பட்டது} other{{count} நீட்டிப்புகள் புதுப்பிக்கப்பட்டன}}",
   "invalidNavigation": "தவறான வழிசெலுத்தல். தயவுசெய்து பின்னோக்கிச் செல்லவும்.",
   "startOver": "மீண்டும் தொடங்கு",
-  "goBack": "பின்னோக்கிச் செல்",
+  "goBack": "பின்னோக்கி",
   "resolving": "தீர்வு காணப்படுகிறது...",
   "downloaded": "பதிவிறக்கம் செய்யப்பட்டது",
   "download": "பதிவிறக்கு",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "டெவலப்பர் விருப்பங்கள்",
   "debugTools": "பிழைத்திருத்த கருவிகள்",
   "playLocalVideo": "உள்ளூர் வீடியோ கோப்பை பிளே செய்",
   "playLocalVideoSubtitle": "சாதனத்திலிருந்து எந்த வீடியோவையும் பிளே செய்",
@@ -374,7 +373,6 @@
   "fit": "பொருத்து",
   "zoom": "ஜூம்",
   "stretch": "நீட்டு",
-  "confirmDownload": "பதிவிறக்கத்தை உறுதிப்படுத்து",
   "titleWithParam": "தலைப்பு: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "இப்போதே பதிவிறக்கு",
-  "downloadUnavailable": "பதிவிறக்கம் கிடைக்கவில்லை",
-  "selectAnotherSource": "வேறொரு மூலத்தைத் தேர்ந்தெடு",
   "usingInternalPlayerError": "பிழை: {error}. உள் பிளேயர் பயன்படுத்தப்படுகிறது.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "ஏதோ தவறு நடந்துவிட்டது.",
   "skip": "தவிர்",
   "goLive": "நேரலை",
-  "goBack": "பின்னோக்கி",
   "dismiss": "மூடு",
   "nextUp": "அடுத்தது",
   "sourceAttempt": "மூலம் {index} / {total}",
@@ -524,5 +518,17 @@
   "failed": "தோல்வி",
   "selected": "தேர்ந்தெடுக்கப்பட்டது",
   "playing": "ஒளிர்கிறது",
-  "pending": "நிலுவையில் உள்ளது"
+  "pending": "நிலுவையில் உள்ளது",
+  "discord": "Discord",
+  "discordSubtitle": "எங்கள் சர்வரில் சேரவும்",
+  "telegram": "Telegram",
+  "telegramSubtitle": "எங்கள் சேனலில் சேரவும்",
+  "developedBy": "{name} ஆல் உருவாக்கப்பட்டது",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

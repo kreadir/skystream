@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "ડેવલપર વિકલ્પો",
   "debugTools": "ડીબગ ટૂલ્સ",
   "playLocalVideo": "સ્થાનિક વિડિઓ ફાઇલ ચલાવો",
   "playLocalVideoSubtitle": "ડિવાઇસમાંથી કોઈપણ વિડિઓ ચલાવો",
@@ -374,7 +373,6 @@
   "fit": "ફિટ",
   "zoom": "ઝૂમ",
   "stretch": "ખેંચો",
-  "confirmDownload": "ડાઉનલોડની પુષ્ટિ કરો",
   "titleWithParam": "શીર્ષક: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "હમણાં ડાઉનલોડ કરો",
-  "downloadUnavailable": "ડાઉનલોડ અનુપલબ્ધ",
-  "selectAnotherSource": "બીજો સ્રોત પસંદ કરો",
   "usingInternalPlayerError": "ભૂલ: {error}. આંતરિક પ્લેયરનો ઉપયોગ થઈ રહ્યો છે.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "કંઈક ખોટું થયું. કૃપા કરી ફરી પ્રયાસ કરો.",
   "skip": "છોડી દો",
   "goLive": "લાઇવ જાઓ",
-  "goBack": "પાછા જાઓ",
   "dismiss": "રદ કરો",
   "nextUp": "આગામી",
   "sourceAttempt": "{total} માંથી {index} સ્રોત",
@@ -524,5 +518,17 @@
   "failed": "નિષ્ફળ",
   "selected": "પસંદ કરેલ",
   "playing": "ચાલી રહ્યું છે",
-  "pending": "બાકી છે"
+  "pending": "બાકી છે",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

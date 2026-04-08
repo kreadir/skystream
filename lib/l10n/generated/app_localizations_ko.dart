@@ -123,6 +123,23 @@ class AppLocalizationsKo extends AppLocalizations {
   String get disabled => '비활성화됨';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => '우리 서버에 참여하세요';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => '우리 채널에 참여하세요';
+
+  @override
+  String developedBy(String name) {
+    return '$name 개발';
+  }
+
+  @override
   String get system => '시스템 설정';
 
   @override

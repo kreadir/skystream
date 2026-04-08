@@ -55,8 +55,8 @@
   "confirmDownload": "Bekräfta nedladdning",
   "downloadNow": "Ladda ner nu",
   "selectSource": "Välj källa",
-  "downloadUnavailable": "Nedladdning inte tillgänglig",
-  "selectAnotherSource": "Välj en annan källa",
+  "downloadUnavailable": "Ej tillgänglig",
+  "selectAnotherSource": "Välj en annan",
   "watchHistoryCleared": "Tittarhistorik rensad",
   "downloadingUpdate": "Laddar ner uppdatering...",
   "errorPrefix": "Fel: {message}",
@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Utvecklaralternativ",
   "debugTools": "Felsökningsverktyg",
   "playLocalVideo": "Lokal video",
   "playLocalVideoSubtitle": "Spela fil från enhet",
@@ -374,7 +373,6 @@
   "fit": "Passa",
   "zoom": "Zooma",
   "stretch": "Sträck ut",
-  "confirmDownload": "Bekräfta nedladdning",
   "titleWithParam": "Titel: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Ladda ner nu",
-  "downloadUnavailable": "Ej tillgänglig",
-  "selectAnotherSource": "Välj en annan",
   "usingInternalPlayerError": "Fel: {error}. Använder intern spelare.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Ett fel uppstod.",
   "skip": "Hoppa över",
   "goLive": "Gå live",
-  "goBack": "Gå tillbaka",
   "dismiss": "Stäng",
   "nextUp": "Nästa",
   "sourceAttempt": "Källa {index} av {total}",
@@ -524,5 +518,17 @@
   "failed": "Misslyckades",
   "selected": "Vald",
   "playing": "Spelar",
-  "pending": "Väntar"
+  "pending": "Väntar",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

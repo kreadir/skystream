@@ -123,6 +123,23 @@ class AppLocalizationsBn extends AppLocalizations {
   String get disabled => 'অক্ষম';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'আমাদের সার্ভারে যোগ দিন';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'আমাদের চ্যানেলে যোগ দিন';
+
+  @override
+  String developedBy(String name) {
+    return '$name দ্বারা তৈরী';
+  }
+
+  @override
   String get system => 'সিস্টেম';
 
   @override

@@ -123,6 +123,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get disabled => '無効';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'サーバーに参加する';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'チャンネルに参加する';
+
+  @override
+  String developedBy(String name) {
+    return '$name によって開発されました';
+  }
+
+  @override
   String get system => 'システム';
 
   @override

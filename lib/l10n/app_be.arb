@@ -347,7 +347,6 @@
       }
     }
   },
-  "developerOptions": "Опцыі распрацоўшчыка",
   "debugTools": "Інструменты адладкі",
   "playLocalVideo": "Лакальнае відэа",
   "playLocalVideoSubtitle": "Глядзець відэа з прылады",
@@ -374,7 +373,6 @@
   "fit": "Запоўніць",
   "zoom": "Зум",
   "stretch": "Расцягнуць",
-  "confirmDownload": "Пацвердзіць загрузку",
   "titleWithParam": "Назва: {title}",
   "@titleWithParam": {
     "placeholders": {
@@ -399,9 +397,6 @@
       }
     }
   },
-  "downloadNow": "Загрузіць зараз",
-  "downloadUnavailable": "Загрузка недаступная",
-  "selectAnotherSource": "Выбраць іншую крыніцу",
   "usingInternalPlayerError": "Памылка: {error}. Выкарыстоўваецца ўнутраны плэер.",
   "@usingInternalPlayerError": {
     "placeholders": {
@@ -506,7 +501,6 @@
   "generalError": "Нешта пайшло не так.",
   "skip": "Прапусціць",
   "goLive": "У эфір",
-  "goBack": "Назад",
   "dismiss": "Закрыць",
   "nextUp": "Далей",
   "sourceAttempt": "Крыніца {index} з {total}",
@@ -524,5 +518,17 @@
   "failed": "Памылка",
   "selected": "Выбрана",
   "playing": "Прайграванне",
-  "pending": "Чакае"
+  "pending": "Чакае",
+  "discord": "Discord",
+  "discordSubtitle": "Join our server",
+  "telegram": "Telegram",
+  "telegramSubtitle": "Join our channel",
+  "developedBy": "Developed by {name}",
+  "@developedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

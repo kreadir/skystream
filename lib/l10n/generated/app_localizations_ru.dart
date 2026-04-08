@@ -123,6 +123,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get disabled => 'Выключено';
 
   @override
+  String get discord => 'Discord';
+
+  @override
+  String get discordSubtitle => 'Присоединяйтесь к нашему серверу';
+
+  @override
+  String get telegram => 'Telegram';
+
+  @override
+  String get telegramSubtitle => 'Присоединяйтесь к нашему каналу';
+
+  @override
+  String developedBy(String name) {
+    return 'Разработано $name';
+  }
+
+  @override
   String get system => 'Система';
 
   @override
