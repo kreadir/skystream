@@ -220,12 +220,12 @@ class PlayerState {
 
   // Derived from uiPhase — no separate field needed.
   bool get isLoading => const {
-        PlaybackUiPhaseKind.bootstrapping,
-        PlaybackUiPhaseKind.fetchingSources,
-        PlaybackUiPhaseKind.checkingSources,
-        PlaybackUiPhaseKind.openingSource,
-        PlaybackUiPhaseKind.bufferingInitial,
-      }.contains(uiPhase.kind);
+    PlaybackUiPhaseKind.bootstrapping,
+    PlaybackUiPhaseKind.fetchingSources,
+    PlaybackUiPhaseKind.checkingSources,
+    PlaybackUiPhaseKind.openingSource,
+    PlaybackUiPhaseKind.bufferingInitial,
+  }.contains(uiPhase.kind);
 
   bool get isBuffering => uiPhase.kind == PlaybackUiPhaseKind.bufferingRuntime;
 
@@ -426,7 +426,6 @@ class PlayerController extends Notifier<PlayerState> {
     return fallback ?? state.streamSubtitle;
   }
 
-
   PlaybackUiPhase _composeUiPhase({
     required PlaybackUiPhaseKind kind,
     String? title,
@@ -529,8 +528,9 @@ class PlayerController extends Notifier<PlayerState> {
         kind: PlaybackUiPhaseKind.error,
         title: "Playback Error",
         subtitle: detail ?? "All sources failed.",
-        detail: "None of the available sources could be played. "
-            "You can go back and try again, or select a different source.",
+        detail:
+            "None of the available sources could be played. "
+            "Try again later",
         fullscreenBlocking: true,
         preserveCurrentFrame: true,
         showBack: true,
@@ -595,9 +595,11 @@ class PlayerController extends Notifier<PlayerState> {
 
     state = state.copyWith(
       sourceAttempts: updated,
-      currentAttemptIndex: isCurrent 
-          ? index 
-          : (state.currentAttemptIndex == index ? null : state.currentAttemptIndex),
+      currentAttemptIndex: isCurrent
+          ? index
+          : (state.currentAttemptIndex == index
+                ? null
+                : state.currentAttemptIndex),
     );
   }
 
@@ -624,7 +626,7 @@ class PlayerController extends Notifier<PlayerState> {
     // disposeController() being called, clean up subscriptions.
     ref.onDispose(() {
       _torrentPollTimer?.cancel();
-        _stallTimer?.cancel();
+      _stallTimer?.cancel();
       _videoParamsSub?.cancel();
       _errorSub?.cancel();
       _playingSub?.cancel();
@@ -772,7 +774,8 @@ class PlayerController extends Notifier<PlayerState> {
 
         // Re-enable next-episode detection once ExoPlayer reports a confirmed
         // non-zero duration (mirrors the media_kit _setupDurationListener fix).
-        if ((info.duration > 0 || info.isLive) && _suppressNextEpisodeDetection) {
+        if ((info.duration > 0 || info.isLive) &&
+            _suppressNextEpisodeDetection) {
           _suppressNextEpisodeDetection = false;
         }
 
@@ -841,18 +844,29 @@ class PlayerController extends Notifier<PlayerState> {
         if (!_hasConfirmedPlaybackFrame ||
             (_videoViewController!.position.value) == 0) {
           // Error before playback confirmed — try next source.
-          _markSourceAttempt(state.currentStreamIndex, SourceAttemptStatus.failed, isCurrent: false);
+          _markSourceAttempt(
+            state.currentStreamIndex,
+            SourceAttemptStatus.failed,
+            isCurrent: false,
+          );
           if (_manualSelectionPending) {
             _manualSelectionPending = false;
-            revertToPreviousStream("Selected source is not playable. Reverting back to previous source.");
+            revertToPreviousStream(
+              "Selected source is not playable. Reverting back to previous source.",
+            );
           } else {
             retryNextStream(sourceSessionId: state.sourceSessionId);
           }
         } else {
           // Error during active playback.
           if (state.isLive) return;
-          _markSourceAttempt(state.currentStreamIndex, SourceAttemptStatus.failed, isCurrent: false);
-          _revertMessage = "Current source stopped unexpectedly. Trying next available source...";
+          _markSourceAttempt(
+            state.currentStreamIndex,
+            SourceAttemptStatus.failed,
+            isCurrent: false,
+          );
+          _revertMessage =
+              "Current source stopped unexpectedly. Trying next available source...";
           retryNextStream(sourceSessionId: state.sourceSessionId);
         }
       }
@@ -1012,7 +1026,8 @@ class PlayerController extends Notifier<PlayerState> {
   }
 
   void _handleBufferStall() {
-    if (!_hasConfirmedPlaybackFrame) return; // ignore stalls during source health check
+    if (!_hasConfirmedPlaybackFrame)
+      return; // ignore stalls during source health check
     if (_isLiveStream(_videoUrl)) return;
 
     final now = DateTime.now();
@@ -1053,7 +1068,11 @@ class PlayerController extends Notifier<PlayerState> {
       if (!_hasConfirmedPlaybackFrame ||
           _player.state.position == Duration.zero) {
         // Error before playback confirmed — try next source.
-        _markSourceAttempt(state.currentStreamIndex, SourceAttemptStatus.failed, isCurrent: false);
+        _markSourceAttempt(
+          state.currentStreamIndex,
+          SourceAttemptStatus.failed,
+          isCurrent: false,
+        );
         if (_manualSelectionPending) {
           _manualSelectionPending = false;
           revertToPreviousStream("Selected source failed. Reverting...");
@@ -1064,20 +1083,23 @@ class PlayerController extends Notifier<PlayerState> {
         // Error during active playback — live streams handle reconnection
         // separately via completed/finishedTimes listeners, skip them here.
         if (state.isLive) return;
-        _markSourceAttempt(state.currentStreamIndex, SourceAttemptStatus.failed, isCurrent: false);
-        _revertMessage = "Current source stopped unexpectedly. Trying next available source...";
+        _markSourceAttempt(
+          state.currentStreamIndex,
+          SourceAttemptStatus.failed,
+          isCurrent: false,
+        );
+        _revertMessage =
+            "Current source stopped unexpectedly. Trying next available source...";
         retryNextStream(sourceSessionId: state.sourceSessionId);
       }
     });
   }
 
-
   void skipLoadingOverlay() {
     state = state.copyWith(userSkippedOverlay: true);
-    _setUiPhase(_composeUiPhase(
-      kind: state.uiPhase.kind,
-      fullscreenBlocking: false,
-    ));
+    _setUiPhase(
+      _composeUiPhase(kind: state.uiPhase.kind, fullscreenBlocking: false),
+    );
   }
 
   void _setupEventDrivenProgressSaving() {
@@ -1248,10 +1270,7 @@ class PlayerController extends Notifier<PlayerState> {
             _videoUrl.endsWith(".torrent")) {
           detail = "Preparing torrent stream...";
         }
-        _enterStartupPhase(
-          kind: requestedPhaseKind,
-          detail: detail,
-        );
+        _enterStartupPhase(kind: requestedPhaseKind, detail: detail);
     }
 
     state = state.copyWith(currentAttemptIndex: null);
@@ -1971,7 +1990,9 @@ class PlayerController extends Notifier<PlayerState> {
       if (manualSelection) {
         // Issue 2: Don't show "all sources failed" for a manual pick — revert
         // silently to the previously playing source instead.
-        revertToPreviousStream("Selected source is not playable. Reverting back to previous source.");
+        revertToPreviousStream(
+          "Selected source is not playable. Reverting back to previous source.",
+        );
         return;
       }
       retryNextStream(sourceSessionId: sourceSessionId);
@@ -2068,8 +2089,17 @@ class PlayerController extends Notifier<PlayerState> {
       }
 
       final headers = stream.headers ?? {};
-      await _applyPlaybackProperties(headers, stream, useVideoView: useVideoView);
-      await _openResolvedStream(playUrl, stream, headers, useVideoView: useVideoView);
+      await _applyPlaybackProperties(
+        headers,
+        stream,
+        useVideoView: useVideoView,
+      );
+      await _openResolvedStream(
+        playUrl,
+        stream,
+        headers,
+        useVideoView: useVideoView,
+      );
 
       if (oldPos > Duration.zero && !resetPosition) {
         await _safeSeekTo(oldPos.inMilliseconds);
@@ -2082,7 +2112,9 @@ class PlayerController extends Notifier<PlayerState> {
       if (isRevert) {
         state = state.copyWith(errorMessage: "Revert failed: $e");
       } else {
-        revertToPreviousStream("Could not switch to selected source. Reverting back to previous source.");
+        revertToPreviousStream(
+          "Could not switch to selected source. Reverting back to previous source.",
+        );
       }
     }
   }
@@ -2189,7 +2221,9 @@ class PlayerController extends Notifier<PlayerState> {
       }
 
       _markSourceAttempt(targetIndex, SourceAttemptStatus.trying);
-      unawaited(loadStreamAtIndex(targetIndex, sourceSessionId: sourceSessionId));
+      unawaited(
+        loadStreamAtIndex(targetIndex, sourceSessionId: sourceSessionId),
+      );
     } else {
       if (_hasConfirmedPlaybackFrame) {
         // All sources exhausted during active playback — don't block the screen.
@@ -2205,7 +2239,9 @@ class PlayerController extends Notifier<PlayerState> {
 
   void revertToPreviousStream(String message) {
     if (state.previousStream == null) {
-      state = state.copyWith(errorMessage: "Stream failed. No fallback available.");
+      state = state.copyWith(
+        errorMessage: "Stream failed. No fallback available.",
+      );
       return;
     }
     _revertMessage = message;
@@ -2574,37 +2610,52 @@ class PlayerController extends Notifier<PlayerState> {
       final results = <int, bool>{}; // idx → isHealthy
 
       for (final idx in candidates) {
-        _isStreamCandidateHealthy(streams[idx]).then((isHealthy) {
-          if (completer.isCompleted) return;
-          if (!isHealthy) {
-            _markSourceAttempt(idx, SourceAttemptStatus.failed, isCurrent: false);
-          }
-          results[idx] = isHealthy;
+        _isStreamCandidateHealthy(streams[idx])
+            .then((isHealthy) {
+              if (completer.isCompleted) return;
+              if (!isHealthy) {
+                _markSourceAttempt(
+                  idx,
+                  SourceAttemptStatus.failed,
+                  isCurrent: false,
+                );
+              }
+              results[idx] = isHealthy;
 
-          // Walk candidates in preference order; stop at the first one
-          // whose result we have and which is healthy.
-          for (final c in candidates) {
-            if (!results.containsKey(c)) break; // still waiting for a higher-priority one
-            if (results[c]!) {
-              if (kDebugMode) debugPrint("Stream $c is healthy (early-exit)");
-              completer.complete(c);
-              return;
-            }
-          }
-          // All results are in and all failed → fall back to start
-          if (results.length == candidates.length && !completer.isCompleted) {
-            completer.complete(start);
-          }
-        }).catchError((_) {
-          if (completer.isCompleted) return;
-          results[idx] = false;
-          _markSourceAttempt(idx, SourceAttemptStatus.failed, isCurrent: false);
-          if (results.length == candidates.length) completer.complete(start);
-        });
+              // Walk candidates in preference order; stop at the first one
+              // whose result we have and which is healthy.
+              for (final c in candidates) {
+                if (!results.containsKey(c))
+                  break; // still waiting for a higher-priority one
+                if (results[c]!) {
+                  if (kDebugMode)
+                    debugPrint("Stream $c is healthy (early-exit)");
+                  completer.complete(c);
+                  return;
+                }
+              }
+              // All results are in and all failed → fall back to start
+              if (results.length == candidates.length &&
+                  !completer.isCompleted) {
+                completer.complete(start);
+              }
+            })
+            .catchError((_) {
+              if (completer.isCompleted) return;
+              results[idx] = false;
+              _markSourceAttempt(
+                idx,
+                SourceAttemptStatus.failed,
+                isCurrent: false,
+              );
+              if (results.length == candidates.length)
+                completer.complete(start);
+            });
       }
 
       final winner = await completer.future;
-      if (sourceSessionId != null && !_isCurrentSourceSession(sourceSessionId)) {
+      if (sourceSessionId != null &&
+          !_isCurrentSourceSession(sourceSessionId)) {
         return start;
       }
       return winner;
