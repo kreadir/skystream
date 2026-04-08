@@ -66,7 +66,9 @@ jobs:
           channel: 'stable'
       
       - name: Install Dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          flutter gen-l10n
 
       # Remove desktop TorrServer binaries to reduce APK size by ~170MB
       # These are only needed for macOS, Windows, and Linux
@@ -130,7 +132,9 @@ jobs:
           channel: 'stable'
           
       - name: Install Dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          flutter gen-l10n
         
       - name: Build iOS (No Codesign)
         run: |
@@ -177,6 +181,7 @@ jobs:
         run: |
           flutter config --enable-macos-desktop
           flutter pub get
+          flutter gen-l10n
 
       # Keep only the required TorrServer binary for this architecture
       - name: Strip Unused Binaries
@@ -264,6 +269,7 @@ jobs:
         run: |
           flutter config --enable-windows-desktop
           flutter pub get
+          flutter gen-l10n
 
       # Keep only the Windows TorrServer binary
       - name: Strip Unused Binaries
@@ -309,6 +315,7 @@ jobs:
         run: |
           flutter config --enable-linux-desktop
           flutter pub get
+          flutter gen-l10n
 
       # Keep only the Linux TorrServer binary
       - name: Strip Unused Binaries

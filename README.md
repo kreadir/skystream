@@ -131,9 +131,29 @@ SkyStream is not on the App Store. You must **sideload** it using a computer.
 
 ## 🛠️ Build from Source
 
-*   **See [PLUGIN_DEVELOPMENT_GUIDE.md](docs/PLUGIN_DEVELOPMENT_GUIDE.md) for a complete guide on packaging and releasing your plugins.**
-*   **See [CONTRIBUTING_TRANSLATIONS.md](docs/CONTRIBUTING_TRANSLATIONS.md) if you want to help translate the app.**
+To set up the development environment, clone the repository and run the setup commands. Detailed instructions for environment configuration, platform-specific builds, and project architecture can be found in our contributor guide:
 
+👉 **[CONTRIBUTING.md](docs/CONTRIBUTING.md)**
+
+### Quick Start
+```bash
+git clone https://github.com/akashdh11/skystream.git
+cd skystream
+flutter pub get
+flutter gen-l10n
+flutter run
+```
+
+## 🤝 Contributing
+
+We welcome contributions of all kinds! Whether you are fixing a bug, adding a feature, or helping with translations, your help is appreciated.
+
+- **Found a bug?** Report it on our **[GitHub Issues](https://github.com/akashdh11/skystream/issues)** page.
+- **Want to translate?** See our **[Translation Guide](docs/CONTRIBUTING_TRANSLATIONS.md)**.
+- **Want to build a plugin?** Check the **[Extension Guide](docs/PLUGIN_DEVELOPMENT_GUIDE.md)**.
+- **Need help?** Join the community on **[Discord](https://discord.gg/73XGA8Mxn9)** or **[Telegram](https://t.me/+Ez5Vsv2pUUFjZmNl)**.
+
+---
 
 ## FAQ
 
