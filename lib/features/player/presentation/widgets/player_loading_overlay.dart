@@ -27,6 +27,7 @@ class PlayerLoadingOverlay extends StatelessWidget {
       sourceAttempts: sourceAttempts,
       onGoLive: onGoLive,
       onSkip: onSkip,
+      onBack: onBack,
     );
 
     return GestureDetector(
@@ -87,12 +88,14 @@ class _LoadingCard extends StatelessWidget {
   final List<SourceAttemptEntry> sourceAttempts;
   final VoidCallback? onGoLive;
   final VoidCallback? onSkip;
+  final VoidCallback? onBack;
 
   const _LoadingCard({
     required this.phase,
     required this.sourceAttempts,
     this.onGoLive,
     this.onSkip,
+    this.onBack,
   });
 
   @override
@@ -107,9 +110,7 @@ class _LoadingCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.08),
-          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.32),
@@ -201,14 +202,19 @@ class _LoadingCard extends StatelessWidget {
                         onPressed: onGoLive,
                         primary: false,
                       ),
+                    if (phase.kind == PlaybackUiPhaseKind.error && onBack != null)
+                      _ActionButton(
+                        label: 'Go Back',
+                        icon: Icons.arrow_back_rounded,
+                        onPressed: onBack,
+                        primary: false,
+                      ),
                   ],
                 ),
               ],
               if (showSourcePanel) ...[
                 const SizedBox(height: 18),
-                _SourceAttemptList(
-                  attempts: sourceAttempts,
-                ),
+                _SourceAttemptList(attempts: sourceAttempts),
               ],
             ],
           ),
@@ -218,7 +224,9 @@ class _LoadingCard extends StatelessWidget {
   }
 
   bool get _hasActions =>
-      (onSkip != null) || (phase.showGoLive && onGoLive != null);
+      (onSkip != null) ||
+      (phase.showGoLive && onGoLive != null) ||
+      (phase.kind == PlaybackUiPhaseKind.error && onBack != null);
 }
 
 class _PhaseIndicator extends StatelessWidget {
@@ -337,9 +345,7 @@ class _SourceAttemptListState extends State<_SourceAttemptList> {
           Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
       itemBuilder: (context, index) {
         final attempt = widget.attempts[index];
-        return _SourceAttemptRow(
-          attempt: attempt,
-        );
+        return _SourceAttemptRow(attempt: attempt);
       },
     );
 

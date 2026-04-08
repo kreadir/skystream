@@ -59,11 +59,9 @@ class SkyStreamPlayerControls extends ConsumerStatefulWidget {
     this.onResize,
     this.onVisibilityChanged,
     this.isLoading = false,
-    this.forceShowControls = false,
   });
 
   final bool isLoading;
-  final bool forceShowControls;
 
   @override
   ConsumerState<SkyStreamPlayerControls> createState() =>
@@ -265,24 +263,28 @@ class SkyStreamPlayerControlsState
     }
     _startHideTimer();
     FocusManager.instance.addListener(_onFocusChange);
+
+    // Surface revert-failure messages as a SnackBar whenever the controller
+    // sets one (e.g., source switch failed → reverted to previous stream).
+    ref.listenManual(playerControllerProvider, (_, _) {
+      final msg = ref
+          .read(playerControllerProvider.notifier)
+          .consumeRevertMessage();
+      if (msg != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
   }
 
   @override
   void didUpdateWidget(SkyStreamPlayerControls oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.forceShowControls && !oldWidget.forceShowControls) {
-      // Defer state updates to avoid 'setState during build' error
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {
-            _isVisible = true;
-          });
-          widget.onVisibilityChanged?.call(true);
-          _startHideTimer();
-          _playFocusNode.requestFocus();
-        }
-      });
-    }
   }
 
   @override
@@ -552,9 +554,11 @@ class SkyStreamPlayerControlsState
   }
 
   Future<void> _handleDragStart(DragStartDetails details) async {
+    final size = MediaQuery.sizeOf(context);
     await _gestureHandler.handleDragStart(
       details,
-      MediaQuery.sizeOf(context).width,
+      size.width,
+      size.height,
     );
   }
 
@@ -568,12 +572,13 @@ class SkyStreamPlayerControlsState
 
   // Horizontal Seek
   void _handleHorizontalDragStart(DragStartDetails details) async {
-    final height = MediaQuery.sizeOf(context).height;
+    final size = MediaQuery.sizeOf(context);
     final bottomPadding = MediaQuery.viewPaddingOf(context).bottom;
     await _gestureHandler.handleHorizontalDragStart(
       details,
       _isVisible,
-      height,
+      size.width,
+      size.height,
       bottomPadding,
     );
   }
@@ -713,31 +718,17 @@ class SkyStreamPlayerControlsState
     final sourceAttempts = ref.watch(
       playerControllerProvider.select((s) => s.sourceAttempts),
     );
-    final effectiveUiPhase = uiPhase.isIdle && widget.isLoading
-        ? PlaybackUiPhase(
-            kind: PlaybackUiPhaseKind.bootstrapping,
-            title: title,
-            subtitle: subtitle,
-            detail: "Preparing playback...",
-            fullscreenBlocking: true,
-            preserveCurrentFrame: false,
-            showBack: true,
-          )
-        : uiPhase;
-
     // Guard against PiP or small window size
     final size = MediaQuery.sizeOf(context);
     final isSmallWindow = size.width < 300 || size.height < 200;
 
     if (_isInPip || isSmallWindow) return const SizedBox.shrink();
 
-    if (effectiveUiPhase.fullscreenBlocking) {
-      if (!widget.forceShowControls) {
-        return _buildLoadingUI(
-          phase: effectiveUiPhase,
-          sourceAttempts: sourceAttempts,
-        );
-      }
+    if (uiPhase.fullscreenBlocking) {
+      return _buildLoadingUI(
+        phase: uiPhase,
+        sourceAttempts: sourceAttempts,
+      );
     }
 
     return MouseRegion(
@@ -1009,8 +1000,7 @@ class SkyStreamPlayerControlsState
             PlayerCenterControls(
               player: widget.player,
               videoViewController: widget.videoViewController,
-              // If we are forcing controls, we don't want the loading spinner in the middle
-              isLoading: widget.isLoading && !widget.forceShowControls,
+              isLoading: widget.isLoading,
               isTv: _isTv,
               playFocusNode: _playFocusNode,
               onSeekBackward: () => _seekRelative(const Duration(seconds: -10)),
@@ -1085,7 +1075,7 @@ class SkyStreamPlayerControlsState
                                                     playerControllerProvider
                                                         .notifier,
                                                   )
-                                                  .changeStream(s),
+                                                  .changeStream(s, manualSelection: true),
                                             ),
                                       ),
                                     ),

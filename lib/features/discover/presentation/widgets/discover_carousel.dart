@@ -287,8 +287,6 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
                     fit: BoxFit.cover,
                     height: height,
                     width: double.infinity,
-                    memCacheWidth:
-                        1080, // High enough for quality, constrained for memory
                     placeholder: (context, url) => Container(
                       color: theme.colorScheme.surfaceContainerHighest,
                     ),
@@ -435,7 +433,6 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
             fit: BoxFit.cover,
             height: height,
             width: double.infinity,
-            memCacheWidth: 1080,
             placeholder: (context, url) => Container(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
             ),
@@ -505,7 +502,6 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
       width: 300,
       fit: BoxFit.contain,
       alignment: Alignment.bottomCenter,
-      memCacheWidth: 300, // P19: Optimize memory
       placeholder: (context, url) => const SizedBox(height: 140, width: 300),
       errorWidget: (context, url, error) => _buildTitleFallback(title),
     );

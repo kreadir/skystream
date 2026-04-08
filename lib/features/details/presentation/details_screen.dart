@@ -110,7 +110,6 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                           '',
                       fit: BoxFit.cover,
                       alignment: Alignment.topCenter,
-                      memCacheWidth: 800, // P19: Optimize memory
                       placeholder: (context, url) =>
                           Container(color: Theme.of(context).dividerColor),
                       errorWidget: (_, _, _) => ThumbnailErrorPlaceholder(
@@ -240,7 +239,6 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                           width: 250,
                           height: 375,
                           fit: BoxFit.cover,
-                          memCacheWidth: 250, // P19: Optimize memory
                           errorWidget: (_, _, _) =>
                               ThumbnailErrorPlaceholder(label: item.title),
                         ),
@@ -402,8 +400,6 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                         width: 100,
                         height: 150,
                         fit: BoxFit.cover,
-                        memCacheWidth:
-                            200, // P19: Optimize memory (2x for retina)
                         errorWidget: (_, _, _) =>
                             ThumbnailErrorPlaceholder(label: item.title),
                       ),

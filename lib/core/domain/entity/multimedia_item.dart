@@ -228,7 +228,7 @@ class MultimediaItem {
         ? 'https://image.tmdb.org/t/p/w500$posterPath'
         : '';
     final bannerUrl = backdropPath != null
-        ? 'https://image.tmdb.org/t/p/original$backdropPath'
+        ? 'https://image.tmdb.org/t/p/w1280$backdropPath'
         : posterUrl;
 
     return MultimediaItem(

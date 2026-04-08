@@ -221,7 +221,6 @@ class ContinueWatchingCard extends ConsumerWidget {
                           ) ??
                           '',
                       fit: BoxFit.cover,
-                      memCacheWidth: 200, // P15: Optimize memory
                       placeholder: (context, url) =>
                           Container(color: Theme.of(context).dividerColor),
                       errorWidget: (_, _, _) =>

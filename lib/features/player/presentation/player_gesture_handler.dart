@@ -95,13 +95,29 @@ class PlayerGestureHandler extends ChangeNotifier {
     });
   }
 
+  // Pixels from each edge that are reserved for system gestures.
+  // Touches starting inside these zones are ignored to avoid conflicts with
+  // Android/iOS swipe-from-edge system gestures (back, notification shade, etc.).
+  static const double _edgeExclusionHorizontal = 48.0; // left/right
+  static const double _edgeExclusionTop = 48.0; // top (notification shade)
+
   Future<void> handleDragStart(
     DragStartDetails details,
     double screenWidth,
+    double screenHeight,
   ) async {
     if (isTv || isDesktop) return;
 
     final x = details.globalPosition.dx;
+    final y = details.globalPosition.dy;
+
+    // Ignore touches near the left/right edges (system back gesture on Android)
+    // or near the top edge (notification shade pull-down on Android/iOS).
+    if (x < _edgeExclusionHorizontal ||
+        x > screenWidth - _edgeExclusionHorizontal ||
+        y < _edgeExclusionTop) {
+      return;
+    }
     // Use cached settings to avoid async gap on every swipe start.
     // Refresh the cache in the background after each use.
     final settings = _cachedSettings ?? await getSettings();
@@ -182,6 +198,7 @@ class PlayerGestureHandler extends ChangeNotifier {
   Future<void> handleHorizontalDragStart(
     DragStartDetails details,
     bool isControlsVisible,
+    double screenWidth,
     double screenHeight,
     double bottomPadding,
   ) async {
@@ -191,6 +208,13 @@ class PlayerGestureHandler extends ChangeNotifier {
     if (!swipeSettings.swipeSeekEnabled) return;
 
     if (isTv || isDesktop) return;
+
+    // Ignore touches near left/right edges (Android system back gesture).
+    final x = details.globalPosition.dx;
+    if (x < _edgeExclusionHorizontal ||
+        x > screenWidth - _edgeExclusionHorizontal) {
+      return;
+    }
 
     if (isControlsVisible) {
       if (details.globalPosition.dy > (screenHeight - 100 - bottomPadding)) {

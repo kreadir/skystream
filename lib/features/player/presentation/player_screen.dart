@@ -43,7 +43,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
   final ValueNotifier<BoxFit> _videoFit = ValueNotifier(BoxFit.contain);
   final ValueNotifier<bool> _controlsVisible = ValueNotifier(true);
-  final ValueNotifier<bool> _forceShowControls = ValueNotifier(false);
 
   final GlobalKey<SkyStreamPlayerControlsState> _controlsKeyFinal = GlobalKey();
 
@@ -141,7 +140,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
     _player.dispose();
     _videoViewController.dispose();
     _controlsVisible.dispose();
-    _forceShowControls.dispose();
     _videoFit.dispose();
 
     WakelockPlus.disable();
@@ -183,12 +181,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       } else {
         if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
             event.logicalKey == LogicalKeyboardKey.arrowDown) {
-          _controlsVisible.value = true;
-          _forceShowControls.value = true;
-          Future.delayed(
-            const Duration(milliseconds: 200),
-            () => _forceShowControls.value = false,
-          );
+          _controlsKeyFinal.currentState?.showControls();
           return KeyEventResult.handled;
         }
       }
@@ -201,11 +194,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
         event.logicalKey == LogicalKeyboardKey.mediaPlayPause) {
       _controlsKeyFinal.currentState?.togglePlayPause();
       if (!_controlsVisible.value) {
-        _forceShowControls.value = true;
-        Future.delayed(
-          const Duration(milliseconds: 100),
-          () => _forceShowControls.value = false,
-        );
+        _controlsKeyFinal.currentState?.showControls();
       }
       return KeyEventResult.handled;
     }
@@ -282,21 +271,47 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
     if (errorMessage != null) {
       return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        body: SafeArea(
+          child: Stack(
             children: [
-              const Icon(Icons.error, color: Colors.red, size: 48),
-              const SizedBox(height: 16),
-              Text(
-                errorMessage,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red, size: 56),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Playback Error",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        errorMessage,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: _handleBack,
+                        icon: const Icon(Icons.arrow_back),
+                        label: const Text("Go Back"),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => context.pop(),
-                child: const Text("Go Back"),
+              // Top-left back button — always visible for iOS/desktop
+              // where there may be no system back gesture.
+              Positioned(
+                top: 8,
+                left: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  tooltip: 'Go Back',
+                  onPressed: _handleBack,
+                ),
               ),
             ],
           ),
@@ -311,11 +326,22 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
           canPop: false,
           onPopInvokedWithResult: (didPop, result) async {
             if (didPop) return;
-            if (_controlsVisible.value) {
-              _controlsKeyFinal.currentState?.hideControls();
-            } else {
-              await _handleBack();
+            // On TV: intercept back to hide controls first (if controls are
+            // visible and video is playing), so the user doesn't exit by accident.
+            // On phone/tablet: always pop directly — no two-step back.
+            if (_isTv && _controlsVisible.value) {
+              final isPlaying = ref.read(
+                playerControllerProvider.select((s) => s.useExoPlayer),
+              )
+                  ? _videoViewController.playbackState.value ==
+                        vv.VideoControllerPlaybackState.playing
+                  : _player.state.playing;
+              if (isPlaying) {
+                _controlsKeyFinal.currentState?.hideControls();
+                return;
+              }
             }
+            await _handleBack();
           },
           child: Scaffold(
             body: Focus(
@@ -407,26 +433,22 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
                   ),
                   Positioned.fill(
                     child: RepaintBoundary(
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: _forceShowControls,
-                        builder: (_, forceShow, _) => SkyStreamPlayerControls(
-                          key: _controlsKeyFinal,
-                          isLoading: isLoading,
-                          forceShowControls: forceShow,
-                          player: _player,
-                          videoViewController: _videoViewController,
-                          title: widget.item.title,
-                          subtitle: ref
-                              .read(playerControllerProvider)
-                              .streamSubtitle,
-                          onResize: _updateResizeMode,
-                          onBackPointer: _handleBack,
-                          onVisibilityChanged: (v) {
-                            if (mounted) {
-                              _controlsVisible.value = v;
-                            }
-                          },
-                        ),
+                      child: SkyStreamPlayerControls(
+                        key: _controlsKeyFinal,
+                        isLoading: isLoading,
+                        player: _player,
+                        videoViewController: _videoViewController,
+                        title: widget.item.title,
+                        subtitle: ref
+                            .read(playerControllerProvider)
+                            .streamSubtitle,
+                        onResize: _updateResizeMode,
+                        onBackPointer: _handleBack,
+                        onVisibilityChanged: (v) {
+                          if (mounted) {
+                            _controlsVisible.value = v;
+                          }
+                        },
                       ),
                     ),
                   ),

@@ -43,7 +43,6 @@ class MultimediaCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     child: CachedNetworkImage(
                       imageUrl: imageUrl ?? '',
-                      memCacheWidth: isPortrait ? 350 : 600,
                       fit: BoxFit.cover,
                       width: double.infinity,
                       placeholder: (context, url) =>
