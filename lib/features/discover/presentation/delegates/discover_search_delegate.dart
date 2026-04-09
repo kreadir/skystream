@@ -331,7 +331,7 @@ class _SearchResultsGridState extends ConsumerState<_SearchResultsGrid> {
               '/tmdb-details',
               extra: TmdbDetailsRouteExtra(
                 movieId: id,
-                mediaType: mediaType,
+                mediaType: item.tmdbMediaType,
                 heroTag: uniqueTag,
                 placeholderPoster: imageUrl,
               ),

@@ -185,10 +185,8 @@ class _DiscoverCarouselState extends State<DiscoverCarousel> {
   }
 
   void _navigateToDetails(BuildContext context, MultimediaItem movie) {
-    // Determine type: 'title' usually implies movie, 'name' implies TV
-    // But better to check 'media_type' if available (trending/search provides it),
-    // fallback to title check.
-    final String mediaType = movie.mediaType;
+    // Standardize media type mapping (prevents TMDB ID collisions)
+    final String mediaType = movie.tmdbMediaType;
 
     context.push(
       '/tmdb-details',

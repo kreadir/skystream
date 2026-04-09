@@ -285,6 +285,7 @@ class CustomButton extends StatefulWidget {
   final FocusNode? focusNode;
   final Color? backgroundColor;
   final bool showFocusHighlight;
+  final OutlinedBorder? shape;
 
   const CustomButton({
     super.key,
@@ -296,6 +297,7 @@ class CustomButton extends StatefulWidget {
     this.focusNode,
     this.backgroundColor,
     this.showFocusHighlight = true,
+    this.shape,
   });
 
   @override
@@ -348,8 +350,8 @@ class _CustomButtonState extends State<CustomButton> {
           side: showHighlight
               ? const BorderSide(color: Colors.white, width: 3)
               : BorderSide.none,
-          elevation: 0,
           shadowColor: Colors.transparent,
+          shape: widget.shape,
         ),
         child: widget.child,
       );
@@ -374,6 +376,7 @@ class _CustomButtonState extends State<CustomButton> {
             : (widget.isOutlined
                   ? BorderSide(color: Theme.of(context).colorScheme.outline)
                   : BorderSide.none),
+        shape: widget.shape,
       ),
       child: widget.child,
     );

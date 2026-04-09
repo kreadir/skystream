@@ -32,7 +32,10 @@ final movieDetailsProvider =
         Map<String, dynamic>? data;
         Map<String, dynamic>? extra;
 
-        if (params.type == 'tv') {
+        final String type = params.type.toLowerCase();
+        final bool isTv = type == 'tv' || type == 'series' || type == 'tvseries';
+
+        if (isTv) {
           final results = await Future.wait([
             service.getTvDetails(params.id, language: language),
             service.getTvExtra(params.id, language: language),

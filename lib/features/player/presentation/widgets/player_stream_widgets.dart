@@ -367,6 +367,7 @@ class PlayerPlayPauseButton extends StatelessWidget {
       autofocus: true,
       focusNode: focusNode,
       onPressed: onPressed ?? () => player.playOrPause(),
+      shape: const CircleBorder(),
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: const BoxDecoration(
