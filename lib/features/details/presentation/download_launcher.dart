@@ -22,13 +22,14 @@ class DownloadLauncher {
     MultimediaItem item, {
     String? episodeUrl,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     final resolveUrl = episodeUrl ?? item.url;
     if (resolveUrl.isEmpty) return;
 
     bool isCanceled = false;
     LoadingDialog.show(
       context,
-      message: AppLocalizations.of(context)!.resolving,
+      message: l10n.resolving,
       onCancel: () => isCanceled = true,
     );
 
@@ -65,8 +66,7 @@ class DownloadLauncher {
       if (!isCanceled) Navigator.of(context).pop(); // Dismiss if still there
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(
-          content: Text(AppLocalizations.of(context)!.errorPrefix(e.toString()))));
+      ).showSnackBar(SnackBar(content: Text(l10n.errorPrefix(e.toString()))));
     }
   }
 
@@ -76,6 +76,7 @@ class DownloadLauncher {
     MultimediaItem item,
     String resolveUrl,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -90,7 +91,7 @@ class DownloadLauncher {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  AppLocalizations.of(context)!.selectSource,
+                  l10n.selectSource,
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -134,6 +135,7 @@ class DownloadLauncher {
     MultimediaItem item,
     String resolveUrl,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final downloadService = _ref.read(downloadServiceProvider);
 
     // 1. Show verification dialog
@@ -153,7 +155,7 @@ class DownloadLauncher {
               children: [
                 const CircularProgressIndicator(),
                 const SizedBox(height: 16),
-                Text(AppLocalizations.of(context)!.verifyingSourceSize),
+                Text(l10n.verifyingSourceSize),
               ],
             ),
             actions: [
@@ -165,7 +167,7 @@ class DownloadLauncher {
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Text(AppLocalizations.of(context)!.cancel),
+                  child: Text(l10n.cancel),
                 ),
               ),
             ],
@@ -205,25 +207,24 @@ class DownloadLauncher {
       showDialog(
         context: finalContext,
         builder: (ctx) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.confirmDownload),
+          title: Text(l10n.confirmDownload),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(AppLocalizations.of(context)!.titleWithParam(item.title)),
+              Text(l10n.titleWithParam(item.title)),
               const SizedBox(height: 8),
-              Text(AppLocalizations.of(context)!.sourceWithParam(stream.source)),
+              Text(l10n.sourceWithParam(stream.source)),
               const SizedBox(height: 8),
-              Text(
-                  AppLocalizations.of(context)!.sizeWithParam(metadata.sizeString)),
+              Text(l10n.sizeWithParam(metadata.sizeString)),
               const SizedBox(height: 16),
-              Text(AppLocalizations.of(context)!.fileSaveLocationNotification),
+              Text(l10n.fileSaveLocationNotification),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(AppLocalizations.of(context)!.cancel),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -283,7 +284,7 @@ class DownloadLauncher {
                   );
                 }
               },
-              child: Text(AppLocalizations.of(context)!.downloadNow),
+              child: Text(l10n.downloadNow),
             ),
           ],
         ),
@@ -298,15 +299,16 @@ class DownloadLauncher {
     MultimediaItem item,
     String resolveUrl,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.downloadUnavailable),
+        title: Text(l10n.downloadUnavailable),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -317,7 +319,7 @@ class DownloadLauncher {
                 episodeUrl: resolveUrl,
               ); // Go back to source picker
             },
-            child: Text(AppLocalizations.of(context)!.selectAnotherSource),
+            child: Text(l10n.selectAnotherSource),
           ),
         ],
       ),
