@@ -1585,6 +1585,12 @@ abstract class AppLocalizations {
   /// **'{label} S{season} E{episode}'**
   String playEpisode(String label, Object season, Object episode);
 
+  /// No description provided for @playEpisodeOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} E{episode}'**
+  String playEpisodeOnly(String label, int episode);
+
   /// No description provided for @debugTools.
   ///
   /// In en, this message translates to:

@@ -359,6 +359,17 @@
       }
     }
   },
+  "playEpisodeOnly": "{label} E{episode}",
+  "@playEpisodeOnly": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "episode": {
+        "type": "int"
+      }
+    }
+  },
   "developerOptions": "Developer Options",
   "debugTools": "Debug Tools",
   "playLocalVideo": "Play local video file",

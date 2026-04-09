@@ -758,6 +758,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String playEpisodeOnly(String label, int episode) {
+    return '$label E$episode';
+  }
+
+  @override
   String get debugTools => '调试工具';
 
   @override
@@ -1819,6 +1824,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String playEpisode(String label, Object season, Object episode) {
     return '$label S$season E$episode';
+  }
+
+  @override
+  String playEpisodeOnly(String label, int episode) {
+    return '$label E$episode';
   }
 
   @override

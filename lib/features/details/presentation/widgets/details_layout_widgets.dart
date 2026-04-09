@@ -93,6 +93,10 @@ class DetailsActionButtons extends HookConsumerWidget {
     final isMovie = ref.watch(
       detailsControllerProvider(itemUrl).select((s) => s.isMovie),
     );
+    final seasonMap = ref.watch(
+      detailsControllerProvider(itemUrl).select((s) => s.seasonMap),
+    );
+    final isSingleSeason = seasonMap.keys.length <= 1;
 
     final playFocusNode = useFocusNode();
     final isTv = ref.watch(deviceProfileProvider).asData?.value.isTv ?? false;
@@ -119,11 +123,18 @@ class DetailsActionButtons extends HookConsumerWidget {
 
     String playLabel = isResuming ? l10n.resume : l10n.play;
     if (targetEpisode != null && !isMovie) {
-      playLabel = l10n.playEpisode(
-        playLabel,
-        targetEpisode.season,
-        targetEpisode.episode,
-      );
+      if (isSingleSeason) {
+        playLabel = l10n.playEpisodeOnly(
+          playLabel,
+          targetEpisode.episode,
+        );
+      } else {
+        playLabel = l10n.playEpisode(
+          playLabel,
+          targetEpisode.season,
+          targetEpisode.episode,
+        );
+      }
     }
 
     final playBtn = CustomButton(
@@ -323,7 +334,7 @@ class DetailsActionButtons extends HookConsumerWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  "${AppLocalizations.of(context)!.percentWatched((progress * 100).toInt())}${!isMovie && targetEpisode != null ? ' • S${targetEpisode.season} E${targetEpisode.episode}' : ''}",
+                  "${AppLocalizations.of(context)!.percentWatched((progress * 100).toInt())}${!isMovie && targetEpisode != null ? (isSingleSeason ? ' • E${targetEpisode.episode}' : ' • S${targetEpisode.season} E${targetEpisode.episode}') : ''}",
                   style: TextStyle(
                     fontSize: 11,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,

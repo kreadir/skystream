@@ -779,6 +779,11 @@ class AppLocalizationsGu extends AppLocalizations {
   }
 
   @override
+  String playEpisodeOnly(String label, int episode) {
+    return '$label E$episode';
+  }
+
+  @override
   String get debugTools => 'ડીબગ ટૂલ્સ';
 
   @override

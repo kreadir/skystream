@@ -778,6 +778,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String playEpisodeOnly(String label, int episode) {
+    return '$label E$episode';
+  }
+
+  @override
   String get debugTools => 'أدوات التصحيح';
 
   @override
@@ -1851,6 +1856,11 @@ class AppLocalizationsArApc extends AppLocalizationsAr {
   @override
   String playEpisode(String label, Object season, Object episode) {
     return '$label م$season ح$episode';
+  }
+
+  @override
+  String playEpisodeOnly(String label, int episode) {
+    return '$label E$episode';
   }
 
   @override

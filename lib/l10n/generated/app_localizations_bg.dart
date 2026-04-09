@@ -767,6 +767,11 @@ class AppLocalizationsBg extends AppLocalizations {
   }
 
   @override
+  String playEpisodeOnly(String label, int episode) {
+    return '$label E$episode';
+  }
+
+  @override
   String get debugTools => 'Инструменти за дебъг';
 
   @override

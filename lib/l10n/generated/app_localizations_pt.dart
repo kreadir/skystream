@@ -771,6 +771,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String playEpisodeOnly(String label, int episode) {
+    return '$label E$episode';
+  }
+
+  @override
   String get debugTools => 'Ferramentas de Depuração';
 
   @override
@@ -1857,6 +1862,11 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   @override
   String playEpisode(String label, Object season, Object episode) {
     return '$label T$season E$episode';
+  }
+
+  @override
+  String playEpisodeOnly(String label, int episode) {
+    return '$label E$episode';
   }
 
   @override
