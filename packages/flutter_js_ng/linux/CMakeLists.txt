@@ -54,4 +54,7 @@ add_library(quickjs_c_bridge_plugin SHARED
 target_include_directories(quickjs_c_bridge_plugin PRIVATE "${QUICKJS_SRC_DIR}/quickjs")
 target_link_libraries(quickjs_c_bridge_plugin PRIVATE m dl pthread)
 
-install(TARGETS quickjs_c_bridge_plugin DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+set(flutter_qjs_bundled_libraries
+  "$<TARGET_FILE:quickjs_c_bridge_plugin>"
+  PARENT_SCOPE
+)

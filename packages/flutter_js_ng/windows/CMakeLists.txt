@@ -53,4 +53,7 @@ endif()
 
 target_include_directories(quickjs_c_bridge PRIVATE "${QUICKJS_SRC_DIR}/quickjs")
 
-install(TARGETS quickjs_c_bridge DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+set(flutter_js_bundled_libraries
+  "$<TARGET_FILE:quickjs_c_bridge>"
+  PARENT_SCOPE
+)
