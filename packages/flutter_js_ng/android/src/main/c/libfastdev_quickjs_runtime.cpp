@@ -263,7 +263,7 @@ extern "C"
 
     DLLEXPORT int JS_IsArrayDartWrapper(JSContext *ctx, JSValueConst *val)
     {
-        return JS_IsArray(ctx, *val);
+        return JS_IsArray(*val);
     }
 
     DLLEXPORT int JS_JSONStringifyDartWrapper(
@@ -379,7 +379,7 @@ extern "C"
 
     void js_promise_rejection_tracker(JSContext *ctx, JSValueConst promise,
                                     JSValueConst reason,
-                                    JS_BOOL is_handled, void *opaque)
+                                    bool is_handled, void *opaque)
     {
         if (is_handled)
         return;
@@ -412,8 +412,8 @@ extern "C"
     DLLEXPORT uint32_t jsNewClass(JSContext *ctx, const char *name)
     {
         JSClassID QJSClassId = 0;
-        JS_NewClassID(&QJSClassId);
         JSRuntime *rt = JS_GetRuntime(ctx);
+        JS_NewClassID(rt, &QJSClassId);
         if (!JS_IsRegisteredClass(rt, QJSClassId))
         {
         JSClassDef def{
@@ -604,12 +604,12 @@ extern "C"
 
     DLLEXPORT int32_t jsIsPromise(JSContext *ctx, JSValueConst *val)
     {
-        return JS_IsPromise(ctx, *val);
+        return JS_IsPromise(*val);
     }
 
     DLLEXPORT int32_t jsIsArray(JSContext *ctx, JSValueConst *val)
     {
-        return JS_IsArray(ctx, *val);
+        return JS_IsArray(*val);
     }
 
     DLLEXPORT int32_t jsIsError(JSContext *ctx, JSValueConst *val)
