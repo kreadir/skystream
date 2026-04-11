@@ -55,9 +55,4 @@ target_include_directories(quickjs_c_bridge_plugin PRIVATE "${QUICKJS_SRC_DIR}/q
 target_link_libraries(quickjs_c_bridge_plugin PRIVATE m dl pthread)
 
 add_dependencies(${PLUGIN_NAME} quickjs_c_bridge_plugin)
-# Aggressively force-copy the dynamically built QuickJS binary directly into the Flutter bundle output folder
-add_custom_command(TARGET quickjs_c_bridge_plugin POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    $<TARGET_FILE:quickjs_c_bridge_plugin>
-    "${CMAKE_BINARY_DIR}/bundle/lib/libquickjs_c_bridge_plugin.so"
-)
+install(TARGETS quickjs_c_bridge_plugin DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)

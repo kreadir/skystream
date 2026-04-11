@@ -54,14 +54,4 @@ endif()
 target_include_directories(quickjs_c_bridge PRIVATE "${QUICKJS_SRC_DIR}/quickjs")
 
 add_dependencies(${PLUGIN_NAME} quickjs_c_bridge)
-add_custom_command(TARGET quickjs_c_bridge POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/runner/Debug"
-    COMMAND ${CMAKE_COMMAND} -E copy
-    $<TARGET_FILE:quickjs_c_bridge>
-    "${CMAKE_BINARY_DIR}/runner/Debug/quickjs_c_bridge.dll"
-)
-add_custom_command(TARGET quickjs_c_bridge POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    $<TARGET_FILE:quickjs_c_bridge>
-    "${CMAKE_BINARY_DIR}/runner/Release/quickjs_c_bridge.dll"
-)
+install(TARGETS quickjs_c_bridge DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
