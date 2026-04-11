@@ -54,6 +54,8 @@ jobs:
           cp /tmp/quickjs-ng/libunicode.c /tmp/build/quickjs/
           cp /tmp/quickjs-ng/libunicode.h /tmp/build/quickjs/
           cp /tmp/quickjs-ng/libunicode-table.h /tmp/build/quickjs/ || true
+          cp /tmp/quickjs-ng/libbf.c /tmp/build/quickjs/ || true
+          cp /tmp/quickjs-ng/libbf.h /tmp/build/quickjs/ || true
           cp /tmp/quickjs-ng/quickjs-atom.h /tmp/build/quickjs/ || true
           cp /tmp/quickjs-ng/quickjs-opcode.h /tmp/build/quickjs/ || true
           cp /tmp/quickjs-ng/list.h /tmp/build/quickjs/ || true
@@ -62,7 +64,7 @@ jobs:
         run: |
           cd /tmp/build
           cat > CMakeLists.txt << 'EOF'
-          cmake_minimum_required(VERSION 3.6.0)
+          cmake_minimum_required(VERSION 3.10.0)
           project(quickjs_c_bridge C CXX)
 
           set(CMAKE_C_STANDARD 11)
@@ -76,6 +78,7 @@ jobs:
               quickjs/cutils.c
               quickjs/libregexp.c
               quickjs/libunicode.c
+              quickjs/libbf.c
               quickjs/quickjs.c
           )
 
@@ -120,6 +123,7 @@ jobs:
             'cutils.c', 'cutils.h',
             'libregexp.c', 'libregexp.h',
             'libunicode.c', 'libunicode.h',
+            'libbf.c', 'libbf.h',
             'quickjs-atom.h', 'quickjs-opcode.h',
             'libregexp-opcode.h', 'libunicode-table.h', 'list.h'
           )
@@ -135,7 +139,7 @@ jobs:
         run: |
           cd C:\build
           @"
-          cmake_minimum_required(VERSION 3.6.0)
+          cmake_minimum_required(VERSION 3.10.0)
           project(quickjs_c_bridge C CXX)
 
           set(CMAKE_C_STANDARD 11)
@@ -148,6 +152,7 @@ jobs:
               quickjs/cutils.c
               quickjs/libregexp.c
               quickjs/libunicode.c
+              quickjs/libbf.c
               quickjs/quickjs.c
           )
           "@ | Set-Content CMakeLists.txt
@@ -180,6 +185,7 @@ jobs:
           mkdir -p /tmp/android-quickjs
           files=(quickjs.c quickjs.h cutils.c cutils.h \
                  libregexp.c libregexp.h libunicode.c libunicode.h \
+                 libbf.c libbf.h \
                  quickjs-atom.h quickjs-opcode.h libregexp-opcode.h \
                  libunicode-table.h list.h)
           for f in "${files[@]}"; do

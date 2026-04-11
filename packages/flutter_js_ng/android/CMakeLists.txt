@@ -16,6 +16,7 @@ add_library( fastdev_quickjs_runtime
             src/main/c/quickjs/cutils.c
             src/main/c/quickjs/libregexp.c
             src/main/c/quickjs/libunicode.c
+            src/main/c/quickjs/libbf.c
             src/main/c/quickjs/quickjs.c
     )
 
