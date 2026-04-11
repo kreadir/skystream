@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.6.0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -DANDROID_STL=c++_static -DANDROID_TOOLCHAIN=clang -DDEBUGGER_SERVER_PORT=${DEBUGGER_SERVER_PORT}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DQUICKJS")
 include_directories(
-    src/main/c/quickjs
+    ../cxx/quickjs
 )
 add_library( fastdev_quickjs_runtime
 
@@ -11,13 +11,13 @@ add_library( fastdev_quickjs_runtime
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/c/libfastdev_quickjs_runtime.cpp
+             ../cxx/libfastdev_quickjs_runtime.cpp
 
-            src/main/c/quickjs/cutils.c
-            src/main/c/quickjs/libregexp.c
-            src/main/c/quickjs/libunicode.c
-            src/main/c/quickjs/libbf.c
-            src/main/c/quickjs/quickjs.c
+            ../cxx/quickjs/cutils.c
+            ../cxx/quickjs/libregexp.c
+            ../cxx/quickjs/libunicode.c
+            ../cxx/quickjs/libbf.c
+            ../cxx/quickjs/quickjs.c
     )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCONFIG_VERSION=\\\"2020-11-08\\\"")

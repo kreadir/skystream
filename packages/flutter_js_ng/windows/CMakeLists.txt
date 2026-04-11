@@ -8,7 +8,7 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 # not be changed
 set(PLUGIN_NAME "flutter_js_plugin")
 
-set(QUICKJS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../android/src/main/c")
+set(QUICKJS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cxx")
 add_definitions(-DCONFIG_VERSION="2024-01-01" -DQUICKJS -DCONFIG_BIGNUM -D_GNU_SOURCE)
 
 add_library(${PLUGIN_NAME} SHARED
