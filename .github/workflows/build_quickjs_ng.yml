@@ -74,8 +74,8 @@ jobs:
 
           set(CMAKE_C_STANDARD 11)
           set(CMAKE_CXX_STANDARD 17)
-          set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCONFIG_VERSION=\"2024-01-01\" -fPIC")
-          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -DQUICKJS -fPIC")
+          set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -D_GNU_SOURCE -DCONFIG_BIGNUM -DCONFIG_VERSION=\"2024-01-01\"")
+          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fPIC -D_GNU_SOURCE -DCONFIG_BIGNUM -DQUICKJS")
 
           include_directories(quickjs)
 
@@ -89,6 +89,7 @@ jobs:
           )
 
           target_link_libraries(quickjs_c_bridge_plugin m dl pthread)
+          target_link_options(quickjs_c_bridge_plugin PRIVATE -static-libstdc++ -static-libgcc)
           EOF
 
           mkdir build && cd build
@@ -151,7 +152,8 @@ jobs:
 
           set(CMAKE_C_STANDARD 11)
           set(CMAKE_CXX_STANDARD 17)
-          add_definitions(-DCONFIG_VERSION="2024-01-01" -DQUICKJS)
+          set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+          add_definitions(-D_GNU_SOURCE -DCONFIG_BIGNUM -DCONFIG_VERSION="2024-01-01" -DQUICKJS)
 
           include_directories(quickjs)
 
