@@ -29,7 +29,8 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
 target_include_directories(${PLUGIN_NAME} PRIVATE "${QUICKJS_SRC_DIR}/quickjs")
 
 if(MSVC)
-    target_compile_options(${PLUGIN_NAME} PRIVATE /experimental:c11atomics)
+    set_target_properties(${PLUGIN_NAME} PROPERTIES C_STANDARD 11)
+    target_compile_options(${PLUGIN_NAME} PRIVATE /experimental:c11atomics /WX- /W0)
 endif()
 
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
