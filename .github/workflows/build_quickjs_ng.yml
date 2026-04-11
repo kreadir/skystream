@@ -10,6 +10,9 @@
 
 name: Build QuickJS-NG Natives
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -199,22 +202,37 @@ jobs:
           name: android-quickjs-ng-source
           path: /tmp/android-quickjs/
 
-  # ─── Summary ───────────────────────────────────────────────────────
-  summary:
+  # ─── Commit ─────────────────────────────────────────────────────────
+  commit:
     needs: [build-linux, build-windows, prepare-android-source]
     runs-on: ubuntu-latest
     steps:
-      - name: Summary
+      - name: Checkout SkyStream
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/artifacts
+
+      - name: Copy binaries to repository
         run: |
-          echo "## QuickJS-NG Build Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "- **linux-x64 & linux-arm64**: \`libquickjs_c_bridge_plugin.so\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **windows-x64 & windows-arm64**: \`quickjs_c_bridge.dll\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **android-quickjs-ng-source**: C source files for NDK build" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "1. Download the artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "2. Copy Linux \`libquickjs_c_bridge_plugin.so\` → \`packages/flutter_js_ng/linux/shared/<arch>/\`" >> $GITHUB_STEP_SUMMARY
-          echo "3. Copy Windows \`quickjs_c_bridge.dll\` → \`packages/flutter_js_ng/windows/shared/<arch>/\`" >> $GITHUB_STEP_SUMMARY
-          echo "4. Copy Android source files → \`packages/flutter_js_ng/android/src/main/c/quickjs/\`" >> $GITHUB_STEP_SUMMARY
+          mkdir -p packages/flutter_js_ng/linux/shared/x64
+          mkdir -p packages/flutter_js_ng/linux/shared/arm64
+          mkdir -p packages/flutter_js_ng/windows/shared/x64
+          mkdir -p packages/flutter_js_ng/windows/shared/arm64
+          mkdir -p packages/flutter_js_ng/android/src/main/c/quickjs
+
+          cp /tmp/artifacts/linux-x64/libquickjs_c_bridge_plugin.so packages/flutter_js_ng/linux/shared/x64/ 2>/dev/null || true
+          cp /tmp/artifacts/linux-arm64/libquickjs_c_bridge_plugin.so packages/flutter_js_ng/linux/shared/arm64/ 2>/dev/null || true
+          cp /tmp/artifacts/windows-x64/quickjs_c_bridge.dll packages/flutter_js_ng/windows/shared/x64/ 2>/dev/null || true
+          cp /tmp/artifacts/windows-arm64/quickjs_c_bridge.dll packages/flutter_js_ng/windows/shared/arm64/ 2>/dev/null || true
+          cp -r /tmp/artifacts/android-quickjs-ng-source/* packages/flutter_js_ng/android/src/main/c/quickjs/ 2>/dev/null || true
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "[Auto] Update QuickJS-NG Natives to ${{ github.event.inputs.quickjs_ng_version }}"
+          file_pattern: "packages/flutter_js_ng/linux/shared/** packages/flutter_js_ng/windows/shared/** packages/flutter_js_ng/android/src/main/c/quickjs/**"

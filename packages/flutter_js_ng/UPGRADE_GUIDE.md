@@ -15,31 +15,20 @@ This forked package uses a **dual-engine** strategy (inherited from the upstream
 ## How to Upgrade the QuickJS-NG Source
 
 ### Android (Compiled from Source)
-The Android build compiles QuickJS source files directly via CMake.
-To upgrade:
+The original `flutter_js` plugin stripped the C compiler components from Android to use a precompiled JitPack library (`fastdev-jsruntimes-quickjs:0.3.6`).
 
-1. Download the latest QuickJS-NG release from https://github.com/quickjs-ng/quickjs/releases
-2. Replace the following files in `android/src/main/c/quickjs/`:
-   - `quickjs.c` → QuickJS-NG's `quickjs.c`
-   - `quickjs.h` → QuickJS-NG's `quickjs.h`
-   - `cutils.c` → QuickJS-NG's `cutils.c`
-   - `cutils.h` → QuickJS-NG's `cutils.h`
-   - `libregexp.c` → QuickJS-NG's `libregexp.c`
-   - `libregexp.h` → QuickJS-NG's `libregexp.h`
-   - `libunicode.c` → QuickJS-NG's `libunicode.c`
-   - `libunicode.h` → QuickJS-NG's `libunicode.h`
-   - `libbf.c` → QuickJS-NG's `libbf.c`
-   - `libbf.h` → QuickJS-NG's `libbf.h`
-   - `quickjs-c-atomics.h` → QuickJS-NG's `quickjs-c-atomics.h`
-3. The CMakeLists.txt and the C++ bridge (`libfastdev_quickjs_runtime.cpp`) remain unchanged.
-4. Android will compile the new source automatically during `flutter build`.
+This forked version has re-enabled `externalNativeBuild` inside `android/build.gradle` and completely bypasses the external JitPack dependency so QuickJS-NG compiles directly alongside your Flutter Android app.
+
+To upgrade QuickJS-NG on Android:
+1. Run the `Build QuickJS-NG Natives` GitHub Action.
+2. The workflow will automatically compile and commit all 16 QuickJS-NG source files into `packages/flutter_js_ng/android/src/main/c/quickjs/`.
+3. Run `flutter build apk` (Android CMake will automatically build it into `libfastdev_quickjs_runtime.so`).
 
 ### Windows and Linux (Pre-built Binaries)
-These platforms use pre-built shared libraries. The GitHub Actions workflow
-(`build_quickjs_ng.yml`) handles cross-compilation:
+The GitHub Action natively cross-compiles both x64 and ARM64 shared libraries and automatically commits them to your repository:
 
-- **Windows**: Outputs `windows/shared/quickjs_c_bridge.dll`
-- **Linux**: Outputs `linux/shared/libquickjs_c_bridge_plugin.so`
+- **Windows x64 & ARM64**: Auto-committed to `windows/shared/<arch>/quickjs_c_bridge.dll`.
+- **Linux x64 & ARM64**: Auto-committed to `linux/shared/<arch>/libquickjs_c_bridge_plugin.so`.
 
 ## GitHub Actions Workflow
 
@@ -48,7 +37,7 @@ The workflow:
 1. Clones the QuickJS-NG source
 2. Clones the flutter_js C bridge source
 3. Cross-compiles for Windows (MSVC) and Linux (GCC)
-4. Commits the updated binaries back to the repository
+4. Generates ZIP artifacts containing the pre-built binaries and Android sources
 
 ## Important Notes
 

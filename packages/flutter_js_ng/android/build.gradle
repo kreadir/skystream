@@ -34,14 +34,13 @@ android {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 
-    // //quickjs C build disabled for now - crashing with SEGV_MAPERR on ARM based devices
-    // externalNativeBuild {
-    //   // Encapsulates your CMake build configurations.
-    //   cmake {
-    //       // Provides a relative path to your CMake build script.
-    //       path "CMakeLists.txt"
-    //   }
-    // }
+    externalNativeBuild {
+      // Encapsulates your CMake build configurations.
+      cmake {
+          // Provides a relative path to your CMake build script.
+          path "CMakeLists.txt"
+      }
+    }
 
 
     sourceSets {
@@ -68,6 +67,6 @@ dependencies {
     // compile group: 'org.nanohttpd', name: 'nanohttpd', version: '2.3.0'
 
     // for serve library from jitpack repository
-    implementation "com.github.fast-development.android-js-runtimes:fastdev-jsruntimes-quickjs:0.3.6"
+    // implementation "com.github.fast-development.android-js-runtimes:fastdev-jsruntimes-quickjs:0.3.6"
     // implementation "com.github.fast-development.android-js-runtimes:fastdev-jsruntimes-jsc:0.1.3"
 }
