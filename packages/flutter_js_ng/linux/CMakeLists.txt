@@ -37,12 +37,21 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 set(INSTALL_BUNDLE_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 
-set(QUICKJSC_BRIDGE "libquickjs_c_bridge_plugin.so")
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
-    set(ARCH_DIR "arm64")
-else()
-    set(ARCH_DIR "x64")
-endif()
-set(QUICKJSC_BRIDGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/shared/${ARCH_DIR}/${QUICKJSC_BRIDGE}")
-install(CODE "file(REMOVE_RECURSE \"${INSTALL_BUNDLE_LIB_DIR}/${QUICKJSC_BRIDGE}\")" COMPONENT Runtime)
-install(FILES "${QUICKJSC_BRIDGE_PATH}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+# ---- Build QuickJS from Source ----
+set(QUICKJS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../android/src/main/c")
+add_definitions(-DCONFIG_VERSION="2024-01-01" -DQUICKJS -DCONFIG_BIGNUM -D_GNU_SOURCE)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funsigned-char")
+
+add_library(quickjs_c_bridge_plugin SHARED
+    "${QUICKJS_SRC_DIR}/quickjs/cutils.c"
+    "${QUICKJS_SRC_DIR}/quickjs/libregexp.c"
+    "${QUICKJS_SRC_DIR}/quickjs/libunicode.c"
+    "${QUICKJS_SRC_DIR}/quickjs/libbf.c"
+    "${QUICKJS_SRC_DIR}/quickjs/quickjs.c"
+    "${QUICKJS_SRC_DIR}/libfastdev_quickjs_runtime.cpp"
+)
+
+target_include_directories(quickjs_c_bridge_plugin PRIVATE "${QUICKJS_SRC_DIR}/quickjs")
+target_link_libraries(quickjs_c_bridge_plugin PRIVATE m dl pthread)
+
+install(TARGETS quickjs_c_bridge_plugin DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
