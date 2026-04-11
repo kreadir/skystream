@@ -41,7 +41,7 @@ class _DeveloperOptionsScreenState
     final scaffold = Scaffold(
       appBar: AppBar(title: Text(l10n.developerOptions)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         children: [
           SettingsGroup(
             title: l10n.debugTools,
@@ -106,9 +106,7 @@ class _DeveloperOptionsScreenState
   Future<void> _toggleAssetLoading(BuildContext context, bool newValue) async {
     if (!kDebugMode) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.debugOnlyFeature),
-        ),
+        SnackBar(content: Text(AppLocalizations.of(context)!.debugOnlyFeature)),
       );
       return;
     }

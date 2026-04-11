@@ -28,6 +28,7 @@
 build/
 
 # Android
+**/.cxx/
 **/android/**/gradle-wrapper.jar
 **/android/.gradle
 **/android/.kotlin

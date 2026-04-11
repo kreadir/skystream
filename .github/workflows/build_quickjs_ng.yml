@@ -63,6 +63,7 @@ jobs:
           cp /tmp/quickjs-ng/quickjs-c-atomics.h /tmp/build/quickjs/ || true
           cp /tmp/quickjs-ng/quickjs-opcode.h /tmp/build/quickjs/ || true
           cp /tmp/quickjs-ng/list.h /tmp/build/quickjs/ || true
+          cp packages/flutter_js_ng/android/src/main/c/libfastdev_quickjs_runtime.cpp /tmp/build/
 
       - name: Build shared library
         run: |
@@ -84,6 +85,7 @@ jobs:
               quickjs/libunicode.c
               quickjs/libbf.c
               quickjs/quickjs.c
+              libfastdev_quickjs_runtime.cpp
           )
 
           target_link_libraries(quickjs_c_bridge_plugin m dl pthread)
@@ -137,6 +139,7 @@ jobs:
               Copy-Item $src "C:\build\quickjs\"
             }
           }
+          Copy-Item "packages\flutter_js_ng\android\src\main\c\libfastdev_quickjs_runtime.cpp" "C:\build\"
 
       - name: Build shared library
         shell: pwsh
@@ -158,6 +161,7 @@ jobs:
               quickjs/libunicode.c
               quickjs/libbf.c
               quickjs/quickjs.c
+              libfastdev_quickjs_runtime.cpp
           )
           "@ | Set-Content CMakeLists.txt
 
