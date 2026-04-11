@@ -57,3 +57,5 @@ set(flutter_js_bundled_libraries
   "$<TARGET_FILE:quickjs_c_bridge>"
   PARENT_SCOPE
 )
+
+add_dependencies(${PLUGIN_NAME} quickjs_c_bridge)
