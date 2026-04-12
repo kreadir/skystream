@@ -95,7 +95,7 @@ SkyStream is a modern, media streaming client. It draws inspiration from the ver
 | **⚡ Performance** | Optimized for **90Hz/120Hz** displays, ensuring a buttery smooth experience. |
 | **🎨 Modern UI** | Material 3 Design, Dynamic Colors, and responsive layouts for Phones, Tablets, and Desktop. |
 | **🌍 Multi-language** | 40+ supported languages including Hindi, Spanish, French, German, and more. |
-| **💬 Subtitles** | Support for **External SRT/VTT** files, online search (OpenSubtitles/SubDL), and synchronization. |
+| **💬 Subtitles** | Support for **External SRT/VTT** files, online search (OpenSubtitles/SubDL/SubSource), and synchronization. |
 
 ## 📥 Installation
 
