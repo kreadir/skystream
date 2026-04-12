@@ -66,7 +66,7 @@ SkyStream is a modern, media streaming client. It draws inspiration from the ver
   <img src="screenshots/mobile/settings.png" width="360" />
 </p>
 
-### 📺 TV
+### 📺 Large screen
 
 <p align="center">
   <img src="screenshots/tv/details_1.png" width="720" />
