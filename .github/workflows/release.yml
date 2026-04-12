@@ -90,20 +90,31 @@ jobs:
       - name: Build Universal APK
         run: flutter build apk --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
 
+      - name: Build Debug APK
+        run: flutter build apk --debug --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+
       - name: Rename APKs
         run: |
           VERSION="${{ needs.version.outputs.version }}"
           cd build/app/outputs/flutter-apk/
+          
+          # Universal Release
+          if [ -f "app-release.apk" ]; then
+            mv "app-release.apk" "../../../../skystream-android-universal-${VERSION}.apk"
+          fi
+          
+          # Universal Debug
+          if [ -f "app-debug.apk" ]; then
+            mv "app-debug.apk" "../../../../skystream-android-debug-${VERSION}.apk"
+          fi
+          
+          # Splits
           for f in app-*-release.apk; do
             if [ -f "$f" ]; then
-              if [ "$f" == "app-release.apk" ]; then
-                mv "$f" "../../../../skystream-android-universal-${VERSION}.apk"
-              else
-                # Extract ABI: app-<abi>-release.apk -> <abi>
-                abi="${f#app-}"
-                abi="${abi%-release.apk}"
-                mv "$f" "../../../../skystream-android-${abi}-${VERSION}.apk"
-              fi
+              # Extract ABI: app-<abi>-release.apk -> <abi>
+              abi="${f#app-}"
+              abi="${abi%-release.apk}"
+              mv "$f" "../../../../skystream-android-${abi}-${VERSION}.apk"
             fi
           done
 
