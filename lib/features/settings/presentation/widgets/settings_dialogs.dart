@@ -734,6 +734,7 @@ void showLanguageDialog(
 
 /// Shows a beautiful dialog with information about the developer.
 void showDeveloperDialog(BuildContext context) {
+  final l10n = AppLocalizations.of(context)!;
   final colorScheme = Theme.of(context).colorScheme;
 
   showDialog(
@@ -829,7 +830,7 @@ void showDeveloperDialog(BuildContext context) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: Text(l10n.close),
         ),
       ],
     ),
@@ -849,6 +850,7 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Material(
       color: color.withOpacity(0.15),
       shape: const CircleBorder(),
@@ -868,7 +870,7 @@ class _SocialButton extends StatelessWidget {
           ),
         ),
         onPressed: onTap,
-        tooltip: 'Open link',
+        tooltip: l10n.openLink,
       ),
     );
   }
@@ -882,6 +884,7 @@ void showQualityDialog(
   required QualityPreference current,
   required Future<void> Function(QualityPreference) onChanged,
 }) {
+  final l10n = AppLocalizations.of(context)!;
   const options = QualityPreference.values;
   showDialog(
     context: context,
@@ -905,9 +908,9 @@ void showQualityDialog(
                 children: options
                     .map(
                       (q) => RadioListTile<QualityPreference>(
-                        title: Text(qualityPreferenceLabel(q)),
+                        title: Text(qualityPreferenceLabel(q, l10n)),
                         subtitle: q == QualityPreference.any
-                            ? const Text('Keep sources in original order')
+                            ? Text(l10n.keepSourcesOriginalOrder)
                             : null,
                         value: q,
                       ),
@@ -929,7 +932,7 @@ void showQualityDialog(
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Quality is not guaranteed. Sources are sorted by preference, but playback depends on what the provider actually offers.',
+                      l10n.qualityNotGuaranteed,
                       style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
                         color: Theme.of(ctx).colorScheme.onSurfaceVariant,
                       ),
@@ -966,28 +969,28 @@ void showOpenSubtitlesAuthDialog(
       return StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           surfaceTintColor: Colors.transparent,
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.subtitles_rounded, color: Colors.blue),
-              SizedBox(width: 12),
-              Text('OpenSubtitles'),
+              const Icon(Icons.subtitles_rounded, color: Colors.blue),
+              const SizedBox(width: 12),
+              Text(l10n.openSubtitles),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Enter your account credentials for higher limits and ad-free subtitles.',
-                style: TextStyle(fontSize: 13, color: Colors.white70),
+              Text(
+                l10n.openSubtitlesAuthSubtitle,
+                style: const TextStyle(fontSize: 13, color: Colors.white70),
               ),
               const SizedBox(height: 16),
               CustomTextField(
                 controller: userController,
-                decoration: const InputDecoration(
-                  labelText: 'Username',
-                  prefixIcon: Icon(Icons.person_outline, size: 20),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.username,
+                  prefixIcon: const Icon(Icons.person_outline, size: 20),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -995,7 +998,7 @@ void showOpenSubtitlesAuthDialog(
                 controller: passController,
                 obscureText: isObscure,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  labelText: l10n.password,
                   prefixIcon: const Icon(Icons.lock_outline, size: 20),
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
@@ -1014,7 +1017,7 @@ void showOpenSubtitlesAuthDialog(
                   mode: LaunchMode.externalApplication,
                 ),
                 icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                label: const Text('Don\'t have an account? Register here'),
+                label: Text(l10n.noAccountRegister),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   textStyle: const TextStyle(fontSize: 12),
@@ -1031,8 +1034,8 @@ void showOpenSubtitlesAuthDialog(
                       padding: const EdgeInsets.only(left: 12),
                       child: Text(
                         verifyResult!
-                            ? 'Connected Successfully'
-                            : 'Connection Failed',
+                            ? l10n.connectedSuccessfully
+                            : l10n.connectionFailed,
                         style: TextStyle(
                           color: verifyResult! ? Colors.green : Colors.red,
                           fontSize: 11,
@@ -1076,7 +1079,7 @@ void showOpenSubtitlesAuthDialog(
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Test Connection'),
+                      : Text(l10n.testConnection),
                 ),
                 const SizedBox(width: 8),
                 CustomButton(
@@ -1138,24 +1141,24 @@ void showSubDlAuthDialog(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Enter your SubDL API Key directly, or fetch it using your account credentials below.',
-                style: TextStyle(fontSize: 13, color: Colors.white70),
+              Text(
+                l10n.subDlAuthSubtitle,
+                style: const TextStyle(fontSize: 13, color: Colors.white70),
               ),
               const SizedBox(height: 16),
               CustomTextField(
                 controller: apiKeyController,
-                decoration: const InputDecoration(
-                  labelText: 'API Key',
-                  prefixIcon: Icon(Icons.key_rounded, size: 20),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.apiKey,
+                  prefixIcon: const Icon(Icons.key_rounded, size: 20),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 24),
               const Row(
                 children: [
                   Expanded(child: Divider()),
-                  Padding(
+                  const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       'OR FETCH VIA ACCOUNT',
@@ -1172,10 +1175,10 @@ void showSubDlAuthDialog(
               const SizedBox(height: 16),
               CustomTextField(
                 controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined, size: 20),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.email,
+                  prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -1183,7 +1186,7 @@ void showSubDlAuthDialog(
                 controller: passController,
                 obscureText: isObscure,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  labelText: l10n.password,
                   prefixIcon: const Icon(Icons.lock_outline, size: 20),
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
@@ -1234,7 +1237,7 @@ void showSubDlAuthDialog(
                           ),
                         )
                       : const Icon(Icons.download_rounded, size: 18),
-                  label: const Text('Fetch My API Key'),
+                  label: Text(l10n.fetchMyApiKey),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     backgroundColor: theme.colorScheme.primary.withValues(
@@ -1253,7 +1256,7 @@ void showSubDlAuthDialog(
                   mode: LaunchMode.externalApplication,
                 ),
                 icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                label: const Text('Don\'t have an account? Register here'),
+                label: Text(l10n.noAccountRegister),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   textStyle: const TextStyle(fontSize: 12),
@@ -1271,8 +1274,8 @@ void showSubDlAuthDialog(
                       child: Text(
                         fetchError ??
                             (verifyKeyResult!
-                                ? 'Key Verified'
-                                : 'Invalid API Key'),
+                                ? l10n.keyVerified
+                                : l10n.invalidApiKey),
                         style: TextStyle(
                           color:
                               (fetchError != null || verifyKeyResult == false)
@@ -1324,7 +1327,7 @@ void showSubDlAuthDialog(
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Test Connection'),
+                      : Text(l10n.testConnection),
                 ),
                 const SizedBox(width: 8),
                 const SizedBox(width: 8),
@@ -1382,18 +1385,18 @@ void showSubSourceAuthDialog(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'SubSource works out-of-the-box, but you can add a personal official API key to override the default for better reliability.',
-                style: TextStyle(fontSize: 13, color: Colors.white70),
+              Text(
+                l10n.subSourceAuthSubtitle,
+                style: const TextStyle(fontSize: 13, color: Colors.white70),
               ),
               const SizedBox(height: 16),
               CustomTextField(
                 controller: keyController,
-                decoration: const InputDecoration(
-                  labelText: 'API Key (Optional Override)',
-                  prefixIcon: Icon(Icons.key_rounded, size: 20),
-                  border: OutlineInputBorder(),
-                  hintText: 'Enter key to override default',
+                decoration: InputDecoration(
+                  labelText: l10n.apiKeyOptionalOverride,
+                  prefixIcon: const Icon(Icons.key_rounded, size: 20),
+                  border: const OutlineInputBorder(),
+                  hintText: l10n.enterKeyToOverrideDefault,
                 ),
               ),
               const SizedBox(height: 12),
@@ -1403,7 +1406,7 @@ void showSubSourceAuthDialog(
                   mode: LaunchMode.externalApplication,
                 ),
                 icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                label: const Text('Get your API Key from SubSource Profile'),
+                label: Text(l10n.getApiKeyFromProfile),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   textStyle: const TextStyle(fontSize: 12),
@@ -1419,7 +1422,7 @@ void showSubSourceAuthDialog(
                     child: Padding(
                       padding: const EdgeInsets.only(left: 12),
                       child: Text(
-                        verifyResult! ? 'Key Verified' : 'Invalid API Key',
+                        verifyResult! ? l10n.keyVerified : l10n.invalidApiKey,
                         style: TextStyle(
                           color: verifyResult! ? Colors.green : Colors.red,
                           fontSize: 11,
@@ -1460,7 +1463,7 @@ void showSubSourceAuthDialog(
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Test Connection'),
+                      : Text(l10n.testConnection),
                 ),
                 const SizedBox(width: 8),
                 CustomButton(

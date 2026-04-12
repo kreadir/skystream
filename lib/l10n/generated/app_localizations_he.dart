@@ -1085,4 +1085,106 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get pending => 'ממתין';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Wi-Fi Quality Preference';
+
+  @override
+  String get mobileQualityPreference => 'Mobile Quality Preference';
+
+  @override
+  String get anyNoPreference => 'Any (no preference)';
+
+  @override
+  String get subtitleAccounts => 'Subtitle Accounts';
+
+  @override
+  String get notLoggedIn => 'Not logged in';
+
+  @override
+  String loggedInAs(String username) {
+    return 'Logged in as $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'API Key configured';
+
+  @override
+  String get keyNotSet => 'Key not set';
+
+  @override
+  String get testConnection => 'Test Connection';
+
+  @override
+  String get connectedSuccessfully => 'Connected Successfully';
+
+  @override
+  String get connectionFailed => 'Connection Failed';
+
+  @override
+  String get username => 'Username';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get noAccountRegister => 'Don\'t have an account? Register here';
+
+  @override
+  String get apiKey => 'API Key';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get fetchMyApiKey => 'Fetch My API Key';
+
+  @override
+  String get keyVerified => 'Key Verified';
+
+  @override
+  String get invalidApiKey => 'Invalid API Key';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'Enter your account credentials for higher limits and ad-free subtitles.';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'Enter your SubDL API Key directly, or fetch it using your account credentials below.';
+
+  @override
+  String get orFetchViaAccount => 'OR FETCH VIA ACCOUNT';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'SubSource works out-of-the-box, but you can add a personal official API key to override the default for better reliability.';
+
+  @override
+  String get apiKeyOptionalOverride => 'API Key (Optional Override)';
+
+  @override
+  String get enterKeyToOverrideDefault => 'Enter key to override default';
+
+  @override
+  String get getApiKeyFromProfile => 'Get your API Key from SubSource Profile';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'Quality is not guaranteed. Sources are sorted by preference, but playback depends on what the provider actually offers.';
+
+  @override
+  String get keepSourcesOriginalOrder => 'Keep sources in original order';
+
+  @override
+  String get openLink => 'Open link';
 }

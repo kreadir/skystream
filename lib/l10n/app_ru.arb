@@ -541,5 +541,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "wifiQualityPreference": "Качество при Wi-Fi",
+  "mobileQualityPreference": "Качество при мобильной сети",
+  "anyNoPreference": "Любое (без предпочтений)",
+  "subtitleAccounts": "Аккаунты субтитров",
+  "notLoggedIn": "Вход не выполнен",
+  "loggedInAs": "Вы вошли как {username}",
+  "apiKeyConfigured": "API-ключ настроен",
+  "keyNotSet": "Ключ не установлен",
+  "testConnection": "Проверить соединение",
+  "connectedSuccessfully": "Успешно подключено",
+  "connectionFailed": "Ошибка подключения",
+  "username": "Имя пользователя",
+  "password": "Пароль",
+  "noAccountRegister": "Нет аккаунта? Зарегистрируйтесь здесь",
+  "apiKey": "API-ключ",
+  "email": "Электронная почта",
+  "fetchMyApiKey": "Получить мой API-ключ",
+  "keyVerified": "Ключ проверен",
+  "invalidApiKey": "Неверный API-ключ",
+  "openSubtitlesAuthSubtitle": "Введите данные своего аккаунта для увеличения лимитов и отключения рекламы.",
+  "subDlAuthSubtitle": "Введите ключ SubDL API напрямую или получите его, используя данные своего аккаунта ниже.",
+  "orFetchViaAccount": "ИЛИ ПОЛУЧИТЬ ЧЕРЕЗ АККАУНТ",
+  "subSourceAuthSubtitle": "SubSource работает из коробки, но вы можете добавить личный API-ключ для повышения надежности.",
+  "apiKeyOptionalOverride": "API-ключ (необязательно)",
+  "enterKeyToOverrideDefault": "Введите ключ для переопределения стандартного",
+  "getApiKeyFromProfile": "Получите API-ключ в профиле SubSource",
+  "qualityNotGuaranteed": "Качество не гарантируется. Источники сортируются по предпочтению, но воспроизведение зависит от того, что предлагает провайдер.",
+  "keepSourcesOriginalOrder": "Сохранять оригинальный порядок источников",
+  "openLink": "Открыть ссылку",
+  "@loggedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "openSubtitles": "OpenSubtitles",
+  "subDl": "SubDL",
+  "subSource": "SubSource"
 }

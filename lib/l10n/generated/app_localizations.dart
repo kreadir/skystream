@@ -2166,6 +2166,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pending'**
   String get pending;
+
+  /// No description provided for @openSubtitles.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenSubtitles'**
+  String get openSubtitles;
+
+  /// No description provided for @subDl.
+  ///
+  /// In en, this message translates to:
+  /// **'SubDL'**
+  String get subDl;
+
+  /// No description provided for @subSource.
+  ///
+  /// In en, this message translates to:
+  /// **'SubSource'**
+  String get subSource;
+
+  /// No description provided for @wifiQualityPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi Quality Preference'**
+  String get wifiQualityPreference;
+
+  /// No description provided for @mobileQualityPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Quality Preference'**
+  String get mobileQualityPreference;
+
+  /// No description provided for @anyNoPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'Any (no preference)'**
+  String get anyNoPreference;
+
+  /// No description provided for @subtitleAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle Accounts'**
+  String get subtitleAccounts;
+
+  /// No description provided for @notLoggedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not logged in'**
+  String get notLoggedIn;
+
+  /// No description provided for @loggedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged in as {username}'**
+  String loggedInAs(String username);
+
+  /// No description provided for @apiKeyConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'API Key configured'**
+  String get apiKeyConfigured;
+
+  /// No description provided for @keyNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Key not set'**
+  String get keyNotSet;
+
+  /// No description provided for @testConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Connection'**
+  String get testConnection;
+
+  /// No description provided for @connectedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected Successfully'**
+  String get connectedSuccessfully;
+
+  /// No description provided for @connectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection Failed'**
+  String get connectionFailed;
+
+  /// No description provided for @username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get username;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @noAccountRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account? Register here'**
+  String get noAccountRegister;
+
+  /// No description provided for @apiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API Key'**
+  String get apiKey;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @fetchMyApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch My API Key'**
+  String get fetchMyApiKey;
+
+  /// No description provided for @keyVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Verified'**
+  String get keyVerified;
+
+  /// No description provided for @invalidApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid API Key'**
+  String get invalidApiKey;
+
+  /// No description provided for @openSubtitlesAuthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your account credentials for higher limits and ad-free subtitles.'**
+  String get openSubtitlesAuthSubtitle;
+
+  /// No description provided for @subDlAuthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your SubDL API Key directly, or fetch it using your account credentials below.'**
+  String get subDlAuthSubtitle;
+
+  /// No description provided for @orFetchViaAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'OR FETCH VIA ACCOUNT'**
+  String get orFetchViaAccount;
+
+  /// No description provided for @subSourceAuthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SubSource works out-of-the-box, but you can add a personal official API key to override the default for better reliability.'**
+  String get subSourceAuthSubtitle;
+
+  /// No description provided for @apiKeyOptionalOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'API Key (Optional Override)'**
+  String get apiKeyOptionalOverride;
+
+  /// No description provided for @enterKeyToOverrideDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter key to override default'**
+  String get enterKeyToOverrideDefault;
+
+  /// No description provided for @getApiKeyFromProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Get your API Key from SubSource Profile'**
+  String get getApiKeyFromProfile;
+
+  /// No description provided for @qualityNotGuaranteed.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality is not guaranteed. Sources are sorted by preference, but playback depends on what the provider actually offers.'**
+  String get qualityNotGuaranteed;
+
+  /// No description provided for @keepSourcesOriginalOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep sources in original order'**
+  String get keepSourcesOriginalOrder;
+
+  /// No description provided for @openLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open link'**
+  String get openLink;
 }
 
 class _AppLocalizationsDelegate

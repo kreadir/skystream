@@ -1096,6 +1096,110 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get pending => 'Pendente';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Preferência de qualidade Wi-Fi';
+
+  @override
+  String get mobileQualityPreference => 'Preferência de qualidade móvel';
+
+  @override
+  String get anyNoPreference => 'Qualquer (sem preferência)';
+
+  @override
+  String get subtitleAccounts => 'Contas de legendas';
+
+  @override
+  String get notLoggedIn => 'Não logado';
+
+  @override
+  String loggedInAs(String username) {
+    return 'Logado como $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'Chave API configurada';
+
+  @override
+  String get keyNotSet => 'Chave não definida';
+
+  @override
+  String get testConnection => 'Testar conexão';
+
+  @override
+  String get connectedSuccessfully => 'Conectado com sucesso';
+
+  @override
+  String get connectionFailed => 'Falha na conexão';
+
+  @override
+  String get username => 'Nome de usuário';
+
+  @override
+  String get password => 'Senha';
+
+  @override
+  String get noAccountRegister => 'Não tem uma conta? Registre-se aqui';
+
+  @override
+  String get apiKey => 'Chave API';
+
+  @override
+  String get email => 'E-mail';
+
+  @override
+  String get fetchMyApiKey => 'Obter minha chave API';
+
+  @override
+  String get keyVerified => 'Chave verificada';
+
+  @override
+  String get invalidApiKey => 'Chave API inválida';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'Insira suas credenciais para limites maiores e legendas sem anúncios.';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'Insira sua chave API do SubDL diretamente ou obtenha-a usando suas credenciais.';
+
+  @override
+  String get orFetchViaAccount => 'OU OBTER VIA CONTA';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'O SubSource funciona por padrão, mas você pode adicionar uma chave API oficial para maior confiabilidade.';
+
+  @override
+  String get apiKeyOptionalOverride => 'Chave API (Opcional)';
+
+  @override
+  String get enterKeyToOverrideDefault =>
+      'Insira a chave para substituir o padrão';
+
+  @override
+  String get getApiKeyFromProfile =>
+      'Obtenha sua chave API no perfil do SubSource';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'A qualidade não é garantida. As fontes são ordenadas por preferência, mas dependem do que o provedor oferece.';
+
+  @override
+  String get keepSourcesOriginalOrder => 'Manter ordem original das fontes';
+
+  @override
+  String get openLink => 'Abrir link';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -2190,4 +2294,108 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get pending => 'Pendente';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Preferência de qualidade Wi-Fi';
+
+  @override
+  String get mobileQualityPreference => 'Preferência de qualidade móvel';
+
+  @override
+  String get anyNoPreference => 'Qualquer (sem preferência)';
+
+  @override
+  String get subtitleAccounts => 'Contas de legendas';
+
+  @override
+  String get notLoggedIn => 'Não logado';
+
+  @override
+  String loggedInAs(String username) {
+    return 'Logado como $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'Chave API configurada';
+
+  @override
+  String get keyNotSet => 'Chave não definida';
+
+  @override
+  String get testConnection => 'Testar conexão';
+
+  @override
+  String get connectedSuccessfully => 'Conectado com sucesso';
+
+  @override
+  String get connectionFailed => 'Falha na conexão';
+
+  @override
+  String get username => 'Nome de usuário';
+
+  @override
+  String get password => 'Senha';
+
+  @override
+  String get noAccountRegister => 'Não tem uma conta? Registre-se aqui';
+
+  @override
+  String get apiKey => 'Chave API';
+
+  @override
+  String get email => 'E-mail';
+
+  @override
+  String get fetchMyApiKey => 'Obter minha chave API';
+
+  @override
+  String get keyVerified => 'Chave verificada';
+
+  @override
+  String get invalidApiKey => 'Chave API inválida';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'Insira suas credenciais para limites maiores e legendas sem anúncios.';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'Insira sua chave API do SubDL diretamente ou obtenha-a usando suas credenciais.';
+
+  @override
+  String get orFetchViaAccount => 'OU OBTER VIA CONTA';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'O SubSource funciona por padrão, mas você pode adicionar uma chave API oficial para maior confiabilidade.';
+
+  @override
+  String get apiKeyOptionalOverride => 'Chave API (Opcional)';
+
+  @override
+  String get enterKeyToOverrideDefault =>
+      'Insira a chave para substituir o padrão';
+
+  @override
+  String get getApiKeyFromProfile =>
+      'Obtenha sua chave API no perfil do SubSource';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'A qualidade não é garantida. As fontes são ordenadas por preferência, mas dependem do que o provedor oferece.';
+
+  @override
+  String get keepSourcesOriginalOrder => 'Manter ordem original das fontes';
+
+  @override
+  String get openLink => 'Abrir link';
 }

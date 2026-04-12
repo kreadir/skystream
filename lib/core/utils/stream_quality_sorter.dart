@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:skystream/l10n/generated/app_localizations.dart';
 import '../../features/settings/presentation/player_settings_provider.dart';
 import '../domain/entity/multimedia_item.dart';
 
@@ -36,10 +37,10 @@ extension on QualityPreference {
     }
   }
 
-  String get label {
+  String getLabel(AppLocalizations l10n) {
     switch (this) {
       case QualityPreference.any:
-        return 'Any (no preference)';
+        return l10n.anyNoPreference;
       case QualityPreference.q360:
         return '360p';
       case QualityPreference.q480:
@@ -54,7 +55,8 @@ extension on QualityPreference {
   }
 }
 
-String qualityPreferenceLabel(QualityPreference q) => q.label;
+String qualityPreferenceLabel(QualityPreference q, AppLocalizations l10n) =>
+    q.getLabel(l10n);
 
 /// Detects the quality tier from a source label string.
 /// Checks in descending quality order to avoid false matches

@@ -541,5 +541,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "wifiQualityPreference": "Preferencia de calidad Wi-Fi",
+  "mobileQualityPreference": "Preferencia de calidad móvil",
+  "anyNoPreference": "Cualquiera (sin preferencia)",
+  "subtitleAccounts": "Cuentas de subtítulos",
+  "notLoggedIn": "No ha iniciado sesión",
+  "loggedInAs": "Sesión iniciada como {username}",
+  "apiKeyConfigured": "Clave API configurada",
+  "keyNotSet": "Clave no establecida",
+  "testConnection": "Probar conexión",
+  "connectedSuccessfully": "Conectado con éxito",
+  "connectionFailed": "Error de conexión",
+  "username": "Nombre de usuario",
+  "password": "Contraseña",
+  "noAccountRegister": "¿No tienes cuenta? Registrate aquí",
+  "apiKey": "Clave API",
+  "email": "Correo electrónico",
+  "fetchMyApiKey": "Obtener mi clave API",
+  "keyVerified": "Clave verificada",
+  "invalidApiKey": "Clave API no válida",
+  "openSubtitlesAuthSubtitle": "Ingrese sus credenciales para límites más altos y subtítulos sin anuncios.",
+  "subDlAuthSubtitle": "Ingrese su clave API de SubDL directamente o extráigala usando sus credenciales.",
+  "orFetchViaAccount": "O OBTENER VÍA CUENTA",
+  "subSourceAuthSubtitle": "SubSource funciona por defecto, pero puede añadir una clave API oficial para mejorar la fiabilidad.",
+  "apiKeyOptionalOverride": "Clave API (Opcional)",
+  "enterKeyToOverrideDefault": "Ingrese clave para anular el valor por defecto",
+  "getApiKeyFromProfile": "Obtenga su clave API del perfil de SubSource",
+  "qualityNotGuaranteed": "La calidad no está garantizada. Las fuentes se ordenan por preferencia, pero dependen de lo que ofrece el proveedor.",
+  "keepSourcesOriginalOrder": "Mantener orden original de las fuentes",
+  "openLink": "Abrir enlace",
+  "@loggedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "openSubtitles": "OpenSubtitles",
+  "subDl": "SubDL",
+  "subSource": "SubSource"
 }

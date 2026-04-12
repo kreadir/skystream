@@ -541,5 +541,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "wifiQualityPreference": "Wi-Fi 视频质量偏好",
+  "mobileQualityPreference": "移动网络视频质量偏好",
+  "anyNoPreference": "不限（无偏好）",
+  "subtitleAccounts": "字幕账户",
+  "notLoggedIn": "未登录",
+  "loggedInAs": "已登录为 {username}",
+  "apiKeyConfigured": "API 密钥已配置",
+  "keyNotSet": "未设置密钥",
+  "testConnection": "测试连接",
+  "connectedSuccessfully": "连接成功",
+  "connectionFailed": "连接失败",
+  "username": "用户名",
+  "password": "密码",
+  "noAccountRegister": "没有账户？在此注册",
+  "apiKey": "API 密钥",
+  "email": "电子邮箱",
+  "fetchMyApiKey": "获取我的 API 密钥",
+  "keyVerified": "密钥已验证",
+  "invalidApiKey": "无效的 API 密钥",
+  "openSubtitlesAuthSubtitle": "输入您的账户凭据以获得更高限制和无广告字幕。",
+  "subDlAuthSubtitle": "直接输入您的 SubDL API 密钥，或者在下方使用您的账户凭据获取。",
+  "orFetchViaAccount": "或通过账户获取",
+  "subSourceAuthSubtitle": "SubSource 开箱即用，但您可以添加个人官方 API 密钥以提高可靠性。",
+  "apiKeyOptionalOverride": "API 密钥（可选覆盖）",
+  "enterKeyToOverrideDefault": "输入密钥以覆盖默认设置",
+  "getApiKeyFromProfile": "从 SubSource 个人资料获取您的 API 密钥",
+  "qualityNotGuaranteed": "不保证质量。来源按偏好排序，但播放取决于提供商实际提供的内容。",
+  "keepSourcesOriginalOrder": "保持来源原始顺序",
+  "openLink": "打开链接",
+  "@loggedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "openSubtitles": "OpenSubtitles",
+  "subDl": "SubDL",
+  "subSource": "SubSource"
 }

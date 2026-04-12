@@ -348,5 +348,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "wifiQualityPreference": "Wi-Fi गुणवत्ता प्राथमिकता",
+  "mobileQualityPreference": "मोबाइल गुणवत्ता प्राथमिकता",
+  "anyNoPreference": "कोई भी (कोई प्राथमिकता नहीं)",
+  "subtitleAccounts": "उपशीर्षक खाते",
+  "notLoggedIn": "लॉग इन नहीं है",
+  "loggedInAs": "{username} के रूप में लॉग इन",
+  "apiKeyConfigured": "API कुंजी कॉन्फ़िगर की गई",
+  "keyNotSet": "कुंजी सेट नहीं है",
+  "testConnection": "कनेक्शन का परीक्षण करें",
+  "connectedSuccessfully": "सफलतापूर्वक जुड़ा",
+  "connectionFailed": "कनेक्शन विफल रहा",
+  "username": "उपयोगकर्ता नाम",
+  "password": "पासवर्ड",
+  "noAccountRegister": "खाता नहीं है? यहाँ पंजीकरण करें",
+  "apiKey": "API कुंजी",
+  "email": "ईमेल",
+  "fetchMyApiKey": "मेरी API कुंजी प्राप्त करें",
+  "keyVerified": "कुंजी सत्यापित",
+  "invalidApiKey": "अमान्य API कुंजी",
+  "openSubtitlesAuthSubtitle": "उच्च सीमाओं और विज्ञापन-मुक्त उपशीर्षक के लिए अपने खाते के क्रेडेंशियल दर्ज करें।",
+  "subDlAuthSubtitle": "अपनी SubDL API कुंजी सीधे दर्ज करें, या नीचे अपने खाते के क्रेडेंशियल का उपयोग करके इसे प्राप्त करें।",
+  "orFetchViaAccount": "या खाते के माध्यम से प्राप्त करें",
+  "subSourceAuthSubtitle": "SubSource बिना किसी अतिरिक्त सेटिंग के काम करता है, लेकिन बेहतर विश्वसनीयता के लिए आप डिफ़ॉल्ट को ओवरराइड करने के लिए एक व्यक्तिगत आधिकारिक API कुंजी जोड़ सकते हैं।",
+  "apiKeyOptionalOverride": "API कुंजी (वैकल्पिक ओवरराइड)",
+  "enterKeyToOverrideDefault": "डिफ़ॉल्ट को ओवरराइड करने के लिए कुंजी दर्ज करें",
+  "getApiKeyFromProfile": "SubSource प्रोफ़ाइल से अपनी API कुंजी प्राप्त करें",
+  "qualityNotGuaranteed": "गुणवत्ता की गारंटी नहीं है। स्रोतों को पसंद के अनुसार क्रमबद्ध किया जाता है, लेकिन प्लेबैक प्रदाता द्वारा वास्तव में दी जाने वाली पेशकश पर निर्भर करता है।",
+  "keepSourcesOriginalOrder": "स्रोतों को मूल क्रम में रखें",
+  "openLink": "लिंक खोलें",
+  "@loggedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "openSubtitles": "OpenSubtitles",
+  "subDl": "SubDL",
+  "subSource": "SubSource"
 }

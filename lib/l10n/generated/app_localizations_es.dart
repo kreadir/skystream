@@ -1115,4 +1115,109 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pending => 'Pendiente';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Preferencia de calidad Wi-Fi';
+
+  @override
+  String get mobileQualityPreference => 'Preferencia de calidad móvil';
+
+  @override
+  String get anyNoPreference => 'Cualquiera (sin preferencia)';
+
+  @override
+  String get subtitleAccounts => 'Cuentas de subtítulos';
+
+  @override
+  String get notLoggedIn => 'No ha iniciado sesión';
+
+  @override
+  String loggedInAs(String username) {
+    return 'Sesión iniciada como $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'Clave API configurada';
+
+  @override
+  String get keyNotSet => 'Clave no establecida';
+
+  @override
+  String get testConnection => 'Probar conexión';
+
+  @override
+  String get connectedSuccessfully => 'Conectado con éxito';
+
+  @override
+  String get connectionFailed => 'Error de conexión';
+
+  @override
+  String get username => 'Nombre de usuario';
+
+  @override
+  String get password => 'Contraseña';
+
+  @override
+  String get noAccountRegister => '¿No tienes cuenta? Registrate aquí';
+
+  @override
+  String get apiKey => 'Clave API';
+
+  @override
+  String get email => 'Correo electrónico';
+
+  @override
+  String get fetchMyApiKey => 'Obtener mi clave API';
+
+  @override
+  String get keyVerified => 'Clave verificada';
+
+  @override
+  String get invalidApiKey => 'Clave API no válida';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'Ingrese sus credenciales para límites más altos y subtítulos sin anuncios.';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'Ingrese su clave API de SubDL directamente o extráigala usando sus credenciales.';
+
+  @override
+  String get orFetchViaAccount => 'O OBTENER VÍA CUENTA';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'SubSource funciona por defecto, pero puede añadir una clave API oficial para mejorar la fiabilidad.';
+
+  @override
+  String get apiKeyOptionalOverride => 'Clave API (Opcional)';
+
+  @override
+  String get enterKeyToOverrideDefault =>
+      'Ingrese clave para anular el valor por defecto';
+
+  @override
+  String get getApiKeyFromProfile =>
+      'Obtenga su clave API del perfil de SubSource';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'La calidad no está garantizada. Las fuentes se ordenan por preferencia, pero dependen de lo que ofrece el proveedor.';
+
+  @override
+  String get keepSourcesOriginalOrder =>
+      'Mantener orden original de las fuentes';
+
+  @override
+  String get openLink => 'Abrir enlace';
 }

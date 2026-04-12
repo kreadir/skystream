@@ -235,14 +235,15 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   SettingsTile(
                     icon: Icons.wifi_rounded,
-                    title: 'Wi-Fi Quality Preference',
+                    title: l10n.wifiQualityPreference,
                     subtitle: qualityPreferenceLabel(
                       playerSettings.wifiQuality,
+                      l10n,
                     ),
                     onTap: () => showQualityDialog(
                       context,
                       ref,
-                      title: 'Wi-Fi Quality Preference',
+                      title: l10n.wifiQualityPreference,
                       current: playerSettings.wifiQuality,
                       onChanged: ref
                           .read(playerSettingsProvider.notifier)
@@ -251,15 +252,16 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   SettingsTile(
                     icon: Icons.signal_cellular_alt_rounded,
-                    title: 'Mobile Quality Preference',
+                    title: l10n.mobileQualityPreference,
                     subtitle: qualityPreferenceLabel(
                       playerSettings.mobileQuality,
+                      l10n,
                     ),
                     isLast: true,
                     onTap: () => showQualityDialog(
                       context,
                       ref,
-                      title: 'Mobile Quality Preference',
+                      title: l10n.mobileQualityPreference,
                       current: playerSettings.mobileQuality,
                       onChanged: ref
                           .read(playerSettingsProvider.notifier)
@@ -270,14 +272,14 @@ class SettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: LayoutConstants.spacingLg),
               SettingsGroup(
-                title: 'Subtitle Accounts',
+                title: l10n.subtitleAccounts,
                 children: [
                   SettingsTile(
                     icon: Icons.subtitles_rounded,
-                    title: 'OpenSubtitles',
+                    title: l10n.openSubtitles,
                     subtitle: playerSettings.osUsername.isNotEmpty
-                        ? 'Logged in as ${playerSettings.osUsername}'
-                        : 'Not logged in',
+                        ? l10n.loggedInAs(playerSettings.osUsername)
+                        : l10n.notLoggedIn,
                     onTap: () => showOpenSubtitlesAuthDialog(
                       context,
                       ref,
@@ -286,19 +288,19 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   SettingsTile(
                     icon: Icons.vpn_key_rounded,
-                    title: 'SubDL',
+                    title: l10n.subDl,
                     subtitle: playerSettings.subdlApiKey.isNotEmpty
-                        ? 'API Key configured'
-                        : 'Key not set',
+                        ? l10n.apiKeyConfigured
+                        : l10n.keyNotSet,
                     onTap: () =>
                         showSubDlAuthDialog(context, ref, playerSettings),
                   ),
                   SettingsTile(
                     icon: Icons.vpn_key_rounded,
-                    title: 'SubSource',
+                    title: l10n.subSource,
                     subtitle: playerSettings.subsourceApiKey.isNotEmpty
-                        ? 'API Key configured'
-                        : 'Key not set',
+                        ? l10n.apiKeyConfigured
+                        : l10n.keyNotSet,
                     isLast: true,
                     onTap: () =>
                         showSubSourceAuthDialog(context, ref, playerSettings),

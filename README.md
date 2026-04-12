@@ -82,7 +82,7 @@ SkyStream is a modern, media streaming client. It draws inspiration from the ver
 | **iOS**        | ✅ (Sideloading required) |
 | **Windows**    |            ✅             |
 | **macOS**      |            ✅             |
-| **Linux**      |         ✅ (Beta)         |
+| **Linux**      |            ✅             |
 
 ## ✨ Key Features
 
@@ -94,6 +94,8 @@ SkyStream is a modern, media streaming client. It draws inspiration from the ver
 | **⏱️ Smart History** | "Continue Watching" across all media types with robust progress tracking. |
 | **⚡ Performance** | Optimized for **90Hz/120Hz** displays, ensuring a buttery smooth experience. |
 | **🎨 Modern UI** | Material 3 Design, Dynamic Colors, and responsive layouts for Phones, Tablets, and Desktop. |
+| **🌍 Multi-language** | 40+ supported languages including Hindi, Spanish, French, German, and more. |
+| **💬 Subtitles** | Support for **External SRT/VTT** files, online search (OpenSubtitles/SubDL), and synchronization. |
 
 ## 📥 Installation
 
@@ -123,11 +125,12 @@ SkyStream is not on the App Store. You must **sideload** it using a computer.
 7. Once finished, the app will appear on your home screen.
 8. On your device, go to **Settings > General > VPN & Device Management**, tap your email, and select **Trust**.
 
-### 💻 Windows / macOS 
-1. Download the appropriate zip file for your OS (`skystream-windows.zip`, `skystream-macos.zip`, etc.).
+### 💻 Windows / macOS / Linux
+1. Download the appropriate zip/tar file for your OS (`skystream-windows.zip`, `skystream-macos.zip`, `skystream-linux.tar.gz`, etc.).
 2. Extract the archive.
-3. Run the executable (`skystream.exe` or `skystream.app`).
+3. Run the executable (`skystream.exe`, `skystream.app`, or `./skystream`).
    - *macOS Note: You may need to Right Click -> Open to bypass the "Unidentified Developer" warning.*
+   - *Linux Note: You may need to install `libmpv` (e.g., `sudo apt install libmpv-dev` or `libmpv1`) for the player to work.*
 
 ## 🛠️ Build from Source
 

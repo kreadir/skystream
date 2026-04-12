@@ -541,5 +541,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "wifiQualityPreference": "Préférence de qualité Wi-Fi",
+  "mobileQualityPreference": "Préférence de qualité mobile",
+  "anyNoPreference": "Toutes (pas de préférence)",
+  "subtitleAccounts": "Comptes de sous-titres",
+  "notLoggedIn": "Pas connecté",
+  "loggedInAs": "Connecté en tant que {username}",
+  "apiKeyConfigured": "Clé API configurée",
+  "keyNotSet": "Clé non définie",
+  "testConnection": "Tester la connexion",
+  "connectedSuccessfully": "Connecté avec succès",
+  "connectionFailed": "La connexion a échoué",
+  "username": "Nom d'utilisateur",
+  "password": "Mot de passe",
+  "noAccountRegister": "Pas de compte ? S'inscrire ici",
+  "apiKey": "Clé API",
+  "email": "E-mail",
+  "fetchMyApiKey": "Récupérer ma clé API",
+  "keyVerified": "Clé vérifiée",
+  "invalidApiKey": "Clé API invalide",
+  "openSubtitlesAuthSubtitle": "Entrez vos identifiants pour des limites plus élevées et des sous-titres sans publicité.",
+  "subDlAuthSubtitle": "Entrez votre clé API SubDL directement ou récupérez-la via vos identifiants.",
+  "orFetchViaAccount": "OU RÉCUPÉRER VIA LE COMPTE",
+  "subSourceAuthSubtitle": "SubSource fonctionne par défaut, mais vous pouvez ajouter une clé API officielle pour plus de fiabilité.",
+  "apiKeyOptionalOverride": "Clé API (Optionnelle)",
+  "enterKeyToOverrideDefault": "Entrez la clé pour remplacer le défaut",
+  "getApiKeyFromProfile": "Obtenez votre clé API depusi le profil SubSource",
+  "qualityNotGuaranteed": "La qualité n'est pas garantie. Les sources sont triées par préférence mais dépendent de l'offre du fournisseur.",
+  "keepSourcesOriginalOrder": "Garder l'ordre original des sources",
+  "openLink": "Ouvrir le lien",
+  "@loggedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "openSubtitles": "OpenSubtitles",
+  "subDl": "SubDL",
+  "subSource": "SubSource"
 }

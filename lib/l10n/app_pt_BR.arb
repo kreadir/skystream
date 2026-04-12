@@ -541,5 +541,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "wifiQualityPreference": "Preferência de qualidade Wi-Fi",
+  "mobileQualityPreference": "Preferência de qualidade móvel",
+  "anyNoPreference": "Qualquer (sem preferência)",
+  "subtitleAccounts": "Contas de legendas",
+  "notLoggedIn": "Não logado",
+  "loggedInAs": "Logado como {username}",
+  "apiKeyConfigured": "Chave API configurada",
+  "keyNotSet": "Chave não definida",
+  "testConnection": "Testar conexão",
+  "connectedSuccessfully": "Conectado com sucesso",
+  "connectionFailed": "Falha na conexão",
+  "username": "Nome de usuário",
+  "password": "Senha",
+  "noAccountRegister": "Não tem uma conta? Registre-se aqui",
+  "apiKey": "Chave API",
+  "email": "E-mail",
+  "fetchMyApiKey": "Obter minha chave API",
+  "keyVerified": "Chave verificada",
+  "invalidApiKey": "Chave API inválida",
+  "openSubtitlesAuthSubtitle": "Insira suas credenciais para limites maiores e legendas sem anúncios.",
+  "subDlAuthSubtitle": "Insira sua chave API do SubDL diretamente ou obtenha-a usando suas credenciais.",
+  "orFetchViaAccount": "OU OBTER VIA CONTA",
+  "subSourceAuthSubtitle": "O SubSource funciona por padrão, mas você pode adicionar uma chave API oficial para maior confiabilidade.",
+  "apiKeyOptionalOverride": "Chave API (Opcional)",
+  "enterKeyToOverrideDefault": "Insira a chave para substituir o padrão",
+  "getApiKeyFromProfile": "Obtenha sua chave API no perfil do SubSource",
+  "qualityNotGuaranteed": "A qualidade não é garantida. As fontes são ordenadas por preferência, mas dependem do que o provedor oferece.",
+  "keepSourcesOriginalOrder": "Manter ordem original das fontes",
+  "openLink": "Abrir link",
+  "@loggedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "openSubtitles": "OpenSubtitles",
+  "subDl": "SubDL",
+  "subSource": "SubSource"
 }

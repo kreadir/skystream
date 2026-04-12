@@ -1113,4 +1113,109 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get pending => 'Ausstehend';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Wi-Fi-Qualitätspräferenz';
+
+  @override
+  String get mobileQualityPreference => 'Mobilfunk-Qualitätspräferenz';
+
+  @override
+  String get anyNoPreference => 'Beliebig (keine Präferenz)';
+
+  @override
+  String get subtitleAccounts => 'Untertitel-Konten';
+
+  @override
+  String get notLoggedIn => 'Nicht angemeldet';
+
+  @override
+  String loggedInAs(String username) {
+    return 'Angemeldet als $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'API-Schlüssel konfiguriert';
+
+  @override
+  String get keyNotSet => 'Schlüssel nicht gesetzt';
+
+  @override
+  String get testConnection => 'Verbindung testen';
+
+  @override
+  String get connectedSuccessfully => 'Erfolgreich verbunden';
+
+  @override
+  String get connectionFailed => 'Verbindung fehlgeschlagen';
+
+  @override
+  String get username => 'Benutzername';
+
+  @override
+  String get password => 'Passwort';
+
+  @override
+  String get noAccountRegister => 'Noch kein Konto? Hier registrieren';
+
+  @override
+  String get apiKey => 'API-Schlüssel';
+
+  @override
+  String get email => 'E-Mail';
+
+  @override
+  String get fetchMyApiKey => 'Meinen API-Schlüssel abrufen';
+
+  @override
+  String get keyVerified => 'Schlüssel verifiziert';
+
+  @override
+  String get invalidApiKey => 'Ungültiger API-Schlüssel';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'Geben Sie Ihre Zugangsdaten für höhere Limits und werbefreie Untertitel ein.';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'Geben Sie Ihren SubDL API-Schlüssel direkt ein oder rufen Sie ihn über Ihre Zugangsdaten ab.';
+
+  @override
+  String get orFetchViaAccount => 'ODER ÜBER KONTO ABRUFEN';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'SubSource funktioniert standardmäßig, Sie können jedoch einen offiziellen API-Schlüssel für bessere Zuverlässigkeit hinzufügen.';
+
+  @override
+  String get apiKeyOptionalOverride => 'API-Schlüssel (Optional)';
+
+  @override
+  String get enterKeyToOverrideDefault =>
+      'Schlüssel eingeben, um Standard zu überschreiben';
+
+  @override
+  String get getApiKeyFromProfile =>
+      'Holen Sie sich Ihren API-Schlüssel aus dem SubSource-Profil';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'Die Qualität wird nicht garantiert. Quellen werden nach Präferenz sortiert, hängen aber vom tatsächlichen Angebot des Anbieters ab.';
+
+  @override
+  String get keepSourcesOriginalOrder =>
+      'Quellen in Originalreihenfolge beibehalten';
+
+  @override
+  String get openLink => 'Link öffnen';
 }

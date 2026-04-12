@@ -1114,4 +1114,108 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get pending => 'ಬಾಕಿ ಇದೆ';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Wi-Fi ಗುಣಮಟ್ಟದ ಆದ್ಯತೆ';
+
+  @override
+  String get mobileQualityPreference => 'ಮೊಬೈಲ್ ಗುಣಮಟ್ಟದ ಆದ್ಯತೆ';
+
+  @override
+  String get anyNoPreference => 'ಯಾವುದಾದರೂ (ಆದ್ಯತೆ ಇಲ್ಲ)';
+
+  @override
+  String get subtitleAccounts => 'ಉಪಶೀರ್ಷಿಕೆ ಖಾತೆಗಳು';
+
+  @override
+  String get notLoggedIn => 'ಲಾಗಿನ್ ಆಗಿಲ್ಲ';
+
+  @override
+  String loggedInAs(String username) {
+    return '$username ಆಗಿ ಲಾಗಿನ್ ಆಗಿದ್ದೀರಿ';
+  }
+
+  @override
+  String get apiKeyConfigured => 'API ಕೀ ಕಾನ್ಫಿಗರ್ ಮಾಡಲಾಗಿದೆ';
+
+  @override
+  String get keyNotSet => 'ಕೀ ಹೊಂದಿಸಿಲ್ಲ';
+
+  @override
+  String get testConnection => 'ಸಂಪರ್ಕ ಪರೀಕ್ಷಿಸಿ';
+
+  @override
+  String get connectedSuccessfully => 'ಯಶಸ್ವಿಯಾಗಿ ಸಂಪರ್ಕಗೊಂಡಿದೆ';
+
+  @override
+  String get connectionFailed => 'ಸಂಪರ್ಕ ವಿಫಲವಾಗಿದೆ';
+
+  @override
+  String get username => 'ಬಳಕೆದಾರಹೆಸರು';
+
+  @override
+  String get password => 'ಪಾಸ್ವರ್ಡ್';
+
+  @override
+  String get noAccountRegister => 'ಖಾತೆ ಇಲ್ಲವೇ? ಇಲ್ಲಿ ನೋಂದಾಯಿಸಿ';
+
+  @override
+  String get apiKey => 'API ಕೀ';
+
+  @override
+  String get email => 'ಇಮೇಲ್';
+
+  @override
+  String get fetchMyApiKey => 'ನನ್ನ API ಕೀಲಿಯನ್ನು ಪಡೆದುಕೊಳ್ಳಿ';
+
+  @override
+  String get keyVerified => 'ಕೀ ಪರಿಶೀಲಿಸಲಾಗಿದೆ';
+
+  @override
+  String get invalidApiKey => 'ಅಮಾನ್ಯವಾದ API ಕೀ';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'ಹೆಚ್ಚಿನ ಮಿತಿಗಳು ಮತ್ತು ಜಾಹೀರಾತು ರಹಿತ ಉಪಶೀರ್ಷಿಕೆಗಳಿಗಾಗಿ ನಿಮ್ಮ ಖಾತೆಯ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ.';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'ನಿಮ್ಮ SubDL API ಕೀಲಿಯನ್ನು ನೇರವಾಗಿ ನಮೂದಿಸಿ, ಅಥವಾ ಕೆಳಗಿನ ನಿಮ್ಮ ಖಾತೆಯ ವಿವರಗಳನ್ನು ಬಳಸಿಕೊಂಡು ಅದನ್ನು ಪಡೆದುಕೊಳ್ಳಿ.';
+
+  @override
+  String get orFetchViaAccount => 'ಅಥವಾ ಖಾತೆಯ ಮೂಲಕ ಪಡೆಯಿರಿ';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'SubSource ಯಾವುದೇ ಹೆಚ್ಚಿನ ಸೆಟ್ಟಿಂಗ್‌ಗಳಿಲ್ಲದೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ, ಆದರೆ ಉತ್ತಮ ವಿಶ್ವಾಸಾರ್ಹತೆಗಾಗಿ ಡೀಫಾಲ್ಟ್ ಅನ್ನು ಅತಿಕ್ರಮಿಸಲು ನೀವು ವೈಯಕ್ತಿಕ ಅಧಿಕೃತ API ಕೀಲಿಯನ್ನು ಸೇರಿಸಬಹುದು.';
+
+  @override
+  String get apiKeyOptionalOverride => 'API ಕೀ (ಐಚ್ಛಿಕ ಅತಿಕ್ರಮಣ)';
+
+  @override
+  String get enterKeyToOverrideDefault =>
+      'ಡೀಫಾಲ್ಟ್ ಅತಿಕ್ರಮಿಸಲು ಕೀಲಿಯನ್ನು ನಮೂದಿಸಿ';
+
+  @override
+  String get getApiKeyFromProfile =>
+      'SubSource ಪ್ರೊಫೈಲ್‌ನಿಂದ ನಿಮ್ಮ API ಕೀಲಿಯನ್ನು ಪಡೆಯಿರಿ';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'ಗುಣಮಟ್ಟದ ಭರವಸೆ ಇಲ್ಲ. ಮೂಲಗಳನ್ನು ಆದ್ಯತೆಯ ಮೇರೆಗೆ ವಿಂಗಡಿಸಲಾಗಿದೆ, ಆದರೆ ಪ್ಲೇಬ್ಯಾಕ್ ಪ್ರದಾನಿಯು ವಾಸ್ತವವಾಗಿ ಏನು ನೀಡುತ್ತಾರೆ ಎಂಬುದರ ಮೇಲೆ ಅವಲಂಬಿತವಾಗಿರುತ್ತದೆ.';
+
+  @override
+  String get keepSourcesOriginalOrder => 'ಮೂಲಗಳನ್ನು ಮೂಲ ಕ್ರಮದಲ್ಲಿ ಇರಿಸಿ';
+
+  @override
+  String get openLink => 'ಲಿಂಕ್ ತೆರೆಯಿರಿ';
 }

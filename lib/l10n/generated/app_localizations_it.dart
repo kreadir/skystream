@@ -1112,4 +1112,109 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get pending => 'In attesa';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Preferenza qualità Wi-Fi';
+
+  @override
+  String get mobileQualityPreference => 'Preferenza qualità mobile';
+
+  @override
+  String get anyNoPreference => 'Qualsiasi (nessuna preferenza)';
+
+  @override
+  String get subtitleAccounts => 'Account sottotitoli';
+
+  @override
+  String get notLoggedIn => 'Accesso non effettuato';
+
+  @override
+  String loggedInAs(String username) {
+    return 'Accesso effettuato come $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'Chiave API configurata';
+
+  @override
+  String get keyNotSet => 'Chiave non impostata';
+
+  @override
+  String get testConnection => 'Testa connessione';
+
+  @override
+  String get connectedSuccessfully => 'Connesso con successo';
+
+  @override
+  String get connectionFailed => 'Connessione fallita';
+
+  @override
+  String get username => 'Nome utente';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get noAccountRegister => 'Non hai un account? Registrati qui';
+
+  @override
+  String get apiKey => 'Chiave API';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get fetchMyApiKey => 'Recupera la mia chiave API';
+
+  @override
+  String get keyVerified => 'Chiave verificata';
+
+  @override
+  String get invalidApiKey => 'Chiave API non valida';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'Inserisci le tue credenziali per limiti più elevati e sottotitoli senza pubblicità.';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'Inserisci direttamente la tua chiave API SubDL o recuperala inserendo le tue credenziali.';
+
+  @override
+  String get orFetchViaAccount => 'O RECUPERA TRAMITE ACCOUNT';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'SubSource funziona normalmente, ma puoi aggiungere una chiave API ufficiale per maggiore affidabilità.';
+
+  @override
+  String get apiKeyOptionalOverride => 'Chiave API (Opzionale)';
+
+  @override
+  String get enterKeyToOverrideDefault =>
+      'Inserisci chiave per sovrascrivere predefinita';
+
+  @override
+  String get getApiKeyFromProfile =>
+      'Ottieni la tua chiave API dal profilo SubSource';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'La qualità non è garantita. Le fonti sono ordinate per preferenza, ma dipendono dall\'offerta effettiva del fornitore.';
+
+  @override
+  String get keepSourcesOriginalOrder =>
+      'Mantieni l\'ordine originale delle fonti';
+
+  @override
+  String get openLink => 'Apri link';
 }

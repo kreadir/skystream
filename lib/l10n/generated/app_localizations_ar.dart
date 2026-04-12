@@ -1100,6 +1100,109 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pending => 'قيد الانتظار';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'تفضيل جودة الواي فاي';
+
+  @override
+  String get mobileQualityPreference => 'تفضيل جودة الهاتف المحمول';
+
+  @override
+  String get anyNoPreference => 'أي نوع (لا يوجد تفضيل)';
+
+  @override
+  String get subtitleAccounts => 'حسابات الترجمة';
+
+  @override
+  String get notLoggedIn => 'غير مسجّل الدخول';
+
+  @override
+  String loggedInAs(String username) {
+    return 'تم تسجيل الدخول باسم $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'تم تكوين مفتاح API';
+
+  @override
+  String get keyNotSet => 'لم يتم تعيين المفتاح';
+
+  @override
+  String get testConnection => 'اختبار الاتصال';
+
+  @override
+  String get connectedSuccessfully => 'تم الاتصال بنجاح';
+
+  @override
+  String get connectionFailed => 'فشل الاتصال';
+
+  @override
+  String get username => 'اسم المستخدم';
+
+  @override
+  String get password => 'كلمة المرور';
+
+  @override
+  String get noAccountRegister => 'ليس لديك حساب؟ سجل هنا';
+
+  @override
+  String get apiKey => 'مفتاح API';
+
+  @override
+  String get email => 'البريد الإلكتروني';
+
+  @override
+  String get fetchMyApiKey => 'جلب مفتاح API الخاص بي';
+
+  @override
+  String get keyVerified => 'تم التحقق من المفتاح';
+
+  @override
+  String get invalidApiKey => 'مفتاح API غير صالح';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'أدخل بيانات اعتماد حسابك للحصول على حدود أعلى وترجمات خالية من الإعلانات.';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'أدخل مفتاح SubDL API الخاص بك مباشرة، أو احصل عليه باستخدام بيانات اعتماد حسابك أدناه.';
+
+  @override
+  String get orFetchViaAccount => 'أو الجلب عبر الحساب';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'يعمل SubSource تلقائياً، ولكن يمكنك إضافة مفتاح API رسمي شخصي لتجاوز الافتراضي للحصول على موثوقية أفضل.';
+
+  @override
+  String get apiKeyOptionalOverride => 'مفتاح API (تجاوز اختياري)';
+
+  @override
+  String get enterKeyToOverrideDefault => 'أدخل المفتاح لتجاوز الافتراضي';
+
+  @override
+  String get getApiKeyFromProfile =>
+      'احصل على مفتاح API الخاص بك من ملف SubSource الشخصي';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'الجودة غير مضمونة. يتم فرز المصادر حسب التفضيل، ولكن التشغيل يعتمد على ما يقدمه المزود بالفعل.';
+
+  @override
+  String get keepSourcesOriginalOrder => 'الحفاظ على المصادر في ترتيبها الأصلي';
+
+  @override
+  String get openLink => 'فتح الرابط';
 }
 
 /// The translations for Arabic (`ar_apc`).
@@ -2188,4 +2291,107 @@ class AppLocalizationsArApc extends AppLocalizationsAr {
 
   @override
   String get pending => 'ناطر';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'تفضيل جودة الواي فاي';
+
+  @override
+  String get mobileQualityPreference => 'تفضيل جودة الهاتف المحمول';
+
+  @override
+  String get anyNoPreference => 'أي نوع (لا يوجد تفضيل)';
+
+  @override
+  String get subtitleAccounts => 'حسابات الترجمة';
+
+  @override
+  String get notLoggedIn => 'غير مسجّل الدخول';
+
+  @override
+  String loggedInAs(String username) {
+    return 'تم تسجيل الدخول باسم $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'تم تكوين مفتاح API';
+
+  @override
+  String get keyNotSet => 'لم يتم تعيين المفتاح';
+
+  @override
+  String get testConnection => 'اختبار الاتصال';
+
+  @override
+  String get connectedSuccessfully => 'تم الاتصال بنجاح';
+
+  @override
+  String get connectionFailed => 'فشل الاتصال';
+
+  @override
+  String get username => 'اسم المستخدم';
+
+  @override
+  String get password => 'كلمة المرور';
+
+  @override
+  String get noAccountRegister => 'ليس لديك حساب؟ سجل هنا';
+
+  @override
+  String get apiKey => 'مفتاح API';
+
+  @override
+  String get email => 'البريد الإلكتروني';
+
+  @override
+  String get fetchMyApiKey => 'جلب مفتاح API الخاص بي';
+
+  @override
+  String get keyVerified => 'تم التحقق من المفتاح';
+
+  @override
+  String get invalidApiKey => 'مفتاح API غير صالح';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'أدخل بيانات اعتماد حسابك للحصول على حدود أعلى وترجمات خالية من الإعلانات.';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'أدخل مفتاح SubDL API الخاص بك مباشرة، أو احصل عليه باستخدام بيانات اعتماد حسابك أدناه.';
+
+  @override
+  String get orFetchViaAccount => 'أو الجلب عبر الحساب';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'يعمل SubSource تلقائياً، ولكن يمكنك إضافة مفتاح API رسمي شخصي لتجاوز الافتراضي للحصول على موثوقية أفضل.';
+
+  @override
+  String get apiKeyOptionalOverride => 'مفتاح API (تجاوز اختياري)';
+
+  @override
+  String get enterKeyToOverrideDefault => 'أدخل المفتاح لتجاوز الافتراضي';
+
+  @override
+  String get getApiKeyFromProfile =>
+      'احصل على مفتاح API الخاص بك من ملف SubSource الشخصي';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'الجودة غير مضمونة. يتم فرز المصادر حسب التفضيل، ولكن التشغيل يعتمد على ما يقدمه المزود بالفعل.';
+
+  @override
+  String get keepSourcesOriginalOrder => 'الحفاظ على المصادر في ترتيبها الأصلي';
+
+  @override
+  String get openLink => 'فتح الرابط';
 }

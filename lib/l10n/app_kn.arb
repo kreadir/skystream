@@ -348,5 +348,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "wifiQualityPreference": "Wi-Fi ಗುಣಮಟ್ಟದ ಆದ್ಯತೆ",
+  "mobileQualityPreference": "ಮೊಬೈಲ್ ಗುಣಮಟ್ಟದ ಆದ್ಯತೆ",
+  "anyNoPreference": "ಯಾವುದಾದರೂ (ಆದ್ಯತೆ ಇಲ್ಲ)",
+  "subtitleAccounts": "ಉಪಶೀರ್ಷಿಕೆ ಖಾತೆಗಳು",
+  "notLoggedIn": "ಲಾಗಿನ್ ಆಗಿಲ್ಲ",
+  "loggedInAs": "{username} ಆಗಿ ಲಾಗಿನ್ ಆಗಿದ್ದೀರಿ",
+  "apiKeyConfigured": "API ಕೀ ಕಾನ್ಫಿಗರ್ ಮಾಡಲಾಗಿದೆ",
+  "keyNotSet": "ಕೀ ಹೊಂದಿಸಿಲ್ಲ",
+  "testConnection": "ಸಂಪರ್ಕ ಪರೀಕ್ಷಿಸಿ",
+  "connectedSuccessfully": "ಯಶಸ್ವಿಯಾಗಿ ಸಂಪರ್ಕಗೊಂಡಿದೆ",
+  "connectionFailed": "ಸಂಪರ್ಕ ವಿಫಲವಾಗಿದೆ",
+  "username": "ಬಳಕೆದಾರಹೆಸರು",
+  "password": "ಪಾಸ್ವರ್ಡ್",
+  "noAccountRegister": "ಖಾತೆ ಇಲ್ಲವೇ? ಇಲ್ಲಿ ನೋಂದಾಯಿಸಿ",
+  "apiKey": "API ಕೀ",
+  "email": "ಇಮೇಲ್",
+  "fetchMyApiKey": "ನನ್ನ API ಕೀಲಿಯನ್ನು ಪಡೆದುಕೊಳ್ಳಿ",
+  "keyVerified": "ಕೀ ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+  "invalidApiKey": "ಅಮಾನ್ಯವಾದ API ಕೀ",
+  "openSubtitlesAuthSubtitle": "ಹೆಚ್ಚಿನ ಮಿತಿಗಳು ಮತ್ತು ಜಾಹೀರಾತು ರಹಿತ ಉಪಶೀರ್ಷಿಕೆಗಳಿಗಾಗಿ ನಿಮ್ಮ ಖಾತೆಯ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ.",
+  "subDlAuthSubtitle": "ನಿಮ್ಮ SubDL API ಕೀಲಿಯನ್ನು ನೇರವಾಗಿ ನಮೂದಿಸಿ, ಅಥವಾ ಕೆಳಗಿನ ನಿಮ್ಮ ಖಾತೆಯ ವಿವರಗಳನ್ನು ಬಳಸಿಕೊಂಡು ಅದನ್ನು ಪಡೆದುಕೊಳ್ಳಿ.",
+  "orFetchViaAccount": "ಅಥವಾ ಖಾತೆಯ ಮೂಲಕ ಪಡೆಯಿರಿ",
+  "subSourceAuthSubtitle": "SubSource ಯಾವುದೇ ಹೆಚ್ಚಿನ ಸೆಟ್ಟಿಂಗ್‌ಗಳಿಲ್ಲದೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ, ಆದರೆ ಉತ್ತಮ ವಿಶ್ವಾಸಾರ್ಹತೆಗಾಗಿ ಡೀಫಾಲ್ಟ್ ಅನ್ನು ಅತಿಕ್ರಮಿಸಲು ನೀವು ವೈಯಕ್ತಿಕ ಅಧಿಕೃತ API ಕೀಲಿಯನ್ನು ಸೇರಿಸಬಹುದು.",
+  "apiKeyOptionalOverride": "API ಕೀ (ಐಚ್ಛಿಕ ಅತಿಕ್ರಮಣ)",
+  "enterKeyToOverrideDefault": "ಡೀಫಾಲ್ಟ್ ಅತಿಕ್ರಮಿಸಲು ಕೀಲಿಯನ್ನು ನಮೂದಿಸಿ",
+  "getApiKeyFromProfile": "SubSource ಪ್ರೊಫೈಲ್‌ನಿಂದ ನಿಮ್ಮ API ಕೀಲಿಯನ್ನು ಪಡೆಯಿರಿ",
+  "qualityNotGuaranteed": "ಗುಣಮಟ್ಟದ ಭರವಸೆ ಇಲ್ಲ. ಮೂಲಗಳನ್ನು ಆದ್ಯತೆಯ ಮೇರೆಗೆ ವಿಂಗಡಿಸಲಾಗಿದೆ, ಆದರೆ ಪ್ಲೇಬ್ಯಾಕ್ ಪ್ರದಾನಿಯು ವಾಸ್ತವವಾಗಿ ಏನು ನೀಡುತ್ತಾರೆ ಎಂಬುದರ ಮೇಲೆ ಅವಲಂಬಿತವಾಗಿರುತ್ತದೆ.",
+  "keepSourcesOriginalOrder": "ಮೂಲಗಳನ್ನು ಮೂಲ ಕ್ರಮದಲ್ಲಿ ಇರಿಸಿ",
+  "openLink": "ಲಿಂಕ್ ತೆರೆಯಿರಿ",
+  "@loggedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "openSubtitles": "OpenSubtitles",
+  "subDl": "SubDL",
+  "subSource": "SubSource"
 }

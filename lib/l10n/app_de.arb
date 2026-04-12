@@ -541,5 +541,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "wifiQualityPreference": "Wi-Fi-Qualitätspräferenz",
+  "mobileQualityPreference": "Mobilfunk-Qualitätspräferenz",
+  "anyNoPreference": "Beliebig (keine Präferenz)",
+  "subtitleAccounts": "Untertitel-Konten",
+  "notLoggedIn": "Nicht angemeldet",
+  "loggedInAs": "Angemeldet als {username}",
+  "apiKeyConfigured": "API-Schlüssel konfiguriert",
+  "keyNotSet": "Schlüssel nicht gesetzt",
+  "testConnection": "Verbindung testen",
+  "connectedSuccessfully": "Erfolgreich verbunden",
+  "connectionFailed": "Verbindung fehlgeschlagen",
+  "username": "Benutzername",
+  "password": "Passwort",
+  "noAccountRegister": "Noch kein Konto? Hier registrieren",
+  "apiKey": "API-Schlüssel",
+  "email": "E-Mail",
+  "fetchMyApiKey": "Meinen API-Schlüssel abrufen",
+  "keyVerified": "Schlüssel verifiziert",
+  "invalidApiKey": "Ungültiger API-Schlüssel",
+  "openSubtitlesAuthSubtitle": "Geben Sie Ihre Zugangsdaten für höhere Limits und werbefreie Untertitel ein.",
+  "subDlAuthSubtitle": "Geben Sie Ihren SubDL API-Schlüssel direkt ein oder rufen Sie ihn über Ihre Zugangsdaten ab.",
+  "orFetchViaAccount": "ODER ÜBER KONTO ABRUFEN",
+  "subSourceAuthSubtitle": "SubSource funktioniert standardmäßig, Sie können jedoch einen offiziellen API-Schlüssel für bessere Zuverlässigkeit hinzufügen.",
+  "apiKeyOptionalOverride": "API-Schlüssel (Optional)",
+  "enterKeyToOverrideDefault": "Schlüssel eingeben, um Standard zu überschreiben",
+  "getApiKeyFromProfile": "Holen Sie sich Ihren API-Schlüssel aus dem SubSource-Profil",
+  "qualityNotGuaranteed": "Die Qualität wird nicht garantiert. Quellen werden nach Präferenz sortiert, hängen aber vom tatsächlichen Angebot des Anbieters ab.",
+  "keepSourcesOriginalOrder": "Quellen in Originalreihenfolge beibehalten",
+  "openLink": "Link öffnen",
+  "@loggedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "openSubtitles": "OpenSubtitles",
+  "subDl": "SubDL",
+  "subSource": "SubSource"
 }

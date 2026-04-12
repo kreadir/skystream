@@ -541,5 +541,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "wifiQualityPreference": "تفضيل جودة الواي فاي",
+  "mobileQualityPreference": "تفضيل جودة الهاتف المحمول",
+  "anyNoPreference": "أي نوع (لا يوجد تفضيل)",
+  "subtitleAccounts": "حسابات الترجمة",
+  "notLoggedIn": "غير مسجّل الدخول",
+  "loggedInAs": "تم تسجيل الدخول باسم {username}",
+  "apiKeyConfigured": "تم تكوين مفتاح API",
+  "keyNotSet": "لم يتم تعيين المفتاح",
+  "testConnection": "اختبار الاتصال",
+  "connectedSuccessfully": "تم الاتصال بنجاح",
+  "connectionFailed": "فشل الاتصال",
+  "username": "اسم المستخدم",
+  "password": "كلمة المرور",
+  "noAccountRegister": "ليس لديك حساب؟ سجل هنا",
+  "apiKey": "مفتاح API",
+  "email": "البريد الإلكتروني",
+  "fetchMyApiKey": "جلب مفتاح API الخاص بي",
+  "keyVerified": "تم التحقق من المفتاح",
+  "invalidApiKey": "مفتاح API غير صالح",
+  "openSubtitlesAuthSubtitle": "أدخل بيانات اعتماد حسابك للحصول على حدود أعلى وترجمات خالية من الإعلانات.",
+  "subDlAuthSubtitle": "أدخل مفتاح SubDL API الخاص بك مباشرة، أو احصل عليه باستخدام بيانات اعتماد حسابك أدناه.",
+  "orFetchViaAccount": "أو الجلب عبر الحساب",
+  "subSourceAuthSubtitle": "يعمل SubSource تلقائياً، ولكن يمكنك إضافة مفتاح API رسمي شخصي لتجاوز الافتراضي للحصول على موثوقية أفضل.",
+  "apiKeyOptionalOverride": "مفتاح API (تجاوز اختياري)",
+  "enterKeyToOverrideDefault": "أدخل المفتاح لتجاوز الافتراضي",
+  "getApiKeyFromProfile": "احصل على مفتاح API الخاص بك من ملف SubSource الشخصي",
+  "qualityNotGuaranteed": "الجودة غير مضمونة. يتم فرز المصادر حسب التفضيل، ولكن التشغيل يعتمد على ما يقدمه المزود بالفعل.",
+  "keepSourcesOriginalOrder": "الحفاظ على المصادر في ترتيبها الأصلي",
+  "openLink": "فتح الرابط",
+  "@loggedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "openSubtitles": "OpenSubtitles",
+  "subDl": "SubDL",
+  "subSource": "SubSource"
 }

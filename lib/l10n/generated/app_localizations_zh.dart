@@ -1071,6 +1071,104 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pending => '等待中';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Wi-Fi 视频质量偏好';
+
+  @override
+  String get mobileQualityPreference => '移动网络视频质量偏好';
+
+  @override
+  String get anyNoPreference => '不限（无偏好）';
+
+  @override
+  String get subtitleAccounts => '字幕账户';
+
+  @override
+  String get notLoggedIn => '未登录';
+
+  @override
+  String loggedInAs(String username) {
+    return '已登录为 $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'API 密钥已配置';
+
+  @override
+  String get keyNotSet => '未设置密钥';
+
+  @override
+  String get testConnection => '测试连接';
+
+  @override
+  String get connectedSuccessfully => '连接成功';
+
+  @override
+  String get connectionFailed => '连接失败';
+
+  @override
+  String get username => '用户名';
+
+  @override
+  String get password => '密码';
+
+  @override
+  String get noAccountRegister => '没有账户？在此注册';
+
+  @override
+  String get apiKey => 'API 密钥';
+
+  @override
+  String get email => '电子邮箱';
+
+  @override
+  String get fetchMyApiKey => '获取我的 API 密钥';
+
+  @override
+  String get keyVerified => '密钥已验证';
+
+  @override
+  String get invalidApiKey => '无效的 API 密钥';
+
+  @override
+  String get openSubtitlesAuthSubtitle => '输入您的账户凭据以获得更高限制和无广告字幕。';
+
+  @override
+  String get subDlAuthSubtitle => '直接输入您的 SubDL API 密钥，或者在下方使用您的账户凭据获取。';
+
+  @override
+  String get orFetchViaAccount => '或通过账户获取';
+
+  @override
+  String get subSourceAuthSubtitle => 'SubSource 开箱即用，但您可以添加个人官方 API 密钥以提高可靠性。';
+
+  @override
+  String get apiKeyOptionalOverride => 'API 密钥（可选覆盖）';
+
+  @override
+  String get enterKeyToOverrideDefault => '输入密钥以覆盖默认设置';
+
+  @override
+  String get getApiKeyFromProfile => '从 SubSource 个人资料获取您的 API 密钥';
+
+  @override
+  String get qualityNotGuaranteed => '不保证质量。来源按偏好排序，但播放取决于提供商实际提供的内容。';
+
+  @override
+  String get keepSourcesOriginalOrder => '保持来源原始顺序';
+
+  @override
+  String get openLink => '打开链接';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -2140,4 +2238,102 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get pending => '等待中';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Wi-Fi 视频质量偏好';
+
+  @override
+  String get mobileQualityPreference => '移动网络视频质量偏好';
+
+  @override
+  String get anyNoPreference => '不限（无偏好）';
+
+  @override
+  String get subtitleAccounts => '字幕账户';
+
+  @override
+  String get notLoggedIn => '未登录';
+
+  @override
+  String loggedInAs(String username) {
+    return '已登录为 $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'API 密钥已配置';
+
+  @override
+  String get keyNotSet => '未设置密钥';
+
+  @override
+  String get testConnection => '测试连接';
+
+  @override
+  String get connectedSuccessfully => '连接成功';
+
+  @override
+  String get connectionFailed => '连接失败';
+
+  @override
+  String get username => '用户名';
+
+  @override
+  String get password => '密码';
+
+  @override
+  String get noAccountRegister => '没有账户？在此注册';
+
+  @override
+  String get apiKey => 'API 密钥';
+
+  @override
+  String get email => '电子邮箱';
+
+  @override
+  String get fetchMyApiKey => '获取我的 API 密钥';
+
+  @override
+  String get keyVerified => '密钥已验证';
+
+  @override
+  String get invalidApiKey => '无效的 API 密钥';
+
+  @override
+  String get openSubtitlesAuthSubtitle => '输入您的账户凭据以获得更高限制和无广告字幕。';
+
+  @override
+  String get subDlAuthSubtitle => '直接输入您的 SubDL API 密钥，或者在下方使用您的账户凭据获取。';
+
+  @override
+  String get orFetchViaAccount => '或通过账户获取';
+
+  @override
+  String get subSourceAuthSubtitle => 'SubSource 开箱即用，但您可以添加个人官方 API 密钥以提高可靠性。';
+
+  @override
+  String get apiKeyOptionalOverride => 'API 密钥（可选覆盖）';
+
+  @override
+  String get enterKeyToOverrideDefault => '输入密钥以覆盖默认设置';
+
+  @override
+  String get getApiKeyFromProfile => '从 SubSource 个人资料获取您的 API 密钥';
+
+  @override
+  String get qualityNotGuaranteed => '不保证质量。来源按偏好排序，但播放取决于提供商实际提供的内容。';
+
+  @override
+  String get keepSourcesOriginalOrder => '保持来源原始顺序';
+
+  @override
+  String get openLink => '打开链接';
 }

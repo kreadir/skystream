@@ -1107,4 +1107,108 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get pending => 'Ожидание';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Качество при Wi-Fi';
+
+  @override
+  String get mobileQualityPreference => 'Качество при мобильной сети';
+
+  @override
+  String get anyNoPreference => 'Любое (без предпочтений)';
+
+  @override
+  String get subtitleAccounts => 'Аккаунты субтитров';
+
+  @override
+  String get notLoggedIn => 'Вход не выполнен';
+
+  @override
+  String loggedInAs(String username) {
+    return 'Вы вошли как $username';
+  }
+
+  @override
+  String get apiKeyConfigured => 'API-ключ настроен';
+
+  @override
+  String get keyNotSet => 'Ключ не установлен';
+
+  @override
+  String get testConnection => 'Проверить соединение';
+
+  @override
+  String get connectedSuccessfully => 'Успешно подключено';
+
+  @override
+  String get connectionFailed => 'Ошибка подключения';
+
+  @override
+  String get username => 'Имя пользователя';
+
+  @override
+  String get password => 'Пароль';
+
+  @override
+  String get noAccountRegister => 'Нет аккаунта? Зарегистрируйтесь здесь';
+
+  @override
+  String get apiKey => 'API-ключ';
+
+  @override
+  String get email => 'Электронная почта';
+
+  @override
+  String get fetchMyApiKey => 'Получить мой API-ключ';
+
+  @override
+  String get keyVerified => 'Ключ проверен';
+
+  @override
+  String get invalidApiKey => 'Неверный API-ключ';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'Введите данные своего аккаунта для увеличения лимитов и отключения рекламы.';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'Введите ключ SubDL API напрямую или получите его, используя данные своего аккаунта ниже.';
+
+  @override
+  String get orFetchViaAccount => 'ИЛИ ПОЛУЧИТЬ ЧЕРЕЗ АККАУНТ';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'SubSource работает из коробки, но вы можете добавить личный API-ключ для повышения надежности.';
+
+  @override
+  String get apiKeyOptionalOverride => 'API-ключ (необязательно)';
+
+  @override
+  String get enterKeyToOverrideDefault =>
+      'Введите ключ для переопределения стандартного';
+
+  @override
+  String get getApiKeyFromProfile => 'Получите API-ключ в профиле SubSource';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'Качество не гарантируется. Источники сортируются по предпочтению, но воспроизведение зависит от того, что предлагает провайдер.';
+
+  @override
+  String get keepSourcesOriginalOrder =>
+      'Сохранять оригинальный порядок источников';
+
+  @override
+  String get openLink => 'Открыть ссылку';
 }

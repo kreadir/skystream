@@ -541,5 +541,44 @@
         "type": "int"
       }
     }
-  }
+  },
+  "wifiQualityPreference": "Preferenza qualità Wi-Fi",
+  "mobileQualityPreference": "Preferenza qualità mobile",
+  "anyNoPreference": "Qualsiasi (nessuna preferenza)",
+  "subtitleAccounts": "Account sottotitoli",
+  "notLoggedIn": "Accesso non effettuato",
+  "loggedInAs": "Accesso effettuato come {username}",
+  "apiKeyConfigured": "Chiave API configurata",
+  "keyNotSet": "Chiave non impostata",
+  "testConnection": "Testa connessione",
+  "connectedSuccessfully": "Connesso con successo",
+  "connectionFailed": "Connessione fallita",
+  "username": "Nome utente",
+  "password": "Password",
+  "noAccountRegister": "Non hai un account? Registrati qui",
+  "apiKey": "Chiave API",
+  "email": "Email",
+  "fetchMyApiKey": "Recupera la mia chiave API",
+  "keyVerified": "Chiave verificata",
+  "invalidApiKey": "Chiave API non valida",
+  "openSubtitlesAuthSubtitle": "Inserisci le tue credenziali per limiti più elevati e sottotitoli senza pubblicità.",
+  "subDlAuthSubtitle": "Inserisci direttamente la tua chiave API SubDL o recuperala inserendo le tue credenziali.",
+  "orFetchViaAccount": "O RECUPERA TRAMITE ACCOUNT",
+  "subSourceAuthSubtitle": "SubSource funziona normalmente, ma puoi aggiungere una chiave API ufficiale per maggiore affidabilità.",
+  "apiKeyOptionalOverride": "Chiave API (Opzionale)",
+  "enterKeyToOverrideDefault": "Inserisci chiave per sovrascrivere predefinita",
+  "getApiKeyFromProfile": "Ottieni la tua chiave API dal profilo SubSource",
+  "qualityNotGuaranteed": "La qualità non è garantita. Le fonti sono ordinate per preferenza, ma dipendono dall'offerta effettiva del fornitore.",
+  "keepSourcesOriginalOrder": "Mantieni l'ordine originale delle fonti",
+  "openLink": "Apri link",
+  "@loggedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "openSubtitles": "OpenSubtitles",
+  "subDl": "SubDL",
+  "subSource": "SubSource"
 }

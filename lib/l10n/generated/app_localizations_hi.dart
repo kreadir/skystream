@@ -1102,4 +1102,108 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get pending => 'पेंडिंग';
+
+  @override
+  String get openSubtitles => 'OpenSubtitles';
+
+  @override
+  String get subDl => 'SubDL';
+
+  @override
+  String get subSource => 'SubSource';
+
+  @override
+  String get wifiQualityPreference => 'Wi-Fi गुणवत्ता प्राथमिकता';
+
+  @override
+  String get mobileQualityPreference => 'मोबाइल गुणवत्ता प्राथमिकता';
+
+  @override
+  String get anyNoPreference => 'कोई भी (कोई प्राथमिकता नहीं)';
+
+  @override
+  String get subtitleAccounts => 'उपशीर्षक खाते';
+
+  @override
+  String get notLoggedIn => 'लॉग इन नहीं है';
+
+  @override
+  String loggedInAs(String username) {
+    return '$username के रूप में लॉग इन';
+  }
+
+  @override
+  String get apiKeyConfigured => 'API कुंजी कॉन्फ़िगर की गई';
+
+  @override
+  String get keyNotSet => 'कुंजी सेट नहीं है';
+
+  @override
+  String get testConnection => 'कनेक्शन का परीक्षण करें';
+
+  @override
+  String get connectedSuccessfully => 'सफलतापूर्वक जुड़ा';
+
+  @override
+  String get connectionFailed => 'कनेक्शन विफल रहा';
+
+  @override
+  String get username => 'उपयोगकर्ता नाम';
+
+  @override
+  String get password => 'पासवर्ड';
+
+  @override
+  String get noAccountRegister => 'खाता नहीं है? यहाँ पंजीकरण करें';
+
+  @override
+  String get apiKey => 'API कुंजी';
+
+  @override
+  String get email => 'ईमेल';
+
+  @override
+  String get fetchMyApiKey => 'मेरी API कुंजी प्राप्त करें';
+
+  @override
+  String get keyVerified => 'कुंजी सत्यापित';
+
+  @override
+  String get invalidApiKey => 'अमान्य API कुंजी';
+
+  @override
+  String get openSubtitlesAuthSubtitle =>
+      'उच्च सीमाओं और विज्ञापन-मुक्त उपशीर्षक के लिए अपने खाते के क्रेडेंशियल दर्ज करें।';
+
+  @override
+  String get subDlAuthSubtitle =>
+      'अपनी SubDL API कुंजी सीधे दर्ज करें, या नीचे अपने खाते के क्रेडेंशियल का उपयोग करके इसे प्राप्त करें।';
+
+  @override
+  String get orFetchViaAccount => 'या खाते के माध्यम से प्राप्त करें';
+
+  @override
+  String get subSourceAuthSubtitle =>
+      'SubSource बिना किसी अतिरिक्त सेटिंग के काम करता है, लेकिन बेहतर विश्वसनीयता के लिए आप डिफ़ॉल्ट को ओवरराइड करने के लिए एक व्यक्तिगत आधिकारिक API कुंजी जोड़ सकते हैं।';
+
+  @override
+  String get apiKeyOptionalOverride => 'API कुंजी (वैकल्पिक ओवरराइड)';
+
+  @override
+  String get enterKeyToOverrideDefault =>
+      'डिफ़ॉल्ट को ओवरराइड करने के लिए कुंजी दर्ज करें';
+
+  @override
+  String get getApiKeyFromProfile =>
+      'SubSource प्रोफ़ाइल से अपनी API कुंजी प्राप्त करें';
+
+  @override
+  String get qualityNotGuaranteed =>
+      'गुणवत्ता की गारंटी नहीं है। स्रोतों को पसंद के अनुसार क्रमबद्ध किया जाता है, लेकिन प्लेबैक प्रदाता द्वारा वास्तव में दी जाने वाली पेशकश पर निर्भर करता है।';
+
+  @override
+  String get keepSourcesOriginalOrder => 'स्रोतों को मूल क्रम में रखें';
+
+  @override
+  String get openLink => 'लिंक खोलें';
 }
