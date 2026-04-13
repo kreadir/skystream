@@ -102,7 +102,7 @@ SkyStream is a modern, media streaming client. It draws inspiration from the ver
 Download the latest version from the **[Releases Page](https://github.com/akashdh11/skystream/releases/latest)**.
 
 ### 🤖 Android / Android TV
-1. Download the `skystream-android-arm64-v8a-v1.5.0.apk` (recommended for most modern phones) or `skystream-android-armeabi-v7a-v1.5.0.apk` (for TV) from Releases.
+1. Download the `skystream-android-arm64-v8a-v2.2.1.apk` (recommended for most modern phones) or `skystream-android-armeabi-v7a-v2.2.1.apk` (for TV) from Releases.
 2. Open the file and tap **Install**.
    - *Note: You may need to allow "Install form Unknown Sources" in your browser settings.*
 3. Open SkyStream and install extensions via **Settings > Extensions**.
@@ -112,18 +112,19 @@ SkyStream is not on the App Store. You must **sideload** it using a computer.
 
 **Requirements:**
 - A Computer (Windows or macOS)
-- [Sideloadly](https://sideloadly.io/) (Free)
+- [Impactor](https://impactor.khcrysalis.dev/) (Free and OpenSource) or [Sideloadly](https://sideloadly.io/) (Free)
 - iTunes (if on Windows)
 
 **Steps:**
-1. Download `skystream-ios-unsigned.ipa` from the [Releases Page](https://github.com/akashdh11/skystream/releases/latest).
-2. Open **Sideloadly** on your computer.
+1. Download `skystream-ios-unsigned-v2.2.1.ipa` from the [Releases Page](https://github.com/akashdh11/skystream/releases/latest).
+2. Open **Impactor** or **Sideloadly** on your computer.
 3. Connect your iPhone/iPad via USB.
 4. Drag the `.ipa` file into the Sideloadly window.
 5. Enter your **Apple ID** in the configured field.
 6. Click **Start**.
 7. Once finished, the app will appear on your home screen.
 8. On your device, go to **Settings > General > VPN & Device Management**, tap your email, and select **Trust**.
+9. Setup Wi-Fi sync to automatically refresh your apps in background
 
 ### 💻 Windows / macOS / Linux
 1. Download the appropriate zip/tar file for your OS (`skystream-windows.zip`, `skystream-macos.zip`, `skystream-linux.tar.gz`, etc.).
