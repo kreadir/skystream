@@ -1261,7 +1261,6 @@ class SkyStreamPlayerControlsState
                           },
                         ),
                       ),
-                      const SizedBox(height: 8),
                     ],
                   ),
                 ),

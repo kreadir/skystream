@@ -178,7 +178,7 @@ class PlayerActionButton extends StatelessWidget {
         showFocusHighlight: isTv,
         onPressed: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
