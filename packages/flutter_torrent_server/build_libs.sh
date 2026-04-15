@@ -40,8 +40,8 @@ else
 fi
 cd ..
 
-# 4. Build for Desktop (Shared Libraries)
-echo "Building for Desktop (Host Platform)..."
+# 4. Build for Desktop (Shared Libraries - Legacy/Optional)
+echo "Building for Desktop Shared Libraries..."
 mkdir -p assets
 cd $SRC_DIR
 
@@ -53,6 +53,28 @@ elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
     go build -buildmode=c-shared -o ../assets/libtorrentserver.dll ./bindings
 fi
 cd ..
-echo "Desktop build complete."
+
+# 5. Build Standalone Binaries for Desktop (Used by Desktop Plugin)
+echo "Building Standalone Binaries for Desktop..."
+mkdir -p assets/torrserver
+cd $SRC_DIR
+
+# macOS
+echo "Building for macOS (amd64 & arm64)..."
+GOOS=darwin GOARCH=amd64 go build -o ../assets/torrserver/TorrServer-darwin-amd64 ./cmd/torrserver
+GOOS=darwin GOARCH=arm64 go build -o ../assets/torrserver/TorrServer-darwin-arm64 ./cmd/torrserver
+
+# Linux
+echo "Building for Linux (amd64 & arm64)..."
+GOOS=linux GOARCH=amd64 go build -o ../assets/torrserver/TorrServer-linux-amd64 ./cmd/torrserver
+GOOS=linux GOARCH=arm64 go build -o ../assets/torrserver/TorrServer-linux-arm64 ./cmd/torrserver
+
+# Windows
+echo "Building for Windows (amd64 & arm64)..."
+GOOS=windows GOARCH=amd64 go build -o ../assets/torrserver/TorrServer-windows-amd64.exe ./cmd/torrserver
+GOOS=windows GOARCH=arm64 go build -o ../assets/torrserver/TorrServer-windows-arm64.exe ./cmd/torrserver
+
+cd ..
+echo "Standalone binaries build complete."
 
 echo "All builds finished."

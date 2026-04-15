@@ -198,22 +198,18 @@ class FlutterTorrentServerDesktop extends FlutterTorrentServerPlatform {
   }
 
   String? _getBinaryName() {
+    final version = Platform.version.toLowerCase();
+    final isArm64 = version.contains("arm64") || version.contains("aarch64");
+
     if (Platform.isMacOS) {
-      // Quick hack: most macs running Flutter dev are likely okay with amd64 (Rosetta) or native
-      // But let's try to be correct.
-      // We can run `uname -m` synchronously? No.
-      // We will set this in `start()` dynamically.
-      // For now, return a placeholder that `start` logic handles better?
-      // OR: use a standard property.
-      // SysInfo is not in standard IO.
-      // Let's rely on string check of Platform.version which usually includes kernel info.
-      if (Platform.version.toLowerCase().contains("arm64")) {
-        return "TorrServer-darwin-arm64";
-      }
-      return "TorrServer-darwin-amd64";
+      return isArm64 ? "TorrServer-darwin-arm64" : "TorrServer-darwin-amd64";
     }
-    if (Platform.isWindows) return 'TorrServer-windows-amd64.exe';
-    if (Platform.isLinux) return 'TorrServer-linux-amd64';
+    if (Platform.isLinux) {
+      return isArm64 ? "TorrServer-linux-arm64" : "TorrServer-linux-amd64";
+    }
+    if (Platform.isWindows) {
+      return isArm64 ? "TorrServer-windows-arm64.exe" : "TorrServer-windows-amd64.exe";
+    }
     return null;
   }
 }

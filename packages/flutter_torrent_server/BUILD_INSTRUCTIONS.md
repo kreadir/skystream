@@ -25,7 +25,14 @@ chmod +x build_libs.sh
 ## What this does
 1.  **Android**: Generates `android/libs/torrentserver.aar` (contains Java bindings + native libs).
 2.  **iOS**: Generates `ios/Frameworks/TorrServer.xcframework`.
-3.  **Desktop**: Generates shared libraries (`.dylib`, `.dll`, `.so`) in `assets/`.
+3.  **Desktop (Executables)**: Generates standalone binaries for multiple architectures in `assets/torrserver/`:
+    *   `TorrServer-darwin-amd64` (macOS Intel)
+    *   `TorrServer-darwin-arm64` (macOS Apple Silicon)
+    *   `TorrServer-linux-amd64` (Linux x86_64)
+    *   `TorrServer-linux-arm64` (Linux ARM64/aarch64)
+    *   `TorrServer-windows-amd64.exe` (Windows x86_64)
+    *   `TorrServer-windows-arm64.exe` (Windows ARM64/aarch64)
+4.  **Desktop (Shared Libs)**: Generates legacy shared libraries (`.dylib`, `.dll`, `.so`) in `assets/`.
 
 ## Post-Build Setup
-After running the script, the Flutter plugin will automatically attempt to link these libraries.
+After running the script, the Flutter plugin will automatically pick the correct binary based on the host architecture during initialization.
