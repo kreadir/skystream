@@ -145,16 +145,21 @@ class MultimediaItem {
         !json.containsKey('posterUrl')) {
       return MultimediaItem.fromTmdbJson(json);
     }
-    final title = json['title'] != null ? _unescape.convert(json['title'] as String) : '';
+    final title = json['title'] != null
+        ? _unescape.convert(json['title'] as String)
+        : '';
 
-    final String? typeStr = (json['type'] as String?) ?? (json['contentType'] as String?);
+    final String? typeStr =
+        (json['type'] as String?) ?? (json['contentType'] as String?);
     final MultimediaContentType type = MultimediaItem.parseContentType(typeStr);
 
     return MultimediaItem(
       title: title,
       url: (json['url'] as String?) ?? '',
       posterUrl: (json['posterUrl'] as String?) ?? '',
-      bannerUrl: (json['backgroundPosterUrl'] as String?) ?? (json['bannerUrl'] as String?),
+      bannerUrl:
+          (json['backgroundPosterUrl'] as String?) ??
+          (json['bannerUrl'] as String?),
       logoUrl: json['logoUrl'] as String?,
       description: json['description'] != null
           ? _unescape.convert(json['description'] as String)
@@ -170,7 +175,9 @@ class MultimediaItem {
       streams: json['streams'] != null
           ? (json['streams'] as List)
                 .map<StreamResult>(
-                  (s) => StreamResult.fromJson(Map<String, dynamic>.from(s as Map)),
+                  (s) => StreamResult.fromJson(
+                    Map<String, dynamic>.from(s as Map),
+                  ),
                 )
                 .toList()
           : null,
@@ -182,10 +189,14 @@ class MultimediaItem {
       score: (json['score'] as num?)?.toDouble(),
       duration: json['duration'] as int?,
       status: _parseShowStatus(json['status'] ?? json['showStatus']),
-      tags: json['tags'] != null ? List<String>.from(json['tags'] as List) : null,
+      tags: json['tags'] != null
+          ? List<String>.from(json['tags'] as List)
+          : null,
       cast: json['cast'] != null || json['actors'] != null
           ? ((json['cast'] ?? json['actors']) as List)
-                .map<Actor>((a) => Actor.fromJson(Map<String, dynamic>.from(a as Map)))
+                .map<Actor>(
+                  (a) => Actor.fromJson(Map<String, dynamic>.from(a as Map)),
+                )
                 .toList()
           : null,
       trailers: json['trailers'] != null
@@ -198,17 +209,22 @@ class MultimediaItem {
       recommendations: json['recommendations'] != null
           ? (json['recommendations'] as List)
                 .map<MultimediaItem>(
-                  (r) => MultimediaItem.fromJson(Map<String, dynamic>.from(r as Map)),
+                  (r) => MultimediaItem.fromJson(
+                    Map<String, dynamic>.from(r as Map),
+                  ),
                 )
                 .toList()
           : null,
       syncData: json['syncData'] != null
           ? Map<String, String>.from(json['syncData'] as Map)
           : null,
-      playbackPolicy: (json['playbackPolicy'] as String?) ?? (json['vpnStatus'] as String?),
+      playbackPolicy:
+          (json['playbackPolicy'] as String?) ?? (json['vpnStatus'] as String?),
       isAdult: (json['isAdult'] as bool?) ?? false,
       nextAiring: json['nextAiring'] != null
-          ? NextAiring.fromJson(Map<String, dynamic>.from(json['nextAiring'] as Map))
+          ? NextAiring.fromJson(
+              Map<String, dynamic>.from(json['nextAiring'] as Map),
+            )
           : null,
       tmdbId: json['tmdbId'] as int?,
     );
@@ -280,7 +296,8 @@ class MultimediaItem {
     return contentType.name.toUpperCase();
   }
 
-  String get tmdbMediaType => contentType == MultimediaContentType.series ? 'tv' : 'movie';
+  String get tmdbMediaType =>
+      contentType == MultimediaContentType.series ? 'tv' : 'movie';
 
   String get backdropImageUrl => bannerUrl ?? posterUrl;
   String get posterImageUrl => posterUrl;
@@ -428,7 +445,9 @@ class Episode {
   });
 
   factory Episode.fromJson(Map<String, dynamic> json) {
-    final name = json['name'] != null ? _unescape.convert(json['name'] as String) : '';
+    final name = json['name'] != null
+        ? _unescape.convert(json['name'] as String)
+        : '';
     return Episode(
       name: name,
       url: (json['url'] as String?) ?? '',
@@ -445,11 +464,14 @@ class Episode {
       runtime: (json['runtime'] as int?) ?? (json['duration'] as int?),
       airDate: json['airDate'] as String?,
       dubStatus: _parseDubStatus(json['dubStatus'], name),
-      playbackPolicy: (json['playbackPolicy'] as String?) ?? (json['vpnStatus'] as String?),
+      playbackPolicy:
+          (json['playbackPolicy'] as String?) ?? (json['vpnStatus'] as String?),
       streams: json['streams'] != null
           ? (json['streams'] as List)
                 .map<StreamResult>(
-                  (s) => StreamResult.fromJson(Map<String, dynamic>.from(s as Map)),
+                  (s) => StreamResult.fromJson(
+                    Map<String, dynamic>.from(s as Map),
+                  ),
                 )
                 .toList()
           : null,
@@ -543,7 +565,11 @@ class StreamResult {
           : null,
       subtitles: json['subtitles'] != null
           ? (json['subtitles'] as List)
-                .map((x) => SubtitleFile.fromJson(Map<String, dynamic>.from(x as Map)))
+                .map(
+                  (x) => SubtitleFile.fromJson(
+                    Map<String, dynamic>.from(x as Map),
+                  ),
+                )
                 .toList()
           : null,
       drmKid: json['drmKid'] as String?,

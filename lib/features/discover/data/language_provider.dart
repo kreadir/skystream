@@ -8,11 +8,11 @@ class Language extends _$Language {
   @override
   String build() {
     final settings = ref.read(settingsRepositoryProvider);
-    return settings.getLanguage();
+    return settings.getDiscoverLanguage();
   }
 
   Future<void> setLanguage(String language) async {
-    await ref.read(settingsRepositoryProvider).setLanguage(language);
+    await ref.read(settingsRepositoryProvider).setDiscoverLanguage(language);
     state = language;
   }
 }

@@ -222,6 +222,14 @@ class StorageService {
     return _settingsBox.get('language', defaultValue: 'en-US');
   }
 
+  Future<void> setDiscoverLanguage(String lang) async {
+    await _settingsBox.put('discover_language', lang);
+  }
+
+  String getDiscoverLanguage() {
+    return _settingsBox.get('discover_language', defaultValue: 'en-US');
+  }
+
   // --- Watch History Toggle ---
   Future<void> setWatchHistoryEnabled(bool enabled) async {
     await _settingsBox.put('watch_history_enabled', enabled);
