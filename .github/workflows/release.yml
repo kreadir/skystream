@@ -253,10 +253,18 @@ jobs:
       # macOS frameworks contain symlinks (e.g., Mpv.framework/Mpv -> Versions/A/Mpv)
       # Without -y, zip stores the file content instead of the symlink,
       # causing MPV's internal config to fail with assertion errors.
-      - name: Zip Bundle
+      - name: Generate DMG and Zip
         run: |
           VERSION="${{ needs.version.outputs.version }}"
           cd build/macos/Build/Products/Release
+          
+          # Create DMG
+          mkdir -p dmg_temp
+          cp -R skystream.app dmg_temp/
+          ln -s /Applications dmg_temp/Applications
+          hdiutil create -volname "SkyStream" -srcfolder dmg_temp -ov -format UDZO "../../../../../skystream-macos-${{ matrix.arch }}-${VERSION}.dmg"
+          
+          # Fallback ZIP
           zip -ry "../../../../../skystream-macos-${{ matrix.arch }}-${VERSION}.zip" skystream.app
 
       - name: Upload Release Assets
@@ -265,14 +273,25 @@ jobs:
           tag: ${{ needs.version.outputs.version }}
           allowUpdates: true
           replacesArtifacts: true
-          artifacts: "skystream-macos-${{ matrix.arch }}-${{ needs.version.outputs.version }}.zip"
+          artifacts: |
+            skystream-macos-${{ matrix.arch }}-${{ needs.version.outputs.version }}.dmg
+            skystream-macos-${{ matrix.arch }}-${{ needs.version.outputs.version }}.zip
           token: ${{ secrets.GITHUB_TOKEN }}
 
   windows:
-    name: Windows Build (x64)
+    name: Windows Build (${{ matrix.arch }})
     needs: version
     if: ${{ github.event.inputs.build_windows == 'true' }}
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            arch: x64
+            torrserver_binary: TorrServer-windows-amd64.exe
+          - os: windows-11-arm
+            arch: arm64
+            torrserver_binary: TorrServer-windows-arm64.exe
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -288,18 +307,31 @@ jobs:
 
       # Keep only the Windows TorrServer binary
       - name: Strip Unused Binaries
+        shell: pwsh
         run: |
           cd packages/flutter_torrent_server/assets/torrserver
-          Get-ChildItem -File | Where-Object { $_.Name -ne "TorrServer-windows-amd64.exe" } | Remove-Item
+          Get-ChildItem -File | Where-Object { $_.Name -ne "${{ matrix.torrserver_binary }}" } | Remove-Item
           Get-ChildItem
           
       - name: Build Windows
         run: flutter build windows --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build Installer (EXE)
+        shell: pwsh
+        run: |
+          $Version = "${{ needs.version.outputs.version }}".TrimStart('v')
+          $AppDir = "..\..\build\windows\${{ matrix.arch }}\runner\Release"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=$Version /DAppArch=${{ matrix.arch }} /DAppDir=$AppDir installer\windows\setup.iss
         
-      - name: Compress Release
+      - name: Compress Release (ZIP)
+        shell: pwsh
         run: |
           $Version = "${{ needs.version.outputs.version }}"
-          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "skystream-windows-x64-$Version.zip"
+          Compress-Archive -Path build\windows\${{ matrix.arch }}\runner\Release\* -DestinationPath "skystream-windows-${{ matrix.arch }}-$Version.zip"
 
       - name: Upload Release Assets
         uses: ncipollo/release-action@v1
@@ -307,14 +339,25 @@ jobs:
           tag: ${{ needs.version.outputs.version }}
           allowUpdates: true
           replacesArtifacts: true
-          artifacts: "skystream-windows-x64-${{ needs.version.outputs.version }}.zip"
+          artifacts: |
+            installer/windows/Output/*.exe
+            skystream-windows-${{ matrix.arch }}-${{ needs.version.outputs.version }}.zip
           token: ${{ secrets.GITHUB_TOKEN }}
 
   linux:
-    name: Linux Build (x64)
+    name: Linux Build (${{ matrix.arch }})
     needs: version
     if: ${{ github.event.inputs.build_linux == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x64
+            torrserver_binary: TorrServer-linux-amd64
+          - os: ubuntu-22.04-arm
+            arch: arm64
+            torrserver_binary: TorrServer-linux-arm64
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -338,7 +381,7 @@ jobs:
         run: |
           cd packages/flutter_torrent_server/assets/torrserver
           ls -la
-          find . -type f ! -name "TorrServer-linux-amd64" -delete
+          find . -type f ! -name "${{ matrix.torrserver_binary }}" -delete
           ls -la
           
       - name: Build Linux
@@ -347,8 +390,8 @@ jobs:
       - name: Compress Release
         run: |
           VERSION="${{ needs.version.outputs.version }}"
-          cd build/linux/x64/release/bundle
-          tar -czvf "../../../../../skystream-linux-x64-${VERSION}.tar.gz" .
+          cd build/linux/${{ matrix.arch }}/release/bundle
+          tar -czvf "../../../../../skystream-linux-${{ matrix.arch }}-${VERSION}.tar.gz" .
 
       - name: Upload Release Assets
         uses: ncipollo/release-action@v1
@@ -356,5 +399,5 @@ jobs:
           tag: ${{ needs.version.outputs.version }}
           allowUpdates: true
           replacesArtifacts: true
-          artifacts: "skystream-linux-x64-${{ needs.version.outputs.version }}.tar.gz"
+          artifacts: "skystream-linux-${{ matrix.arch }}-${{ needs.version.outputs.version }}.tar.gz"
           token: ${{ secrets.GITHUB_TOKEN }}

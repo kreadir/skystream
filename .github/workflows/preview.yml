@@ -190,22 +190,41 @@ jobs:
           codesign --force --deep --sign - "$APP_PATH"
         
       # CRITICAL: Use -y flag to preserve symlinks (required for macOS frameworks)
-      - name: Zip Bundle
+      - name: Generate DMG and Zip
         run: |
           cd build/macos/Build/Products/Release
-          zip -ry "../../../../../skystream-macos-${{ matrix.arch }}.zip" skystream.app
+          
+          # Create DMG
+          mkdir -p dmg_temp
+          cp -R skystream.app dmg_temp/
+          ln -s /Applications dmg_temp/Applications
+          hdiutil create -volname "SkyStream" -srcfolder dmg_temp -ov -format UDZO "../../../../../skystream-macos-${{ matrix.arch }}-preview.dmg"
+          
+          # Fallback ZIP
+          zip -ry "../../../../../skystream-macos-${{ matrix.arch }}-preview.zip" skystream.app
 
       - name: Upload macOS Build
         uses: actions/upload-artifact@v4
         with:
           name: macos-${{ matrix.arch }}
-          path: skystream-macos-${{ matrix.arch }}.zip
+          path: |
+            skystream-macos-${{ matrix.arch }}-preview.dmg
+            skystream-macos-${{ matrix.arch }}-preview.zip
           retention-days: 7
 
   windows:
-    name: Windows Build (x64)
+    name: Windows Build (${{ matrix.arch }})
     if: ${{ github.event.inputs.build_windows == 'true' }}
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            arch: x64
+            torrserver_binary: TorrServer-windows-amd64.exe
+          - os: windows-11-arm
+            arch: arm64
+            torrserver_binary: TorrServer-windows-arm64.exe
     steps:
       - uses: actions/checkout@v4
         with:
@@ -222,28 +241,51 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
 
       - name: Strip Unused Binaries
+        shell: pwsh
         run: |
           cd packages/flutter_torrent_server/assets/torrserver
-          Get-ChildItem -File | Where-Object { $_.Name -ne "TorrServer-windows-amd64.exe" } | Remove-Item
+          Get-ChildItem -File | Where-Object { $_.Name -ne "${{ matrix.torrserver_binary }}" } | Remove-Item
           
       - name: Build Windows
         run: flutter build windows --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build Installer (EXE)
+        shell: pwsh
+        run: |
+          $AppDir = "..\..\build\windows\${{ matrix.arch }}\runner\Release"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=preview /DAppArch=${{ matrix.arch }} /DAppDir=$AppDir installer\windows\setup.iss
         
       - name: Compress Release
+        shell: pwsh
         run: |
-          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "skystream-windows-x64.zip"
+          Compress-Archive -Path build\windows\${{ matrix.arch }}\runner\Release\* -DestinationPath "skystream-windows-${{ matrix.arch }}-preview.zip"
 
       - name: Upload Windows Build
         uses: actions/upload-artifact@v4
         with:
-          name: windows-x64
-          path: skystream-windows-x64.zip
+          name: windows-${{ matrix.arch }}
+          path: |
+            installer/windows/Output/*.exe
+            skystream-windows-${{ matrix.arch }}-preview.zip
           retention-days: 7
 
   linux:
-    name: Linux Build (x64)
+    name: Linux Build (${{ matrix.arch }})
     if: ${{ github.event.inputs.build_linux == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x64
+            torrserver_binary: TorrServer-linux-amd64
+          - os: ubuntu-22.04-arm
+            arch: arm64
+            torrserver_binary: TorrServer-linux-arm64
     steps:
       - uses: actions/checkout@v4
         with:
@@ -267,19 +309,19 @@ jobs:
       - name: Strip Unused Binaries
         run: |
           cd packages/flutter_torrent_server/assets/torrserver
-          find . -type f ! -name "TorrServer-linux-amd64" -delete
+          find . -type f ! -name "${{ matrix.torrserver_binary }}" -delete
           
       - name: Build Linux
         run: flutter build linux --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
         
       - name: Compress Release
         run: |
-          cd build/linux/x64/release/bundle
-          tar -czvf "../../../../../skystream-linux-x64.tar.gz" .
+          cd build/linux/${{ matrix.arch }}/release/bundle
+          tar -czvf "../../../../../skystream-linux-${{ matrix.arch }}-preview.tar.gz" .
 
       - name: Upload Linux Build
         uses: actions/upload-artifact@v4
         with:
-          name: linux-x64
-          path: skystream-linux-x64.tar.gz
+          name: linux-${{ matrix.arch }}
+          path: skystream-linux-${{ matrix.arch }}-preview.tar.gz
           retention-days: 7
