@@ -14,8 +14,13 @@ Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
 SetupIconFile=..\..\windows\runner\resources\app_icon.ico
-ArchitecturesAllowed={#AppArch}
-ArchitecturesInstallIn64BitMode={#AppArch}
+#if AppArch == "x64"
+  ArchitecturesAllowed=x64compatible
+  ArchitecturesInstallIn64BitMode=x64compatible
+#else
+  ArchitecturesAllowed={#AppArch}
+  ArchitecturesInstallIn64BitMode={#AppArch}
+#endif
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -24,10 +29,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#AppDir}\skystream.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#AppDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "skystream.exe,libmpv-2.dll"
-; Keep libmpv separate so installer compression/decompression behavior is explicit.
-Source: "{#AppDir}\libmpv-2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#AppDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\SkyStream"; Filename: "{app}\skystream.exe"
