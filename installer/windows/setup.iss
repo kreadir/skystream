@@ -9,18 +9,13 @@ AppUpdatesURL=https://github.com/skystream
 DefaultDirName={autopf}\SkyStream
 DefaultGroupName=SkyStream
 DisableProgramGroupPage=yes
-OutputBaseFilename=SkyStream-Windows-{#AppArch}-Setup-{#AppVersion}
-Compression=lzma
+OutputBaseFilename=SkyStream-Windows-{#OutputArch}-Setup-{#AppVersion}
+Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
 SetupIconFile=..\..\windows\runner\resources\app_icon.ico
-#if AppArch == "x64"
-  ArchitecturesAllowed=x64compatible
-  ArchitecturesInstallIn64BitMode=x64compatible
-#else
-  ArchitecturesAllowed={#AppArch}
-  ArchitecturesInstallIn64BitMode={#AppArch}
-#endif
+ArchitecturesAllowed={#AppArch}
+ArchitecturesInstallIn64BitMode={#AppArch}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -30,7 +25,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#AppDir}\skystream.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#AppDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#AppDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "skystream.exe,libmpv-2.dll"
+; Keep libmpv separate so installer compression/decompression behavior is explicit.
+Source: "{#AppDir}\libmpv-2.dll"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\SkyStream"; Filename: "{app}\skystream.exe"
