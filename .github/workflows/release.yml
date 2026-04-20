@@ -365,7 +365,7 @@ jobs:
     name: Windows Build (arm64)
     needs: version
     if: ${{ github.event.inputs.build_windows == 'true' }}
-    runs-on: windows-11-arm
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       

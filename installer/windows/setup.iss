@@ -25,10 +25,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#AppDir}\skystream.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#AppDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "skystream.exe,libmpv-2.dll,data\flutter_assets\packages\flutter_torrent_server\assets\torrserver\*"
+Source: "{#AppDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "skystream.exe,libmpv-2.dll"
 ; Keep libmpv separate so installer compression/decompression behavior is explicit.
 Source: "{#AppDir}\libmpv-2.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#AppDir}\data\flutter_assets\packages\flutter_torrent_server\assets\torrserver\{#TorrServerBinary}"; DestDir: "{app}\data\flutter_assets\packages\flutter_torrent_server\assets\torrserver"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Icons]
 Name: "{group}\SkyStream"; Filename: "{app}\skystream.exe"
