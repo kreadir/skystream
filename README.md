@@ -135,7 +135,11 @@ SkyStream is not on the App Store. You must **sideload** it using a computer.
 2. Extract the archive.
 3. Run the executable (`skystream.exe`, `skystream.app`, or `./skystream`).
    - *macOS Note: You may need to Right Click -> Open to bypass the "Unidentified Developer" warning.*
-   - *Linux Note: You may need to install `libmpv` (e.g., `sudo apt install libmpv-dev` or `libmpv1`) for the player to work.*
+   - *Linux Note: You may need to install the following packages:*
+     ```bash
+     sudo apt-get update
+     sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libmpv-dev libasound2-dev
+     ```
 
 ## 🛠️ Build from Source
 
