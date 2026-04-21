@@ -248,7 +248,7 @@ jobs:
         shell: pwsh
         run: |
           choco install 7zip -y --no-progress
-          $assetPattern = '^mpv-dev-x86_64-(?!v\d+-)\d{8}-git-[a-f0-9]+\.\d+\.7z$'
+          $assetPattern = '^mpv-dev-x86_64-(?!v\d+-)\d{8}-git-[a-f0-9]+\.7z$'
 
           $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest'
           $asset = $release.assets | Where-Object { $_.name -match $assetPattern } | Select-Object -First 1
