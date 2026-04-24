@@ -335,17 +335,24 @@ jobs:
           flutter pub get
           flutter gen-l10n
           dart run build_runner build --delete-conflicting-outputs
-
       - name: Strip Unused Binaries
         run: |
           cd packages/flutter_torrent_server/assets/torrserver
           find . -type f ! -name "${{ matrix.torrserver_binary }}" -delete
           
-      - name: Build Linux
-        run: flutter build linux --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
-        
-      - name: Compress Release
+      - name: Build Linux Packages
         run: |
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          dart pub global activate flutter_distributor
+          
+          # Build .deb
+          flutter_distributor package --platform linux --targets deb --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          
+          # Build AppImage
+          flutter_distributor package --platform linux --targets appimage --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          
+          # Generate the standard .tar.gz bundle as well
+          flutter build linux --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
           cd build/linux/${{ matrix.arch }}/release/bundle
           tar -czvf "../../../../../skystream-linux-${{ matrix.arch }}-preview.tar.gz" .
 
@@ -353,5 +360,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-${{ matrix.arch }}
-          path: skystream-linux-${{ matrix.arch }}-preview.tar.gz
+          path: |
+            skystream-linux-${{ matrix.arch }}-preview.tar.gz
+            dist/*/*.deb
+            dist/*/*.AppImage
           retention-days: 7

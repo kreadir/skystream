@@ -412,12 +412,20 @@ jobs:
           find . -type f ! -name "${{ matrix.torrserver_binary }}" -delete
           ls -la
           
-      - name: Build Linux
-        run: flutter build linux --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
-        
-      - name: Compress Release
+      - name: Build Linux Packages
         run: |
           VERSION="${{ needs.version.outputs.version }}"
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          dart pub global activate flutter_distributor
+          
+          # Build .deb
+          flutter_distributor package --platform linux --targets deb --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          
+          # Build AppImage
+          flutter_distributor package --platform linux --targets appimage --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          
+          # Generate the standard .tar.gz bundle as well
+          flutter build linux --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
           cd build/linux/${{ matrix.arch }}/release/bundle
           tar -czvf "../../../../../skystream-linux-${{ matrix.arch }}-${VERSION}.tar.gz" .
 
@@ -427,5 +435,8 @@ jobs:
           tag: ${{ needs.version.outputs.version }}
           allowUpdates: true
           replacesArtifacts: true
-          artifacts: "skystream-linux-${{ matrix.arch }}-${{ needs.version.outputs.version }}.tar.gz"
+          artifacts: |
+            skystream-linux-${{ matrix.arch }}-${{ needs.version.outputs.version }}.tar.gz
+            dist/*/*.deb
+            dist/*/*.AppImage
           token: ${{ secrets.GITHUB_TOKEN }}

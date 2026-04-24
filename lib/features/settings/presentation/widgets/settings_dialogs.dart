@@ -82,15 +82,17 @@ void showDefaultHomeScreenDialog(
           ref.read(generalSettingsProvider.notifier).setDefaultHomeScreen(val);
           Navigator.pop<void>(context);
         },
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: options.map((opt) {
-              return RadioListTile<String>(
-                title: Text(opt['label']!),
-                value: opt['route']!,
-              );
-            }).toList(),
+        child: _tvFocusShortcuts(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options.map((opt) {
+                return RadioListTile<String>(
+                  title: Text(opt['label']!),
+                  value: opt['route']!,
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),
