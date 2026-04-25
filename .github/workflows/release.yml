@@ -49,9 +49,24 @@ jobs:
       - name: Create Dummy Assets Dir
         run: mkdir -p assets/plugins/
 
+  create_release:
+    name: Create Release
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.version.outputs.version }}
+          name: Release ${{ needs.version.outputs.version }}
+          bodyFile: "CHANGELOG.md"
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   android:
     name: Android Build
-    needs: version
+    needs: [version, create_release]
     if: ${{ github.event.inputs.build_android == 'true' }}
     runs-on: ubuntu-latest
     env:
@@ -126,11 +141,13 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           artifacts: "*.apk"
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
   ios:
     name: iOS Build (Unsigned)
-    needs: version
+    needs: [version, create_release]
     if: ${{ github.event.inputs.build_ios == 'true' }}
     runs-on: macos-latest
     steps:
@@ -163,11 +180,13 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           artifacts: "skystream-ios-unsigned-${{ needs.version.outputs.version }}.ipa"
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
   macos:
     name: macOS Build
-    needs: version
+    needs: [version, create_release]
     if: ${{ github.event.inputs.build_macos == 'true' }}
     runs-on: macos-latest
     strategy:
@@ -276,11 +295,13 @@ jobs:
           artifacts: |
             skystream-macos-${{ matrix.arch }}-${{ needs.version.outputs.version }}.dmg
             skystream-macos-${{ matrix.arch }}-${{ needs.version.outputs.version }}.zip
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
   windows:
-    name: Windows Build (${{ matrix.arch }})
-    needs: version
+    name: Windows Build
+    needs: [version, create_release]
     if: ${{ github.event.inputs.build_windows == 'true' }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -363,13 +384,15 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           artifacts: |
-            installer/windows/Output/*.exe
+            windows/packaging/exe/Output/*.exe
             skystream-windows-${{ matrix.arch }}-${{ needs.version.outputs.version }}.zip
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
   linux:
-    name: Linux Build (${{ matrix.arch }})
-    needs: version
+    name: Linux Build
+    needs: [version, create_release]
     if: ${{ github.event.inputs.build_linux == 'true' }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -438,4 +461,6 @@ jobs:
           artifacts: |
             skystream-linux-${{ matrix.arch }}-${{ needs.version.outputs.version }}.tar.gz
             skystream-linux-${{ matrix.arch }}-${{ needs.version.outputs.version }}.deb
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
           token: ${{ secrets.GITHUB_TOKEN }}

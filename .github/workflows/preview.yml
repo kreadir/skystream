@@ -293,7 +293,7 @@ jobs:
         with:
           name: windows-${{ matrix.arch }}
           path: |
-            installer/windows/Output/*.exe
+            windows/packaging/exe/Output/*.exe
             skystream-windows-${{ matrix.arch }}-preview.zip
           retention-days: 7
 
