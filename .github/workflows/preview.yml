@@ -327,7 +327,7 @@ jobs:
       - name: Install Linux Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libmpv-dev libasound2-dev libfuse2
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libmpv-dev libasound2-dev
           
       - name: Install Flutter Dependencies
         run: |
@@ -335,44 +335,23 @@ jobs:
           flutter pub get
           flutter gen-l10n
           dart run build_runner build --delete-conflicting-outputs
-      - name: Build Linux Packages
+      - name: Strip Unused Binaries
         run: |
           cd packages/flutter_torrent_server/assets/torrserver
           find . -type f ! -name "${{ matrix.torrserver_binary }}" -delete
-          cd ../../../..
           
-          # Build .deb
-          flutter pub global activate fastforge
-          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
-          flutter pub global run fastforge:main package --platform linux --targets deb --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+      - name: Build Linux Packages
+        run: |
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          dart pub global activate fastforge
+          
+          # Build .deb (AppImage is currently disabled due to tool-level file collision bugs)
+          fastforge package --platform linux --targets deb --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          
+          # Rename .deb file to match tar.gz convention
           mv dist/*/*.deb "skystream-linux-${{ matrix.arch }}-preview.deb"
           
-          # Prepare AppDir for AppImage (Manual Step like LocalSend)
-          mkdir -p AppDir/usr/bin
-          cp -r build/linux/x64/release/bundle/* AppDir/usr/bin/
-          cp ios/Runner/Assets.xcassets/AppIcon.appiconset/AppIcon~ios-marketing.png AppDir/skystream.png
-          cat <<EOF > AppDir/skystream.desktop
-          [Desktop Entry]
-          Name=SkyStream
-          Exec=skystream
-          Icon=skystream
-          Type=Application
-          Categories=Video;AudioVideo;Player;
-          EOF
-          
-      - name: Create AppImage
-        uses: AppImageCrafters/build-appimage@master
-        env:
-          APP_VERSION: preview
-        with:
-          recipe: linux/packaging/appimage/AppImageBuilder.yml
-
-      - name: Rename and Prepare Final Assets
-        run: |
-          # Find and rename the AppImage
-          mv *.AppImage "skystream-linux-${{ matrix.arch }}-preview.AppImage"
-          
-          # Generate the standard .tar.gz bundle
+          # Generate the standard .tar.gz bundle as well
           flutter build linux --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
           cd build/linux/${{ matrix.arch }}/release/bundle
           tar -czvf "../../../../../skystream-linux-${{ matrix.arch }}-preview.tar.gz" .
@@ -384,5 +363,4 @@ jobs:
           path: |
             skystream-linux-${{ matrix.arch }}-preview.tar.gz
             skystream-linux-${{ matrix.arch }}-preview.deb
-            skystream-linux-${{ matrix.arch }}-preview.AppImage
           retention-days: 7
