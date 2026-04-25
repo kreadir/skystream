@@ -912,10 +912,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'İçeriğe göz atmak ve akış yapmak için uzantıları yükleyin.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Uzantılara git';
 
   @override
   String get availableSources => 'Mevcut Kaynaklar';

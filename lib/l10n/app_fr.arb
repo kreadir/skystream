@@ -583,5 +583,7 @@
   "subSource": "SubSource",
   "diagnostics": "Diagnostics",
   "viewLogs": "Voir les journaux",
-  "viewLogsSubtitle": "Afficher l'activité et les erreurs de l'application"
+  "viewLogsSubtitle": "Afficher l'activité et les erreurs de l'application",
+  "goToExtensions": "Aller aux extensions",
+  "noPluginsMessage": "Installez des extensions pour parcourir et diffuser du contenu."
 }

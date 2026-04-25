@@ -583,5 +583,7 @@
   "subSource": "SubSource",
   "diagnostics": "诊断",
   "viewLogs": "查看日志",
-  "viewLogsSubtitle": "查看应用程序活动和错误"
+  "viewLogsSubtitle": "查看应用程序活动和错误",
+  "goToExtensions": "前往扩展",
+  "noPluginsMessage": "安装扩展以浏览和流式传输内容。"
 }

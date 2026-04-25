@@ -581,7 +581,9 @@
   "openSubtitles": "OpenSubtitles",
   "subDl": "SubDL",
   "subSource": "SubSource",
-  "diagnostics": "Diagnostics",
-  "viewLogs": "View Logs",
-  "viewLogsSubtitle": "View application activity & errors"
+  "diagnostics": "التشخيصات",
+  "viewLogs": "عرض السجلات",
+  "viewLogsSubtitle": "عرض نشاط التطبيق والأخطاء",
+  "goToExtensions": "الذهاب إلى الإضافات",
+  "noPluginsMessage": "قم بتثبيت الإضافات لتصفح وبث المحتوى."
 }

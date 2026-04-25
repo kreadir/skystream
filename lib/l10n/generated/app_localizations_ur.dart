@@ -910,10 +910,10 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'مواد کو براؤز اور اسٹریم کرنے کے لیے ایکسٹینشنز انسٹال کریں۔';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'ایکسٹینشنز پر جائیں';
 
   @override
   String get availableSources => 'دستیاب ذرائع';

@@ -919,10 +919,10 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'ವಿಷಯವನ್ನು ಬ್ರೌಸ್ ಮಾಡಲು ಮತ್ತು ಸ್ಟ್ರೀಮ್ ಮಾಡಲು ವಿಸ್ತರಣೆಗಳನ್ನು ಸ್ಥಾಪಿಸಿ.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'ವಿಸ್ತರಣೆಗಳಿಗೆ ಹೋಗಿ';
 
   @override
   String get availableSources => 'ಲಭ್ಯವಿರುವ ಮೂಲಗಳು';

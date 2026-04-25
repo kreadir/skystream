@@ -903,10 +903,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Installeer extensies om inhoud te browsen en te streamen.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Ga naar extensies';
 
   @override
   String get availableSources => 'Beschikbare bronnen';

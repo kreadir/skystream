@@ -390,5 +390,7 @@
   "subSource": "SubSource",
   "diagnostics": "डायग्नोस्टिक्स",
   "viewLogs": "लॉग देखें",
-  "viewLogsSubtitle": "एप्लिकेशन गतिविधि और त्रुटियां देखें"
+  "viewLogsSubtitle": "एप्लिकेशन गतिविधि और त्रुटियां देखें",
+  "goToExtensions": "एक्सटेंशन पर जाएँ",
+  "noPluginsMessage": "सामग्री ब्राउज़ और स्ट्रीम करने के लिए एक्सटेंशन इंस्टॉल करें।"
 }

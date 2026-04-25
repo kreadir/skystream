@@ -892,10 +892,10 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Cài đặt các tiện ích mở rộng để duyệt và phát trực tuyến nội dung.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Đi tới các tiện ích mở rộng';
 
   @override
   String get availableSources => 'Nguồn khả dụng';

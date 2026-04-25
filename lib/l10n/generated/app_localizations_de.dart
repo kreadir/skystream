@@ -912,10 +912,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Installieren Sie Erweiterungen, um Inhalte zu durchsuchen und zu streamen.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Zu den Erweiterungen gehen';
 
   @override
   String get availableSources => 'Verfügbare Quellen';

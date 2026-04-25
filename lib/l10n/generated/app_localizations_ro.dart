@@ -903,10 +903,10 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Instalează extensii pentru a răsfoi și a transmite conținut.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Mergi la extensii';
 
   @override
   String get availableSources => 'Surse disponibile';

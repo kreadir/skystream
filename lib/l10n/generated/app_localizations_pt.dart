@@ -898,10 +898,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Instale extensões para navegar e transmitir conteúdo.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Ir para extensões';
 
   @override
   String get availableSources => 'Fontes Disponíveis';
@@ -2109,6 +2109,13 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get noPluginsInstalled => 'Nenhuma extensão instalada';
+
+  @override
+  String get noPluginsMessage =>
+      'Instale extensões para navegar e transmitir conteúdo.';
+
+  @override
+  String get goToExtensions => 'Ir para extensões';
 
   @override
   String get availableSources => 'Fontes Disponíveis';

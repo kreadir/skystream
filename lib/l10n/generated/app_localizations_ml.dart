@@ -918,10 +918,10 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'ഉള്ളടക്കം ബ്രൗസ് ചെയ്യുന്നതിനും സ്ട്രീം ചെയ്യുന്നതിനും എക്സ്റ്റൻഷനുകൾ ഇൻസ്റ്റാൾ ചെയ്യുക.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'എക്സ്റ്റൻഷനുകളിലേക്ക് പോകുക';
 
   @override
   String get availableSources => 'ലഭ്യമായ ഉറവിടങ്ങൾ';

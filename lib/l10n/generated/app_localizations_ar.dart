@@ -904,11 +904,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noPluginsInstalled => 'لا توجد إضافات مثبتة';
 
   @override
-  String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+  String get noPluginsMessage => 'قم بتثبيت الإضافات لتصفح وبث المحتوى.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'الذهاب إلى الإضافات';
 
   @override
   String get availableSources => 'المصادر المتاحة';
@@ -2102,6 +2101,12 @@ class AppLocalizationsArApc extends AppLocalizationsAr {
 
   @override
   String get noPluginsInstalled => 'ما في إضافات';
+
+  @override
+  String get noPluginsMessage => 'قم بتثبيت الإضافات لتصفح وبث المحتوى.';
+
+  @override
+  String get goToExtensions => 'الذهاب إلى الإضافات';
 
   @override
   String get availableSources => 'المصادر المتاحة';

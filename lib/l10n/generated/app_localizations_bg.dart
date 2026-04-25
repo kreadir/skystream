@@ -894,10 +894,10 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Инсталирайте разширения за преглед и стрийминг на съдържание.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Отидете на разширения';
 
   @override
   String get availableSources => 'Налични източници';

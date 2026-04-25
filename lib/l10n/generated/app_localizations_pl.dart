@@ -894,10 +894,10 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Zainstaluj rozszerzenia, aby przeglądać i przesyłać strumieniowo treści.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Przejdź do rozszerzeń';
 
   @override
   String get availableSources => 'Dostępne źródła';

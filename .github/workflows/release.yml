@@ -419,10 +419,10 @@ jobs:
           dart pub global activate flutter_distributor
           
           # Build .deb
-          flutter_distributor package --platform linux --targets deb --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          flutter_distributor package --platform linux --targets deb --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
           
           # Build AppImage
-          flutter_distributor package --platform linux --targets appimage --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          flutter_distributor package --platform linux --targets appimage --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
           
           # Generate the standard .tar.gz bundle as well
           flutter build linux --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}

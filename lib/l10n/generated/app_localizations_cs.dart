@@ -897,10 +897,10 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Nainstalujte rozšíření pro procházení a streamování obsahu.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Přejít na rozšíření';
 
   @override
   String get availableSources => 'Dostupné zdroje';

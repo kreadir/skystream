@@ -886,11 +886,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get noPluginsInstalled => 'אין פלאגינים מותקנים';
 
   @override
-  String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+  String get noPluginsMessage => 'התקן הרחבות כדי לעיין ולהזרים תוכן.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'עבור להרחבות';
 
   @override
   String get availableSources => 'מקורות זמינים';

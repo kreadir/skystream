@@ -907,10 +907,10 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'સામગ્રી બ્રાઉઝ અને સ્ટ્રીમ કરવા માટે એક્સ્ટેન્શન્સ ઇન્સ્ટોલ કરો.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'એક્સ્ટેન્શન્સ પર જાઓ';
 
   @override
   String get availableSources => 'ઉપલબ્ધ સ્રોતો';

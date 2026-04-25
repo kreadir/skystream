@@ -907,10 +907,10 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'सामग्री ब्राउझ आणि प्रवाहित करण्यासाठी एक्सटेंशन स्थापित करा.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'एक्सटेंशनवर जा';
 
   @override
   String get availableSources => 'उपलब्ध स्रोत';

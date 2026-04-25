@@ -901,10 +901,10 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Инсталирајте додатоци за прелистување и стримување содржини.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Оди до додатоци';
 
   @override
   String get availableSources => 'Достапни извори';

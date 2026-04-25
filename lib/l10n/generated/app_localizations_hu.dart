@@ -902,10 +902,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Telepítsen bővítményeket a tartalom böngészéséhez och streameléséhez.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Ugrás a bővítményekhez';
 
   @override
   String get availableSources => 'Elérhető források';

@@ -907,10 +907,10 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Встановіть розширення для перегляду та трансляції контенту.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Перейти да розширень';
 
   @override
   String get availableSources => 'Доступні джерела';

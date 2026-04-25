@@ -894,10 +894,10 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Instalirajte proširenja za pregledavanje i strujanje sadržaja.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Idi na proširenja';
 
   @override
   String get availableSources => 'Dostupni izvori';

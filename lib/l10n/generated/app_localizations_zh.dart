@@ -884,11 +884,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noPluginsInstalled => '未安装插件';
 
   @override
-  String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+  String get noPluginsMessage => '安装扩展以浏览和流式传输内容。';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => '前往扩展';
 
   @override
   String get availableSources => '可用来源';
@@ -2065,6 +2064,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get noPluginsInstalled => '未安裝外掛程式';
+
+  @override
+  String get noPluginsMessage => '安裝擴充功能以瀏覽和串流內容。';
+
+  @override
+  String get goToExtensions => '前往擴充功能';
 
   @override
   String get availableSources => '可用來源';

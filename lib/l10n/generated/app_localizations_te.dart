@@ -918,10 +918,10 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'కంటెంట్‌ను బ్రౌజ్ చేయడానికి మరియు స్ట్రీమ్ చేయడానికి పొడిగింపులను ఇన్‌స్టాల్ చేయండి.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'పొడిగింపులకు వెళ్ళండి';
 
   @override
   String get availableSources => 'అందుబాటులో ఉన్న మూలాలు';

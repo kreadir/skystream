@@ -919,10 +919,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Installez des extensions pour parcourir et diffuser du contenu.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Aller aux extensions';
 
   @override
   String get availableSources => 'Sources disponibles';

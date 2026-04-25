@@ -583,5 +583,7 @@
   "subSource": "SubSource",
   "diagnostics": "Диагностика",
   "viewLogs": "Просмотр журналов",
-  "viewLogsSubtitle": "Просмотр активности и ошибок приложения"
+  "viewLogsSubtitle": "Просмотр активности и ошибок приложения",
+  "goToExtensions": "Перейти к расширениям",
+  "noPluginsMessage": "Установите расширения для просмотра и трансляции контента."
 }

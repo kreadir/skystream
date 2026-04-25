@@ -583,5 +583,7 @@
   "subSource": "SubSource",
   "diagnostics": "Diagnose",
   "viewLogs": "Protokolle anzeigen",
-  "viewLogsSubtitle": "Anwendungsaktivität und Fehler anzeigen"
+  "viewLogsSubtitle": "Anwendungsaktivität und Fehler anzeigen",
+  "goToExtensions": "Zu den Erweiterungen gehen",
+  "noPluginsMessage": "Installieren Sie Erweiterungen, um Inhalte zu durchsuchen und zu streamen."
 }

@@ -911,10 +911,10 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'কন্টেন্ট ব্রাউজ এবং স্ট্রিম করতে এক্সটেনশন ইনস্টল করুন।';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'এক্সটেনশনে যান';
 
   @override
   String get availableSources => 'উপলব্ধ উৎস';

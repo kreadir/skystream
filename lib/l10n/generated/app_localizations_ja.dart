@@ -886,11 +886,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noPluginsInstalled => 'プラグインがインストールされていません';
 
   @override
-  String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+  String get noPluginsMessage => 'コンテンツの閲覧とストリーミングのために拡張機能をインストールしてください。';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => '拡張機能へ移動';
 
   @override
   String get availableSources => '利用可能なソース';

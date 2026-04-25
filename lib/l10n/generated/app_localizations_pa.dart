@@ -908,10 +908,10 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'ਸਮੱਗਰੀ ਨੂੰ ਬ੍ਰਾਊਜ਼ ਕਰਨ ਅਤੇ ਸਟ੍ਰੀਮ ਕਰਨ ਲਈ ਐਕਸਟੈਂਸ਼ਨਾਂ ਸਥਾਪਿਤ ਕਰੋ।';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'ਐਕਸਟੈਂਸ਼ਨਾਂ \'ਤੇ ਜਾਓ';
 
   @override
   String get availableSources => 'ਉਪਲਬਧ ਸਰੋਤ';

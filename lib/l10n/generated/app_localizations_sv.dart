@@ -901,10 +901,10 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Installera tillägg för att bläddra och strömma innehåll.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Gå till tillägg';
 
   @override
   String get availableSources => 'Tillgängliga källor';

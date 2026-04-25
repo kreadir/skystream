@@ -902,10 +902,10 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'Instalējiet paplašinājumus, lai pārlūkotu un straumētu saturu.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'Doties uz paplašinājumiem';
 
   @override
   String get availableSources => 'Pieejamie avoti';

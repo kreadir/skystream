@@ -388,7 +388,9 @@
   "openSubtitles": "OpenSubtitles",
   "subDl": "SubDL",
   "subSource": "SubSource",
-  "diagnostics": "Diagnostics",
-  "viewLogs": "View Logs",
-  "viewLogsSubtitle": "View application activity & errors"
+  "diagnostics": "ಡಯಾಗ್ನೋಸ್ಟಿಕ್ಸ್",
+  "viewLogs": "ಲಾಗ್‌ಗಳನ್ನು ನೋಡಿ",
+  "viewLogsSubtitle": "ಅಪ್ಲಿಕೇಶನ್ ಚಟುವಟಿಕೆ ಮತ್ತು ದೋಷಗಳನ್ನು ನೋಡಿ",
+  "goToExtensions": "ವಿಸ್ತರಣೆಗಳಿಗೆ ಹೋಗಿ",
+  "noPluginsMessage": "ವಿಷಯವನ್ನು ಬ್ರೌಸ್ ಮಾಡಲು ಮತ್ತು ಸ್ಟ್ರೀಮ್ ಮಾಡಲು ವಿಸ್ತರಣೆಗಳನ್ನು ಸ್ಥಾಪಿಸಿ."
 }

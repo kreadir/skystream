@@ -921,10 +921,10 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get noPluginsMessage =>
-      'Install extensions to browse and stream content.';
+      'உள்ளடக்கத்தை உலாவவும் ஸ்ட்ரீம் செய்யவும் நீட்டிப்புகளை நிறுவவும்.';
 
   @override
-  String get goToExtensions => 'Go to Extensions';
+  String get goToExtensions => 'நீட்டிப்புகளுக்குச் செல்லவும்';
 
   @override
   String get availableSources => 'கிடைக்கும் மூலங்கள்';
