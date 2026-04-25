@@ -416,13 +416,13 @@ jobs:
         run: |
           VERSION="${{ needs.version.outputs.version }}"
           export PATH="$PATH:$HOME/.pub-cache/bin"
-          dart pub global activate flutter_distributor
+          dart pub global activate fastforge
           
           # Build .deb
-          flutter_distributor package --platform linux --targets deb --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          fastforge package --platform linux --targets deb --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
           
           # Build AppImage
-          flutter_distributor package --platform linux --targets appimage --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          fastforge package --platform linux --targets appimage --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
           
           # Generate the standard .tar.gz bundle as well
           flutter build linux --release --dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}

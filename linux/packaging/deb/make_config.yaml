@@ -1,6 +1,5 @@
 display_name: SkyStream
-name: skystream
-version: ${version}
+package_name: skystream
 description: A modern, media streaming client.
 maintainer:
   name: Akash
@@ -13,3 +12,8 @@ depends:
   - libmpv-dev
   - libasound2
 icon: ios/Runner/Assets.xcassets/AppIcon.appiconset/AppIcon~ios-marketing.png
+categories:
+  - Video
+  - AudioVideo
+  - Player
+generic_name: Media Player
