@@ -405,15 +405,16 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
 
       # Keep only the Linux TorrServer binary
-      - name: Strip Unused Binaries
+      - name: Build Linux Packages
         run: |
+          VERSION="${{ needs.version.outputs.version }}"
           cd packages/flutter_torrent_server/assets/torrserver
-          ls -la
           find . -type f ! -name "${{ matrix.torrserver_binary }}" -delete
-          ls -la
+          cd ../../../..
           
           # Build .deb
-          fastforge package --platform linux --targets deb --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          flutter pub global activate fastforge
+          flutter pub global run fastforge package --platform linux --targets deb --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
           mv dist/*/*.deb "skystream-linux-${{ matrix.arch }}-${VERSION}.deb"
           
           # Prepare AppDir for AppImage (Manual Step like LocalSend)
