@@ -414,7 +414,8 @@ jobs:
           
           # Build .deb
           flutter pub global activate fastforge
-          flutter pub global run fastforge package --platform linux --targets deb --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          flutter pub global run fastforge:main package --platform linux --targets deb --build-dart-define=TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
           mv dist/*/*.deb "skystream-linux-${{ matrix.arch }}-${VERSION}.deb"
           
           # Prepare AppDir for AppImage (Manual Step like LocalSend)
