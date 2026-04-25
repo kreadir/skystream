@@ -348,7 +348,7 @@ jobs:
         run: |
           $Version = "${{ needs.version.outputs.version }}".TrimStart('v')
           $AppDir = "..\..\build\windows\${{ matrix.arch }}\runner\Release"
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=$Version /DAppArch=${{ matrix.arch }} /DAppDir=$AppDir installer\windows\setup.iss
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=$Version /DAppArch=${{ matrix.arch }} /DAppDir=$AppDir windows\packaging\exe\setup.iss
 
       - name: Compress Release (ZIP)
         shell: pwsh

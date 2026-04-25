@@ -13,7 +13,7 @@ OutputBaseFilename=SkyStream-Windows-{#AppArch}-Setup-{#AppVersion}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
-SetupIconFile=..\..\windows\runner\resources\app_icon.ico
+SetupIconFile=..\..\runner\resources\app_icon.ico
 #if AppArch == "x64"
   ArchitecturesAllowed=x64compatible
   ArchitecturesInstallIn64BitMode=x64compatible

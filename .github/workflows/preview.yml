@@ -281,7 +281,7 @@ jobs:
         shell: pwsh
         run: |
           $AppDir = "..\..\build\windows\${{ matrix.arch }}\runner\Release"
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=preview /DAppArch=${{ matrix.arch }} /DAppDir=$AppDir installer\windows\setup.iss
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=preview /DAppArch=${{ matrix.arch }} /DAppDir=$AppDir windows\packaging\exe\setup.iss
 
       - name: Compress Release
         shell: pwsh
