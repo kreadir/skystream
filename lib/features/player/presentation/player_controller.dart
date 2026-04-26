@@ -1625,6 +1625,22 @@ class PlayerController extends Notifier<PlayerState> {
         }
       }
 
+      if (Platform.isWindows) {
+        final scheme = Uri.tryParse(finalUrl)?.scheme ?? '';
+        final lowerUrl = finalUrl.toLowerCase();
+        final hasAdaptiveExtension = lowerUrl.contains('.m3u8') ||
+            lowerUrl.contains('.mpd') ||
+            lowerUrl.contains('.ism/manifest');
+        if (hasAdaptiveExtension &&
+            scheme != 'http' &&
+            scheme != 'https' &&
+            scheme != 'file') {
+          throw Exception(
+            'Unsupported URL scheme "$scheme" for native adaptive player on Windows',
+          );
+        }
+      }
+
       final subs = state.externalSubtitles;
       if (subs.isNotEmpty && _videoViewSupportsMergedExternalSubtitles) {
         _videoViewController!.openWithSubtitles(
