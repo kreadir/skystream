@@ -84,25 +84,72 @@ SkyStream is a modern, media streaming client. It draws inspiration from the ver
 | **macOS**      |            ✅             |
 | **Linux**      |            ✅             |
 
-## ✨ Key Features
+## ✨ Features
 
-| Feature | Description |
-| :--- | :--- |
-| **📺 Extensions System** | Install custom JavaScript plugins to Scrape & Stream content from any source. |
-| **📂 Direct Playback** | Instant zero-copy playback for **Local Files** (MP4/MKV) and **Torrents/Magnet Links**. |
-| **🔗 Network Streams** | Play arbitrary video URLs (M3U8, MP4) directly from settings. |
-| **⏱️ Smart History** | "Continue Watching" across all media types with robust progress tracking. |
-| **⚡ Performance** | Optimized for **90Hz/120Hz** displays, ensuring a buttery smooth experience. |
-| **🎨 Modern UI** | Material 3 Design, Dynamic Colors, and responsive layouts for Phones, Tablets, and Desktop. |
-| **🌍 Multi-language** | 40+ supported languages including Hindi, Spanish, French, German, and more. |
-| **💬 Subtitles** | Support for **External SRT/VTT** files, online search (OpenSubtitles/SubDL/SubSource), and synchronization. |
+💡 **SkyStream** is designed as a **scalable, plugin-driven, cross-platform streaming platform**—delivering flexibility, performance, and a seamless viewing experience across all devices.
+
+### 🔎 Powerful Search & Discovery
+- 🔍 **Plugin-wise Search** – Search within specific providers for more accurate results  
+- 💡 **Smart Search Suggestions** – Get real-time suggestions while typing  
+- 🌐 **Advanced Discovery (TMDB Integration)** – Explore trending, popular, and filtered content  
+- 🎯 **Custom Home Experience** – Set Explore as your default landing screen  
+- 🌍 **Multi-language Filtering** – Discover content across 40+ languages
+
+### 🎬 Advanced Streaming Experience
+- 📺 **Live Streaming Support** – Watch live content with improved reliability  
+- ▶️ **Resume Playback** – Continue watching from where you left off  
+- ⏩ **Playback Speed Control** – Adjust speed to your preference  
+- 🎚️ **Default Quality Selection** – Set preferred streaming quality  
+- 📑 **Episode Overlay** – Browse and switch episodes inside the player  
+- 🔍 **Detailed Loading Insights** – View source details while content loads
+
+### 🌐 Multi-Provider & Plugin System
+- 🔌 **Plugin-Based Architecture** – Extend functionality with custom plugins  
+- 🔁 **Multi-Provider Support** – Access multiple content sources within a single plugin  
+- 🌍 **Domain Switching** – Switch domains seamlessly for better availability  
+- 🪵 **In-App Logs (Developer Tools)** – Debug plugins directly inside the app
+
+### 💬 Subtitles & Content Flexibility
+- 🌍 **External Subtitles Support** – Integrated with:
+  - OpenSubtitles  
+  - SubDL  
+  - Subsource  
+- 📝 **Subtitle Styling** – Customizable font size and colors
+
+### 📥 Offline & External Playback
+- ⬇️ **Download Content** – Watch offline anytime  
+- 🎥 **External Player Support** – Play content in your preferred media player
+
+### 📺 Cross-Platform Support
+- 📱 Android & iOS  
+- 💻 macOS, Windows & Linux  
+- 📺 Android TV + tvOS (Apple TV) support
+
+### ⚡ Performance & Reliability
+- 🚀 **Optimized Performance** – Faster load times and smoother UI  
+- 🧠 **New JavaScript Engine (`quick_js_ng`)** – Better execution and compatibility  
+- 🌐 **DNS over HTTPS** – Bypass ISP restrictions for improved access  
+- 📉 **Reduced App Size** – Lightweight and efficient  
+- 🔧 **Stability Improvements** – Enhanced reliability across all platforms
+
+### 🎨 Modern UI/UX
+- 🎨 **Clean & Modern Interface** – Redesigned Home and Details screens  
+- 🧭 **Improved Navigation** – Explore-based content discovery  
+- 🌗 **Theme Improvements** – Better light mode and UI consistency  
+- 🖥️ **Enhanced Desktop Experience** – Improved windowed mode support
+
+### 🌍 Global Accessibility
+- 🌐 **40+ Language Support** – Fully localized experience  
+- 🎯 **Region-aware Discovery** – Content tailored to global audiences
+
+---
 
 ## 📥 Installation
 
 Download the latest version from the **[Releases Page](https://github.com/akashdh11/skystream/releases/latest)**.
 
 ### 🤖 Android / Android TV
-1. Download the `skystream-android-arm64-v8a-v2.2.1.apk` (recommended for most modern phones) or `skystream-android-armeabi-v7a-v2.2.1.apk` (for TV) from Releases.
+1. Download the `skystream-android-arm64-v8a-v2.2.7.apk` (recommended for most modern phones) or `skystream-android-armeabi-v7a-v2.2.7.apk` (for TV) from Releases.
 2. Open the file and tap **Install**.
    - *Note: You may need to allow "Install form Unknown Sources" in your browser settings.*
 3. Open SkyStream and install extensions via **Settings > Extensions**.
@@ -120,7 +167,7 @@ SkyStream is not on the App Store. You must **sideload** it using a computer.
 - [Sideloadly Video Guide](https://www.youtube.com/watch?v=vqTsavQc3lQ)
 
 **Steps:**
-1. Download `skystream-ios-unsigned-v2.2.1.ipa` from the [Releases Page](https://github.com/akashdh11/skystream/releases/latest).
+1. Download `skystream-ios-unsigned-v2.2.7.ipa` from the [Releases Page](https://github.com/akashdh11/skystream/releases/latest).
 2. Open **Impactor** or **Sideloadly** on your computer.
 3. Connect your iPhone/iPad via USB.
 4. Drag the `.ipa` file into the Sideloadly window.
@@ -131,10 +178,10 @@ SkyStream is not on the App Store. You must **sideload** it using a computer.
 9. Setup Wi-Fi sync to automatically refresh your apps in background
 
 ### 💻 Windows / macOS / Linux
-1. Download the appropriate zip/tar file for your OS (`skystream-windows.zip`, `skystream-macos.zip`, `skystream-linux.tar.gz`, etc.).
-2. Extract the archive.
-3. Run the executable (`skystream.exe`, `skystream.app`, or `./skystream`).
-   - *macOS Note: You may need to Right Click -> Open to bypass the "Unidentified Developer" warning.*
+1. Download the appropriate file for your OS (`skystream-windows.exe`, `skystream-macos.dmg`, `skystream-linux.deb`, etc.).
+2. Install the app.
+3. Run the application from your app launcher or terminal.
+   - *macOS Note: If you see an “Unidentified Developer” warning, go to Settings → Privacy & Security and click Open Anyway to allow the app (one-time step).*
    - *Linux Note: You may need to install the following packages:*
      ```bash
      sudo apt-get update
