@@ -142,8 +142,6 @@ SkyStream is a modern, media streaming client. It draws inspiration from the ver
 - 🌐 **40+ Language Support** – Fully localized experience  
 - 🎯 **Region-aware Discovery** – Content tailored to global audiences
 
----
-
 ## 📥 Installation
 
 Download the latest version from the **[Releases Page](https://github.com/akashdh11/skystream/releases/latest)**.
